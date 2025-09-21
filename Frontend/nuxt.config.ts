@@ -40,14 +40,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.API_BASE_URL || 'https://localhost:44333',
-      appName: 'BaseAuth',
+      appName: '{{PROJECT_NAME}}',
       appVersion: '1.0.0'
     }
   },
   
   app: {
     head: {
-      title: 'BaseAuth',
+      title: '{{PROJECT_NAME}}',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

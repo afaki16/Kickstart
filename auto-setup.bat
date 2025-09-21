@@ -32,6 +32,9 @@ powershell -ExecutionPolicy Bypass -Command "(Get-ChildItem -Recurse backend -In
 
 echo    🎨 Frontend yapılandırılıyor...
 powershell -ExecutionPolicy Bypass -Command "(Get-Content frontend/package.json) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content frontend/package.json"
+powershell -ExecutionPolicy Bypass -Command "(Get-Content frontend/nuxt.config.ts) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content frontend/nuxt.config.ts"
+powershell -ExecutionPolicy Bypass -Command "(Get-Content frontend/public/data.json) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content frontend/public/data.json"
+powershell -ExecutionPolicy Bypass -Command "Get-ChildItem -Recurse frontend -Include *.vue,*.ts,*.js,*.md | ForEach-Object { (Get-Content $_.FullName) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content $_.FullName }"
 
 echo    🧹 Setup dosyası temizleniyor...
 del /q auto-setup.bat

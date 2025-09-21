@@ -186,7 +186,7 @@ export const useAppData = () => {
   const getUIConfig = computed(() => appData.value?.ui || null)
 
   const getLogo = computed(() => appData.value?.app.logo || null)
-  const getBrandText = computed(() => appData.value?.app.brand.text || 'BaseAuth')
+  const getBrandText = computed(() => appData.value?.app.brand.text || '{{PROJECT_NAME}}')
   const getBackgroundImages = computed(() => appData.value?.login.backgroundImages || appData.value?.register.backgroundImages || [])
   const getThemeColors = computed(() => appData.value?.theme.colors || null)
   const getThemeGradients = computed(() => appData.value?.theme.gradients || null)

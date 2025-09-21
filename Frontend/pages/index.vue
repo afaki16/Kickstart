@@ -263,9 +263,9 @@ onUnmounted(() => {
 
 // SEO
 useHead({
-  title: 'JTWBaseAuth - Authentication System',
+  title: '{{PROJECT_NAME}} - Authentication System',
   meta: [
-    { name: 'description', content: 'Sign in to your JTWBaseAuth account' }
+    { name: 'description', content: 'Sign in to your {{PROJECT_NAME}} account' }
   ]
 })
 </script>

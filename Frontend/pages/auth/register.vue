@@ -175,9 +175,9 @@ onUnmounted(() => {
 
 // SEO
 useHead({
-  title: 'Create Account - JTWBaseAuth',
+  title: 'Create Account - {{PROJECT_NAME}}',
   meta: [
-    { name: 'description', content: 'Create your JTWBaseAuth account' }
+    { name: 'description', content: 'Create your {{PROJECT_NAME}} account' }
   ]
 })
 </script>

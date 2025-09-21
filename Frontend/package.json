@@ -1,7 +1,7 @@
 {
   "name": "{{PROJECT_NAME}}-frontend",
   "version": "1.0.0",
-  "description": "JTWBaseAuth Frontend with Nuxt.js and Vuetify",
+  "description": "{{PROJECT_NAME}} Frontend with Nuxt.js and Vuetify",
   "private": true,
   "scripts": {
     "build": "nuxt build",

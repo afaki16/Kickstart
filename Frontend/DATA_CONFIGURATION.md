@@ -21,17 +21,17 @@ gibi öğeleri kolayca özelleştirebilirsiniz.
 ```json
 {
   "app": {
-    "name": "BaseAuth",
+    "name": "{{PROJECT_NAME}}",
     "version": "1.0.0",
     "description": "Modern Authentication System",
     "logo": {
       "src": "/images/logo.svg",
-      "alt": "BaseAuth Logo",
+      "alt": "{{PROJECT_NAME}} Logo",
       "width": "32",
       "height": "32"
     },
     "brand": {
-      "text": "BaseAuth",
+      "text": "{{PROJECT_NAME}}",
       "tagline": "Secure Authentication System"
     }
   }

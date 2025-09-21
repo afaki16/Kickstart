@@ -1,1 +1,1 @@
-# BaseAuthUI
+# {{PROJECT_NAME}}

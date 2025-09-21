@@ -56,7 +56,7 @@
                 :class="`w-${appData?.app?.logo?.width || '8'} h-${appData?.app?.logo?.height || '8'} text-indigo-600`" 
                 :alt="appData?.app?.logo?.alt || 'Logo'" 
               />
-              <span class="ml-2 text-xl font-semibold text-gray-800">{{ appData?.app?.brand?.text || 'BaseAuth' }}</span>
+              <span class="ml-2 text-xl font-semibold text-gray-800">{{ appData?.app?.brand?.text || '{{PROJECT_NAME}}' }}</span>
             </div>
             <v-btn icon @click="toggleSidebar" class="ml-4">
               <v-icon>mdi-menu</v-icon>

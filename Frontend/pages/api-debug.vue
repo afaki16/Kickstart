@@ -152,6 +152,6 @@ const testLogin = async () => {
 
 // Set page title
 useHead({
-  title: 'API Debug - JTWBaseAuth'
+  title: 'API Debug - {{PROJECT_NAME}}'
 })
 </script> 

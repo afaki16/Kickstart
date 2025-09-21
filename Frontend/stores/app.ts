@@ -61,7 +61,7 @@ export const useAppStore = defineStore('app', {
     setPageTitle(title: string) {
       this.pageTitle = title
       if (process.client) {
-        document.title = title ? `${title} - JTWBaseAuth` : 'JTWBaseAuth'
+        document.title = title ? `${title} - {{PROJECT_NAME}}` : '{{PROJECT_NAME}}'
       }
     },
 
