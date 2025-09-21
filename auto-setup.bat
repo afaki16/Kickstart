@@ -20,22 +20,21 @@ echo    🎯 Proje: %PROJECT_NAME%
 echo    📦 Kurulum başlıyor...
 echo.
 
-echo    🔧 Backend yapılandırılıyor...
+echo    📁 Önce dosya/klasör adlarını değiştiriyoruz...
+powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -Directory | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
+
+powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -File | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
+
+powershell -ExecutionPolicy Bypass -Command "Get-ChildItem -Recurse backend -Include *.csproj | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
+
+echo    🔧 Backend içeriklerini yapılandırıyor...
 powershell -ExecutionPolicy Bypass -Command "(Get-ChildItem -Recurse backend -Include *.cs,*.csproj,*.sln,*.json | ForEach-Object { (Get-Content $_.FullName) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content $_.FullName })"
 
 echo    🎨 Frontend yapılandırılıyor...
 powershell -ExecutionPolicy Bypass -Command "(Get-Content frontend/package.json) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content frontend/package.json"
 
-echo    📁 Dosya adları güncelleniyor...
-powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -Directory | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
-
-powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -File | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
-
-echo    🔧 .csproj dosyalarını yeniden adlandırıyor...
-powershell -ExecutionPolicy Bypass -Command "Get-ChildItem -Recurse backend -Include *.csproj | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
-
-echo    🧹 Setup dosyaları temizleniyor...
-del /q setup.html run-setup.ps1 auto-setup.bat
+echo    🧹 Setup dosyası temizleniyor...
+del /q auto-setup.bat
 
 cls
 echo.
