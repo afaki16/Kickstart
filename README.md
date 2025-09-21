@@ -16,30 +16,27 @@ Kickstart/
 │   ├── package.json
 │   ├── nuxt.config.ts
 │   └── ...
-├── setup.html             # 🎨 Web tabanlı kurulum arayüzü
-└── run-setup.ps1          # ⚙️ PowerShell kurulum scripti
+└── auto-setup.bat         # 🎯 Tek tıkla otomatik kurulum
 ```
 
-## 🎯 Kullanım
+## 🎯 Kullanım (Süper Kolay!)
 
 ### 1. Template'i Kullan
 - GitHub'da **"Use this template"** butonuna tıkla
 - Yeni repository adını belirle
 - Repository'yi clone et
 
-### 2. Web Arayüzü ile Kurulum
-1. **setup.html** dosyasını tarayıcıda aç
+### 2. Tek Tıkla Kurulum ⚡
+1. **auto-setup.bat** dosyasına **çift tıkla**
 2. Proje adını gir (örnek: `MyAwesomeProject`)
-3. **"Projeyi Kur"** butonuna tıkla
-4. Çıkan PowerShell komutunu kopyala
-5. PowerShell'de komutu çalıştır
+3. Enter'a bas
+4. **Bitir! 🎉**
 
-### 3. Manuel Kurulum (Alternatif)
-```powershell
-PowerShell -ExecutionPolicy Bypass -Command "& { $PROJECT_NAME='YourProjectName'; . .\run-setup.ps1 }"
-```
+Bu kadar basit! Hiç komut yazmanıza gerek yok.
 
 ## 🛠 Geliştirme
+
+Kurulum bittikten sonra:
 
 ### Backend (.NET Web API)
 ```bash
@@ -57,20 +54,23 @@ npm run dev
 
 ## ✨ Özellikler
 
-- **🎨 Web tabanlı kurulum arayüzü** - Kullanıcı dostu setup
+- **⚡ Tek tıkla kurulum** - auto-setup.bat ile 3 saniyede hazır
 - **🏗️ Clean Architecture** yapısı
 - **🔐 JWT Authentication** hazır
 - **🗄️ Entity Framework** entegrasyonu
 - **⚡ Nuxt.js 3** modern frontend
 - **🔄 Otomatik dosya/klasör değiştirme**
-- **🧹 Otomatik temizlik** (setup dosyaları silinir)
+- **🧹 Otomatik temizlik** (setup dosyası kendini siler)
+- **❌ Komut satırı gerektirmez**
 
-## 📝 Kurulum Sonrası
+## 📝 Kurulum Sonrası Ne Olur?
 
-- Tüm `{{PROJECT_NAME}}` placeholder'ları otomatik değişir
-- Hem dosya isimleri hem içerikler güncellenir
-- Setup dosyaları otomatik silinir
-- Proje geliştirmeye hazır halde olur
+- ✅ Tüm `{{PROJECT_NAME}}` placeholder'ları değişir
+- ✅ Dosya ve klasör isimleri güncellenir
+- ✅ Namespace'ler otomatik düzenlenir
+- ✅ Package.json güncellenir
+- ✅ Setup dosyası kendini siler
+- ✅ Proje geliştirmeye hazır!
 
 ## 🎭 Örnek Projeler
 
@@ -80,6 +80,21 @@ Bu template ile oluşturulabilecek projeler:
 - **CRM sistemleri**
 - **API servisleri**
 - **Admin panelleri**
+- **SaaS uygulamaları**
+
+## 🚨 Sistem Gereksinimleri
+
+- Windows (auto-setup.bat için)
+- .NET 8.0+
+- Node.js 18+
+- PowerShell (Windows'ta varsayılan)
+
+## ❓ Sorun Giderme
+
+**Setup çalışmıyor mu?**
+- Klasör iznini kontrol edin
+- Antivürüs programını geçici kapatın
+- PowerShell ExecutionPolicy sorun çıkarabilir (normalde otomatik çözülür)
 
 ## 🤝 Katkıda Bulunma
 
@@ -91,4 +106,4 @@ Sorun yaşıyorsanız issue açın, yardımcı olmaya çalışırız.
 
 ---
 
-**🚀 Happy Coding! ✨**
+**🚀 Happy Coding! Artık proje kurmak çok kolay! ✨**

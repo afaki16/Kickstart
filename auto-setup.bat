@@ -31,6 +31,9 @@ powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -Directory | 
 
 powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -File | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
 
+echo    🔧 .csproj dosyalarını yeniden adlandırıyor...
+powershell -ExecutionPolicy Bypass -Command "Get-ChildItem -Recurse backend -Include *.csproj | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
+
 echo    🧹 Setup dosyaları temizleniyor...
 del /q setup.html run-setup.ps1 auto-setup.bat
 
