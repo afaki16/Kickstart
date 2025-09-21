@@ -1,0 +1,504 @@
+/* ========================================
+   GLOBAL FORM STYLES - Admin Panel
+   ======================================== */
+
+/* ========================================
+   CONTAINER & LAYOUT
+   ======================================== */
+/* Container */
+.form-container {
+  padding-top: 8px;
+  border-radius: 20px;
+  margin: 16px;
+  background: white;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.1);
+}
+
+.form-container--no-border {
+  border: none;
+  box-shadow: none;
+  margin: 0;
+}
+
+/* Form Content */
+.form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+/* ========================================
+   CARDS & COMPONENTS
+   ======================================== */
+/* Cards - Base Styling */
+.form-card {
+  border-radius: 16px !important;
+  border: 1px solid #e2e8f0 !important;
+  overflow: hidden;
+}
+
+.form-card:deep(.v-card) {
+  border-radius: 16px !important;
+}
+
+.form-card-title {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  padding: 20px 24px !important;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 600;
+  color: #1e293b;
+  border-radius: 16px !important;
+}
+
+.form-card-title-icon {
+  color: #3b82f6;
+}
+
+.form-card-content {
+  padding: 24px !important;
+}
+
+/* ========================================
+   INPUT FIELDS & GROUPS
+   ======================================== */
+/* Input Groups */
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.input-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.input-row--single {
+  grid-template-columns: 1fr;
+}
+
+.input-row--triple {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Modern Input Styling */
+.modern-input:deep(.v-field) {
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.modern-input:deep(.v-field--focused) {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.modern-input:deep(.v-field--error) {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+/* ========================================
+   SEARCH & QUICK ACTIONS
+   ======================================== */
+/* Search Components */
+.search-container {
+  margin-bottom: 20px;
+}
+
+.search-input:deep(.v-field) {
+  border-radius: 12px;
+  background: #f8fafc;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.quick-actions--centered {
+  justify-content: center;
+}
+
+.quick-actions--end {
+  justify-content: flex-end;
+}
+
+/* ========================================
+   GRID LAYOUTS
+   ======================================== */
+/* Grid Layouts */
+.selection-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.selection-grid--small {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+.selection-grid--large {
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+}
+
+/* ========================================
+   SELECTION ITEMS
+   ======================================== */
+/* Selection Items */
+.selection-item {
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  background: white;
+}
+
+.selection-item:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.selection-item--selected {
+  border-color: #3b82f6;
+  background: #f0f7ff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+}
+
+.selection-item-checkbox {
+  margin: 0 !important;
+  flex-shrink: 0;
+}
+
+.selection-item-checkbox:deep(.v-selection-control) {
+  min-height: auto !important;
+}
+
+.selection-item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.selection-item-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.selection-item-name {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+}
+
+.selection-item-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0 0 12px 0;
+  line-height: 1.4;
+}
+
+.selection-item-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* ========================================
+   STATUS COMPONENTS
+   ======================================== */
+/* Status Components */
+.status-switch {
+  margin-bottom: 12px;
+}
+
+.status-switch:deep(.v-switch__track) {
+  opacity: 1 !important;
+}
+
+.status-label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.status-text {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.status-description {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ========================================
+   TREE COMPONENTS
+   ======================================== */
+/* Tree Components */
+.tree-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: white;
+  overflow: hidden;
+}
+
+.tree-group {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tree-group:last-child {
+  border-bottom: none;
+}
+
+.tree-group-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  user-select: none;
+}
+
+.tree-group-header:hover {
+  background: #f8fafc;
+}
+
+.tree-chevron {
+  color: #64748b;
+  transition: transform 0.2s ease;
+  font-size: 16px;
+}
+
+.tree-chevron--expanded {
+  transform: rotate(90deg);
+}
+
+.tree-group-checkbox {
+  margin: 0 !important;
+}
+
+.tree-group-checkbox:deep(.v-selection-control) {
+  min-height: auto !important;
+}
+
+.tree-group-title {
+  font-weight: 500;
+  color: #1e293b;
+  font-size: 0.875rem;
+}
+
+.tree-items-container {
+  padding: 8px 16px 16px 40px;
+  background: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+}
+
+.tree-item {
+  padding: 2px 0;
+}
+
+.tree-item-checkbox:deep(.v-label) {
+  font-size: 0.875rem !important;
+  color: #374151 !important;
+}
+
+/* ========================================
+   EMPTY STATES
+   ======================================== */
+/* Empty States */
+.empty-state {
+  text-align: center;
+  padding: 60px 24px;
+}
+
+.empty-state-icon {
+  margin-bottom: 16px;
+}
+
+.empty-state-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0 0 8px 0;
+}
+
+.empty-state-text {
+  color: #64748b;
+  margin: 0;
+}
+
+/* ========================================
+   FORM ACTIONS & BUTTONS
+   ======================================== */
+/* Form Actions */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 24px;
+  margin: 0;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-top: 1px solid #e2e8f0;
+  z-index: 10;
+}
+
+.form-actions--centered {
+  justify-content: center;
+}
+
+.form-actions--between {
+  justify-content: space-between;
+}
+
+.form-actions--start {
+  justify-content: flex-start;
+}
+
+/* Buttons */
+.btn-cancel {
+  min-width: 120px;
+}
+
+.btn-submit {
+  min-width: 120px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%) !important;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+}
+
+/* ========================================
+   CHIPS & TAGS
+   ======================================== */
+/* Chips and Tags */
+.form-chip {
+  font-size: 0.75rem !important;
+}
+
+.form-chip--more {
+  color: #64748b !important;
+}
+
+/* ========================================
+   DIALOG MODIFICATIONS
+   ======================================== */
+/* Dialog Modifications */
+.form-dialog-content {
+  padding: 0 !important;
+}
+
+.form-dialog .form-container {
+  border: none;
+  margin: 0;
+  box-shadow: none;
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+/* Responsive Design */
+@media (max-width: 1024px) {
+  .input-row--triple {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .selection-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  }
+  
+  .quick-actions {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    padding-top: 4px;
+    margin: 8px;
+    border-radius: 16px;
+  }
+  
+  .form-content {
+    gap: 16px;
+  }
+  
+  .form-card-title {
+    padding: 16px 20px !important;
+  }
+  
+  .form-card-content {
+    padding: 20px !important;
+  }
+  
+  .input-row,
+  .input-row--triple {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .selection-grid,
+  .selection-grid--small,
+  .selection-grid--large {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-actions {
+    flex-direction: column-reverse;
+    padding: 16px 20px;
+  }
+  
+  .btn-cancel,
+  .btn-submit {
+    width: 100%;
+    min-width: auto;
+  }
+  
+  .quick-actions {
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 640px) {
+  .form-container {
+    margin: 4px;
+    border-radius: 12px;
+  }
+  
+  .selection-item {
+    padding: 12px;
+  }
+  
+  .selection-item-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  
+  .form-chip {
+    font-size: 0.7rem !important;
+  }
+  
+  .tree-items-container {
+    padding: 8px 12px 12px 32px;
+  }
+}
+

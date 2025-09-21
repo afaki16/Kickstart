@@ -1,0 +1,163 @@
+{
+  "app": {
+    "name": "BaseAuth",
+    "version": "1.0.0",
+    "description": "Modern Authentication System",
+    "logo": {
+      "src": "/images/logo.svg",
+      "alt": "BaseAuth Logo",
+      "width": "32",
+      "height": "32"
+    },
+    "brand": {
+      "text": "BaseAuth",
+      "tagline": "Secure Authentication System"
+    }
+  },
+  "theme": {
+    "colors": {
+      "primary": {
+        "main": "#667eea",
+        "light": "#8b9df0",
+        "dark": "#4c63d2",
+        "gradient": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+      },
+      "secondary": {
+        "main": "#764ba2",
+        "light": "#9b6bc4",
+        "dark": "#5a3b7a"
+      },
+      "accent": {
+        "main": "#82B1FF",
+        "light": "#a8c8ff",
+        "dark": "#5c8aff"
+      },
+      "success": "#4CAF50",
+      "warning": "#FB8C00",
+      "error": "#FF5252",
+      "info": "#2196F3",
+      "background": {
+        "light": "#FAFAFA",
+        "dark": "#121212"
+      },
+      "surface": {
+        "light": "#FFFFFF",
+        "dark": "#1E1E1E"
+      },
+      "text": {
+        "primary": "#333333",
+        "secondary": "#666666",
+        "disabled": "#999999"
+      }
+    },
+    "gradients": {
+      "navbar": "linear-gradient(135deg, #ffffff 0%, #2563eb 100%)",
+      "login": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      "register": "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
+      "button": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+    }
+  },
+  "login": {
+    "backgroundImages": [
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80",
+      "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=2126&q=80",
+      "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2125&q=80",
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+    ],
+    "rotationInterval": 3000,
+    "overlay": {
+      "opacity": 0.4,
+      "color": "rgba(0, 0, 0, 0.4)"
+    },
+    "card": {
+      "background": "rgba(255, 255, 255, 0.1)",
+      "backdropFilter": "blur(20px)",
+      "borderRadius": "20px",
+      "border": "1px solid rgba(255, 255, 255, 0.2)",
+      "shadow": "0 25px 45px rgba(0, 0, 0, 0.2)"
+    },
+    "texts": {
+      "welcome": "Welcome Back",
+      "subtitle": "Sign in to your account",
+      "emailLabel": "Email Address",
+      "passwordLabel": "Password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign In",
+      "divider": "or",
+      "noAccount": "Don't have an account?",
+      "createAccount": "Create Account"
+    }
+  },
+  "register": {
+    "backgroundImages": [
+      "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80",
+      "https://images.unsplash.com/photo-1557804506-669a67965ba0?ixlib=rb-4.0.3&auto=format&fit=crop&w=2074&q=80",
+      "https://images.unsplash.com/photo-1560472354-b33ff0c44a43?ixlib=rb-4.0.3&auto=format&fit=crop&w=2126&q=80",
+      "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2125&q=80",
+      "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
+    ],
+    "rotationInterval": 3000,
+    "overlay": {
+      "opacity": 0.4,
+      "color": "rgba(0, 0, 0, 0.4)"
+    },
+    "card": {
+      "background": "rgba(255, 255, 255, 0.1)",
+      "backdropFilter": "blur(20px)",
+      "borderRadius": "20px",
+      "border": "1px solid rgba(255, 255, 255, 0.2)",
+      "shadow": "0 25px 45px rgba(0, 0, 0, 0.2)"
+    },
+    "texts": {
+      "welcome": "Create Account",
+      "subtitle": "Join us today and get started",
+      "firstNameLabel": "First Name",
+      "lastNameLabel": "Last Name",
+      "emailLabel": "Email Address",
+      "phoneLabel": "Phone Number (Optional)",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "passwordStrength": "Password Strength",
+      "agreeTo": "I agree to the",
+      "terms": "Terms of Service",
+      "and": "and",
+      "privacy": "Privacy Policy",
+      "createAccount": "Create Account",
+      "divider": "or",
+      "alreadyHaveAccount": "Already have an account?",
+      "signIn": "Sign In"
+    }
+  },
+  "navigation": {
+    "sidebar": {
+      "width": "256px",
+      "background": "#ffffff",
+      "shadow": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
+      "borderColor": "#e5e7eb"
+    },
+    "navbar": {
+      "height": "64px",
+      "background": "linear-gradient(135deg, #ffffff 0%, #2563eb 100%)",
+      "shadow": "0 1px 3px rgba(0, 0, 0, 0.1)"
+    }
+  },
+  "ui": {
+    "borderRadius": {
+      "small": "8px",
+      "medium": "12px",
+      "large": "20px"
+    },
+    "shadows": {
+      "small": "0 2px 4px rgba(0, 0, 0, 0.1)",
+      "medium": "0 4px 8px rgba(0, 0, 0, 0.1)",
+      "large": "0 8px 16px rgba(0, 0, 0, 0.1)"
+    },
+    "transitions": {
+      "fast": "0.2s ease",
+      "medium": "0.3s ease",
+      "slow": "0.5s ease"
+    }
+  }
+}
