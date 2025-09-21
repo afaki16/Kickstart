@@ -1,18 +1,17 @@
-# Kickstart Template Setup Script
-Write-Host "🚀 Kickstart Template - Proje Kurulumu" -ForegroundColor Green
-Write-Host "=====================================" -ForegroundColor Green
-Write-Host ""
-
-$PROJECT_NAME = Read-Host "Yeni proje adını girin (örnek: MyAwesomeProject)"
+# Kickstart Template - PowerShell Setup Script
+param(
+    [Parameter(Mandatory=$false)]
+    [string]$PROJECT_NAME
+)
 
 if ([string]::IsNullOrWhiteSpace($PROJECT_NAME)) {
-    Write-Host "❌ Proje adı boş olamaz!" -ForegroundColor Red
-    Read-Host "Devam etmek için Enter'a basın"
+    Write-Host "❌ PROJECT_NAME parametresi gerekli!" -ForegroundColor Red
+    Write-Host "Kullanım: PowerShell -ExecutionPolicy Bypass -Command `"& { `$PROJECT_NAME='YourProject'; . .\run-setup.ps1 }`"" -ForegroundColor Yellow
     exit 1
 }
 
-Write-Host ""
-Write-Host "📝 Proje adı '$PROJECT_NAME' olarak belirlendi" -ForegroundColor Yellow
+Write-Host "🚀 Kickstart Template Kurulumu Başlıyor..." -ForegroundColor Green
+Write-Host "📝 Proje Adı: $PROJECT_NAME" -ForegroundColor Yellow
 Write-Host ""
 
 try {
@@ -32,32 +31,34 @@ try {
     Write-Host "📁 Klasör adları güncelleniyor..." -ForegroundColor Cyan
     Get-ChildItem backend -Directory | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { 
         $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', $PROJECT_NAME
-        Write-Host "  Değiştiriliyor: $($_.Name) -> $newName" -ForegroundColor Gray
+        Write-Host "  ✓ $($_.Name) -> $newName" -ForegroundColor Gray
         Rename-Item $_.FullName $newName
     }
 
     # Backend dosya adlarını değiştir
     Get-ChildItem backend -File | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { 
         $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', $PROJECT_NAME
-        Write-Host "  Değiştiriliyor: $($_.Name) -> $newName" -ForegroundColor Gray
+        Write-Host "  ✓ $($_.Name) -> $newName" -ForegroundColor Gray
         Rename-Item $_.FullName $newName
     }
 
     # Setup dosyalarını temizle
-    Write-Host "🧹 Kurulum dosyaları temizleniyor..." -ForegroundColor Cyan
-    Remove-Item "setup.ps1" -Force
+    Write-Host "🧹 Setup dosyaları temizleniyor..." -ForegroundColor Cyan
+    Remove-Item "setup.html" -Force -ErrorAction SilentlyContinue
+    Remove-Item "run-setup.ps1" -Force -ErrorAction SilentlyContinue
 
     Write-Host ""
-    Write-Host "✅ Kurulum tamamlandı!" -ForegroundColor Green
-    Write-Host "🎉 Proje adı: $PROJECT_NAME" -ForegroundColor Green
+    Write-Host "✅ Kurulum Tamamlandı! 🎉" -ForegroundColor Green
+    Write-Host "📁 Proje: $PROJECT_NAME" -ForegroundColor Green
     Write-Host ""
-    Write-Host "📋 Sonraki adımlar:" -ForegroundColor Yellow
+    Write-Host "📋 Sonraki Adımlar:" -ForegroundColor Yellow
     Write-Host "1. Backend: cd backend && dotnet restore && dotnet run" -ForegroundColor White
     Write-Host "2. Frontend: cd frontend && npm install && npm run dev" -ForegroundColor White
     Write-Host ""
     
 } catch {
-    Write-Host "❌ Hata oluştu: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "❌ Hata: $($_.Exception.Message)" -ForegroundColor Red
+    exit 1
 }
 
-Read-Host "Devam etmek için Enter'a basın"
+Write-Host "🚀 Happy Coding!" -ForegroundColor Magenta

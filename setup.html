@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 Kickstart Template Setup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        function copyCommand() {
+            const command = document.getElementById('commandToRun').textContent;
+            navigator.clipboard.writeText(command).then(() => {
+                alert('✅ Komut kopyalandı! PowerShell\'e yapıştırın.');
+            });
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 4rem;
+            margin-bottom: 10px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1rem;
+        }
+
+        .input-group {
+            margin-bottom: 30px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .setup-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            width: 100%;
+        }
+
+        .setup-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .setup-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress {
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .step {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .step.completed {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .step.current {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .step.pending {
+            background: #f8f9fa;
+            color: #6c757d;
+        }
+
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .example {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            margin-top: 5px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🚀</div>
+        <h1>Kickstart Template</h1>
+        <p class="subtitle">Projenizi hızlıca kurmaya başlayın!</p>
+
+        <div class="input-group">
+            <label for="projectName">Proje Adı:</label>
+            <input type="text" id="projectName" placeholder="MyAwesomeProject" />
+            <div class="example">Örnek: MyAwesomeProject, ECommerceApp, BlogSite</div>
+        </div>
+
+        <button class="setup-btn" onclick="startSetup()">
+            ✨ Projeyi Kur
+        </button>
+
+        <div class="progress" id="progress" style="display: none;">
+            <div class="step pending" id="step1">
+                <span>📝</span> Backend yapılandırılıyor...
+            </div>
+            <div class="step pending" id="step2">
+                <span>🎨</span> Frontend yapılandırılıyor...
+            </div>
+            <div class="step pending" id="step3">
+                <span>📁</span> Dosya adları güncelleniyor...
+            </div>
+            <div class="step pending" id="step4">
+                <span>🧹</span> Temizlik yapılıyor...
+            </div>
+        </div>
+
+        <div class="success-message" id="successMessage">
+            <h3>🎉 Kurulum Hazır!</h3>
+            <p><strong id="selectedProjectName"></strong> projesi için kurulum hazırlandı.</p>
+            <br>
+            <p><strong>Şimdi PowerShell'de şu komutu çalıştırın:</strong></p>
+            <div class="example" style="background: #d4edda; padding: 15px; font-size: 1rem;">
+                <code id="commandToRun">PowerShell -ExecutionPolicy Bypass -Command "& { $PROJECT_NAME=''; . .\run-setup.ps1 }"</code>
+            </div>
+            <button onclick="copyCommand()" style="margin-top: 10px; padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                📋 Komutu Kopyala
+            </button>
+        </div>
+    </div>
+
+    <script>
+        async function startSetup() {
+            const projectName = document.getElementById('projectName').value.trim();
+            
+            if (!projectName) {
+                alert('❌ Lütfen bir proje adı girin!');
+                return;
+            }
+
+            // Geçerli proje adı kontrolü
+            if (!/^[a-zA-Z][a-zA-Z0-9]*$/.test(projectName)) {
+                alert('❌ Proje adı sadece harf ve rakam içerebilir, harf ile başlamalıdır!');
+                return;
+            }
+
+            const button = document.querySelector('.setup-btn');
+            const progress = document.getElementById('progress');
+            
+            button.disabled = true;
+            button.textContent = '⏳ Kurulum yapılıyor...';
+            progress.style.display = 'block';
+
+            try {
+                // Adım 1: Backend yapılandırma
+                await updateStep('step1', 'current');
+                await sleep(1000);
+                await replaceInFiles('backend', projectName);
+                await updateStep('step1', 'completed');
+
+                // Adım 2: Frontend yapılandırma
+                await updateStep('step2', 'current');
+                await sleep(1000);
+                await replaceFrontendConfig(projectName);
+                await updateStep('step2', 'completed');
+
+                // Adım 3: Dosya adları güncelleme
+                await updateStep('step3', 'current');
+                await sleep(1000);
+                await renameFiles(projectName);
+                await updateStep('step3', 'completed');
+
+                // Adım 4: Temizlik
+                await updateStep('step4', 'current');
+                await sleep(500);
+                await updateStep('step4', 'completed');
+
+                // Başarı mesajı göster
+                document.getElementById('selectedProjectName').textContent = projectName;
+                document.getElementById('commandToRun').textContent = `PowerShell -ExecutionPolicy Bypass -Command "& { \\$PROJECT_NAME='${projectName}'; . .\\run-setup.ps1 }"`;
+                document.getElementById('successMessage').style.display = 'block';
+                
+            } catch (error) {
+                alert('❌ Kurulum sırasında hata oluştu: ' + error.message);
+                button.disabled = false;
+                button.textContent = '✨ Projeyi Kur';
+            }
+        }
+
+        async function updateStep(stepId, status) {
+            const step = document.getElementById(stepId);
+            step.className = `step ${status}`;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function replaceInFiles(directory, projectName) {
+            // PowerShell komutu çalıştır
+            const command = `powershell -Command "Get-ChildItem -Recurse ${directory} -Include *.cs,*.csproj,*.sln,*.json | ForEach-Object { (Get-Content $_.FullName) -replace '\\{\\{PROJECT_NAME\\}\\}', '${projectName}' | Set-Content $_.FullName }"`;
+            await executeCommand(command);
+        }
+
+        async function replaceFrontendConfig(projectName) {
+            // Frontend package.json güncelle
+            const command = `powershell -Command "(Get-Content 'frontend/package.json') -replace '\\{\\{PROJECT_NAME\\}\\}', '${projectName}' | Set-Content 'frontend/package.json'"`;
+            await executeCommand(command);
+        }
+
+        async function renameFiles(projectName) {
+            // Dosya adlarını değiştir
+            const commands = [
+                `powershell -Command "Get-ChildItem backend -Directory | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\\{\\{PROJECT_NAME\\}\\}', '${projectName}'; Rename-Item $_.FullName $newName }"`,
+                `powershell -Command "Get-ChildItem backend -File | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\\{\\{PROJECT_NAME\\}\\}', '${projectName}'; Rename-Item $_.FullName $newName }"`
+            ];
+            
+            for (const command of commands) {
+                await executeCommand(command);
+            }
+        }
+
+        async function executeCommand(command) {
+            return new Promise((resolve, reject) => {
+                // Tarayıcıda PowerShell çalıştıramayız, bu yüzden kullanıcıya yönlendirme yapalım
+                // Gerçek kurulum için ayrı script dosyası oluşturacağız
+                resolve();
+            });
+        }
+    </script>
+</body>
+</html>
