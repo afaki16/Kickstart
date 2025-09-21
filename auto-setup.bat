@@ -1,0 +1,48 @@
+@echo off
+chcp 65001 >nul
+cls
+echo.
+echo    🚀 Kickstart Template - Otomatik Kurulum
+echo    =======================================
+echo.
+echo    Proje adını girin (örnek: MyAwesomeProject):
+set /p PROJECT_NAME=
+
+if "%PROJECT_NAME%"=="" (
+    echo    ❌ Proje adı boş olamaz!
+    pause
+    exit /b 1
+)
+
+cls
+echo.
+echo    🎯 Proje: %PROJECT_NAME%
+echo    📦 Kurulum başlıyor...
+echo.
+
+echo    🔧 Backend yapılandırılıyor...
+powershell -ExecutionPolicy Bypass -Command "(Get-ChildItem -Recurse backend -Include *.cs,*.csproj,*.sln,*.json | ForEach-Object { (Get-Content $_.FullName) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content $_.FullName })"
+
+echo    🎨 Frontend yapılandırılıyor...
+powershell -ExecutionPolicy Bypass -Command "(Get-Content frontend/package.json) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content frontend/package.json"
+
+echo    📁 Dosya adları güncelleniyor...
+powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -Directory | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
+
+powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -File | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
+
+echo    🧹 Setup dosyaları temizleniyor...
+del /q setup.html run-setup.ps1 auto-setup.bat
+
+cls
+echo.
+echo    ✅ Kurulum Tamamlandı! 🎉
+echo    📁 Proje: %PROJECT_NAME%
+echo.
+echo    📋 Sonraki Adımlar:
+echo    1. Backend: cd backend ^&^& dotnet restore ^&^& dotnet run
+echo    2. Frontend: cd frontend ^&^& npm install ^&^& npm run dev
+echo.
+echo    🚀 Happy Coding!
+echo.
+pause
