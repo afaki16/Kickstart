@@ -1,4 +1,5 @@
 @echo off
+setlocal enabledelayedexpansion
 chcp 65001 >nul
 echo 🚀 Kickstart Template - Proje Kurulumu
 echo =====================================
@@ -23,17 +24,9 @@ echo 🎨 Frontend yapılandırılıyor...
 powershell -Command "(Get-Content frontend/package.json) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content frontend/package.json"
 
 echo 📁 Dosya adları güncelleniyor...
-for /d %%i in (backend\{{PROJECT_NAME}}*) do (
-    set "oldname=%%i"
-    set "newname=!oldname:{{PROJECT_NAME}}=%PROJECT_NAME%!"
-    ren "%%i" "!newname!"
-)
+powershell -Command "Get-ChildItem backend -Directory | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
 
-for %%i in (backend\{{PROJECT_NAME}}*) do (
-    set "oldname=%%i"
-    set "newname=!oldname:{{PROJECT_NAME}}=%PROJECT_NAME%!"
-    ren "%%i" "!newname!"
-)
+powershell -Command "Get-ChildItem backend -File | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
 
 echo 🧹 Kurulum dosyaları temizleniyor...
 del /q setup.bat
