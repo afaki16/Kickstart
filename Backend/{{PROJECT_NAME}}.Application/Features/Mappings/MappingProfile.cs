@@ -73,9 +73,7 @@ namespace {{PROJECT_NAME}}.Application.Mappings
                 .ForMember(dest => dest.IndividualPermissions, opt => opt.MapFrom(src => 
                     src.Type.GetIndividualPermissions().Select(p => p.ToString()).ToList()));
 
-            CreateMap<CreatePermissionDto, Permission>();
-            CreateMap<UpdatePermissionDto, Permission>()
-                .ForMember(dest => dest.CreatedDate, opt => opt.Ignore());
+           
 
             // UserRole mappings
             CreateMap<UserRole, UserDto>()
