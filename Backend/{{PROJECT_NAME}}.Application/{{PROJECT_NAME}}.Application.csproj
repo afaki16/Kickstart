@@ -21,4 +21,8 @@
 		<ProjectReference Include="..\{{PROJECT_NAME}}.Domain\{{PROJECT_NAME}}.Domain.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <Folder Include="Features\Permissions\Commands\" />
+	</ItemGroup>
+
 </Project>
