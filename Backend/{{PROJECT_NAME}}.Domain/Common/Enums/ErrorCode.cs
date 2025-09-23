@@ -1,8 +1,7 @@
 ﻿
-namespace {{PROJECT_NAME}}.Domain.Common.Enums
+namespace {{PROJECT_NAME}}.Domain.Common.Enums;
 public enum ErrorCode
 {
-    // General Errors (1000-1099)
     InvalidRequest = 1000,
     ValidationFailed = 1001,
     NotFound = 1002,
