@@ -5,12 +5,12 @@ namespace {{PROJECT_NAME}}.Domain.Models;
 public class Error
 {
     public int Status { get; }
-    public {{PROJECT_NAME}}ErrorCode Code { get; }
+    public ErrorCode Code { get; }
     public string Message { get; }
     public IDictionary<string, string[]>? ValidationErrors { get; }
 
     public Error(
-        {{PROJECT_NAME}}ErrorCode code,
+        ErrorCode code,
         string message,
         int status = 400,
         IDictionary<string, string[]>? validationErrors = null)
@@ -22,7 +22,7 @@ public class Error
     }
 
     public static Error Validation(
-        {{PROJECT_NAME}}ErrorCode code,
+        ErrorCode code,
         string message,
         IDictionary<string, string[]> validationErrors)
     {
@@ -34,7 +34,7 @@ public class Error
     }
 
     public static Error Failure(
-        {{PROJECT_NAME}}ErrorCode code,
+        ErrorCode code,
         string message,
         int status = 400)
     {
