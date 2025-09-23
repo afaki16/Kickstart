@@ -1,4 +1,4 @@
-namespace {{PROJECT_NAME }}.Domain.Constants
+namespace {{PROJECT_NAME}}.Domain.Constants
 {
     public static class Permissions
 {

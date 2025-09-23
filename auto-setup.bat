@@ -28,7 +28,7 @@ powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -File | Where
 powershell -ExecutionPolicy Bypass -Command "Get-ChildItem -Recurse backend -Include *.csproj | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
 
 echo    🔧 Backend içeriklerini yapılandırıyor...
-powershell -ExecutionPolicy Bypass -Command "(Get-ChildItem -Recurse backend -Include *.cs,*.csproj,*.sln,*.json,*.http | ForEach-Object { (Get-Content $_.FullName) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content $_.FullName })"
+powershell -ExecutionPolicy Bypass -Command "(Get-ChildItem -Recurse backend -Include *.cs,*.csproj,*.sln,*.json,*.http,*.API | ForEach-Object { (Get-Content $_.FullName) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content $_.FullName })"
 
 echo    🎨 Frontend tamamen yapılandırılıyor...
 powershell -ExecutionPolicy Bypass -Command "(Get-Content frontend/package.json) -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%' | Set-Content frontend/package.json"
