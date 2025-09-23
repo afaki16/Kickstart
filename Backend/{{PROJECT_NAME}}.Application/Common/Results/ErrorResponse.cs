@@ -1,8 +1,8 @@
 using System.Text.Json.Serialization;
-using DentBook.Domain.Common.Enums;
-using DentBook.Domain.Models;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
+using {{PROJECT_NAME}}.Domain.Models;
 
-namespace DentBook.Application.Common.Results;
+namespace {{PROJECT_NAME}}.Application.Common.Results;
 
 public class ErrorResponse
 {
@@ -10,7 +10,7 @@ public class ErrorResponse
     public int Status { get; set; } = 400;
 
     [JsonPropertyName("code")]
-    public DentbookErrorCode Code { get; set; }
+    public ErrorCode Code { get; set; }
 
     [JsonPropertyName("errors")]
     public Dictionary<string, string[]> Errors { get; set; } = new();

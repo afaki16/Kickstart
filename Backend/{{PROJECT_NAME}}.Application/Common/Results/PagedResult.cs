@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using DentBook.Domain.Models;
+using {{PROJECT_NAME}}.Domain.Models;
 
-namespace DentBook.Application.Common.Results;
+namespace {{PROJECT_NAME}}.Application.Common.Results;
 
 public class PagedResult<T> : Result
 {

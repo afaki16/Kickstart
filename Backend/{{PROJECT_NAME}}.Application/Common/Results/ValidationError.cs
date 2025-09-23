@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using DentBook.Domain.Common.Enums;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 
-namespace DentBook.Application.Common.Results;
+namespace {{PROJECT_NAME}}.Application.Common.Results;
 
 /// <summary>
 /// Doğrulama hatası bilgilerini temsil eden sınıf
@@ -12,7 +12,7 @@ public class ValidationError : Domain.Models.Error
     public string PropertyName { get; }
 
     public ValidationError(string propertyName, string message) 
-        : base(DentbookErrorCode.ValidationFailed, message)
+        : base(ErrorCode.ValidationFailed, message)
     {
         PropertyName = propertyName;
     }

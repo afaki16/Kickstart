@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace DentBook.Application.Common.Results;
+namespace {{PROJECT_NAME}}.Application.Common.Results;
 
 public static class ResultExtensions
 {
