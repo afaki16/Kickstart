@@ -1,4 +1,5 @@
 using FluentValidation;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Common;
 using MediatR;
 using System.Collections.Generic;
