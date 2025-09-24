@@ -1,5 +1,6 @@
 using {{PROJECT_NAME}}.Domain.Common;
 using Microsoft.AspNetCore.Mvc;
+using {{PROJECT_NAME}}.Application.Common.Results;
 
 namespace {{PROJECT_NAME}}.API.Controllers
 {
@@ -12,10 +13,10 @@ namespace {{PROJECT_NAME}}.API.Controllers
         {
             if (result.IsSuccess)
             {
-                if (result.Data == null)
+                if (result.Value == null)
                     return NotFound();
 
-                return Ok(new { success = true, data = result.Data });
+                return Ok(new { success = true, data = result.Value });
             }
 
             if (result.Errors?.Count > 1)

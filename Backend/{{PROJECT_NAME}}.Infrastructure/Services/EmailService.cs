@@ -1,6 +1,7 @@
 using {{PROJECT_NAME}}.Application.Services;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Domain.Models;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

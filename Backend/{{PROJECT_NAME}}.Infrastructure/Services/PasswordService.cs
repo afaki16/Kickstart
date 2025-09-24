@@ -5,6 +5,8 @@ using {{PROJECT_NAME}}.Application.Common.Results;
 using System;
 using System.Text;
 using System.Text.RegularExpressions;
+using {{PROJECT_NAME}}.Domain.Models;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 
 namespace {{PROJECT_NAME}}.Infrastructure.Services
 {

@@ -4,6 +4,8 @@ using {{PROJECT_NAME}}.Application.Services;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Common;
 using {{PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Domain.Models;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -55,11 +57,15 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
 
             var accessTokenResult = await GenerateAccessTokenAsync(user);
             if (!accessTokenResult.IsSuccess)
-                return Result<LoginResponseDto>.Failure(accessTokenResult.Errors.ToArray());
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InternalError,
+                    "Failed to generate access token"));
 
-            var refreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent, deviceId, deviceName);
+            var refreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent);
             if (!refreshTokenResult.IsSuccess)
-                return Result<LoginResponseDto>.Failure(refreshTokenResult.Errors.ToArray());
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InternalError,
+                    "Failed to generate refresh token"));
 
             user.LastLoginDate = DateTime.UtcNow;
             _unitOfWork.Users.Update(user);
@@ -237,72 +243,88 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
             return "Unknown";
         }
 
-        public async Task<Result<LoginResponseDto>> RefreshTokenAsync(string accessToken, string refreshToken, string ipAddress, string userAgent)
+    public async Task<Result<LoginResponseDto>> RefreshTokenAsync(string accessToken, string refreshToken, string ipAddress, string userAgent)
+    {
+        try
         {
-            try
+            var principal = GetClaimsFromExpiredToken(accessToken);
+            if (principal == null)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Invalid access token"));
+
+            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Invalid user ID in token"));
+
+            var storedRefreshToken = await _unitOfWork.RefreshTokens.GetByTokenAsync(refreshToken);
+            if (storedRefreshToken == null || storedRefreshToken.UserId != userId)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Invalid refresh token"));
+
+            if (!storedRefreshToken.IsActive)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Refresh token is not active"));
+
+            var user = await _unitOfWork.Users.GetUserWithPermissionsAsync(userId);
+            if (user == null)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.NotFound,
+                    "User not found"));
+
+            // Revoke old refresh token
+            storedRefreshToken.IsRevoked = true;
+            _unitOfWork.RefreshTokens.Update(storedRefreshToken);
+
+            // Generate new tokens
+            // Generate new tokens
+            var newAccessTokenResult = await GenerateAccessTokenAsync(user);
+            if (!newAccessTokenResult.IsSuccess)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InternalError,
+                    "Failed to generate access token"));
+
+            var newRefreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent);
+            if (!newRefreshTokenResult.IsSuccess)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InternalError,
+                    "Failed to generate refresh token"));
+
+            var response = new LoginResponseDto
             {
-                var principal = GetClaimsFromExpiredToken(accessToken);
-                if (principal == null)
-                    return Result.Failure<LoginResponseDto>("Invalid access token");
-
-                var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (!int.TryParse(userIdClaim, out var userId))
-                    return Result.Failure<LoginResponseDto>("Invalid user ID in token");
-
-                var storedRefreshToken = await _unitOfWork.RefreshTokens.GetByTokenAsync(refreshToken);
-                if (storedRefreshToken == null || storedRefreshToken.UserId != userId)
-                    return Result.Failure<LoginResponseDto>("Invalid refresh token");
-
-                if (!storedRefreshToken.IsActive)
-                    return Result.Failure<LoginResponseDto>("Refresh token is not active");
-
-                var user = await _unitOfWork.Users.GetUserWithPermissionsAsync(userId);
-                if (user == null)
-                    return Result.Failure<LoginResponseDto>("User not found");
-
-                // Revoke old refresh token
-                storedRefreshToken.IsRevoked = true;
-                _unitOfWork.RefreshTokens.Update(storedRefreshToken);
-
-                // Generate new tokens
-                var newAccessTokenResult = await GenerateAccessTokenAsync(user);
-                if (!newAccessTokenResult.IsSuccess)
-                    return Result.Failure<LoginResponseDto>(newAccessTokenResult.Error);
-
-                var newRefreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent);
-                if (!newRefreshTokenResult.IsSuccess)
-                    return Result.Failure<LoginResponseDto>(newRefreshTokenResult.Error);
-
-                var response = new LoginResponseDto
+                AccessToken = newAccessTokenResult.Value,
+                RefreshToken = newRefreshTokenResult.Value.Token,
+                ExpiresAt = newRefreshTokenResult.Value.ExpiryDate,
+                User = new Application.DTOs.UserDto
                 {
-                    AccessToken = newAccessTokenResult.Data,
-                    RefreshToken = newRefreshTokenResult.Data.Token,
-                    ExpiresAt = newRefreshTokenResult.Data.ExpiryDate,
-                    User = new Application.DTOs.UserDto
-                    {
-                        Id = user.Id,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        FullName = user.FullName,
-                        Email = user.Email,
-                        PhoneNumber = user.PhoneNumber,
-                        Status = user.Status,
-                        EmailConfirmed = user.EmailConfirmed,
-                        PhoneConfirmed = user.PhoneConfirmed,
-                        ProfileImageUrl = user.ProfileImageUrl,
-                        CreatedDate = user.CreatedDate
-                    }
-                };
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    Status = user.Status,
+                    EmailConfirmed = user.EmailConfirmed,
+                    PhoneConfirmed = user.PhoneConfirmed,
+                    ProfileImageUrl = user.ProfileImageUrl,
+                    CreatedDate = user.CreatedDate
+                }
+            };
 
-                return Result.Success(response);
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure<LoginResponseDto>($"Error refreshing token: {ex.Message}");
-            }
+            return Result<LoginResponseDto>.Success(response);
         }
-
-        public async Task<Result> RevokeTokenAsync(string refreshToken, string ipAddress = null, string userAgent = null, string reason = null)
+        catch (Exception ex)
+        {
+            return Result<LoginResponseDto>.Failure(Error.Failure(
+                ErrorCode.InternalError,
+                $"Error refreshing token: {ex.Message}"));
+        }
+    }
+    public async Task<Result> RevokeTokenAsync(string refreshToken, string ipAddress = null, string userAgent = null, string reason = null)
         {
             try
             {
@@ -312,8 +334,8 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return Result.Failure($"Error revoking token: {ex.Message}");
-            }
+            return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, $"Error revoking user tokens: {ex.Message}"));
+        }
         }
 
         public async Task<Result> RevokeAllUserTokensAsync(int userId, string ipAddress = null, string userAgent = null, string reason = null)
@@ -326,8 +348,8 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return Result.Failure($"Error revoking user tokens: {ex.Message}");
-            }
+            return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, $"Error revoking user tokens: {ex.Message}"));
+        }
         }
 
         public async Task<Result> RevokeTokensByDeviceAsync(int userId, string deviceId, string ipAddress = null, string userAgent = null, string reason = null)
@@ -340,8 +362,8 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                return Result.Failure($"Error revoking device tokens: {ex.Message}");
-            }
+            return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, $"Error revoking user tokens: {ex.Message}"));
+        }
         }
 
         public ClaimsPrincipal GetClaimsFromExpiredToken(string token)
