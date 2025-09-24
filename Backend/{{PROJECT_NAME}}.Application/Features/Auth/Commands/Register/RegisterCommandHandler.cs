@@ -5,6 +5,7 @@ using {{PROJECT_NAME}}.Application.Services;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Enums;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 using {{PROJECT_NAME}}.Domain.Models;
 using {{PROJECT_NAME}}.Application.DTOs;
 using MediatR;

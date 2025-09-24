@@ -2,6 +2,8 @@ using {{PROJECT_NAME}}.Application.Features.Auth.Queries;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.DTOs.Auth;
 using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
+using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
 using System;
 using System.Collections.Generic;
@@ -42,11 +44,14 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
                     IsCurrentSession = false // TODO: Implement current session detection
                 });
 
-                return Result.Success(sessions);
-            }
+            return Result<IEnumerable<SessionDto>>.Success(sessions);
+        }
             catch (Exception ex)
             {
-                return Result.Failure<IEnumerable<SessionDto>>($"Error retrieving user sessions: {ex.Message}");
+            return Result<IEnumerable<SessionDto>>.Failure(Error.Failure(
+               ErrorCode.InvalidOperation,
+               $"Error retrieving user sessions: {ex.Message}"));
+            return Result.Failure<IEnumerable<SessionDto>>($"Error retrieving user sessions: {ex.Message}");
             }
         }
     }

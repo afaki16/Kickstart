@@ -43,7 +43,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                 if (!passwordVerification.IsSuccess || !passwordVerification.Data)
                     return Result.Failure<LoginResponseDto>("Invalid email or password");
 
-                if (user.Status != Domain.Enums.UserStatus.Active)
+                if (user.Status != Domain.Common.Enums.UserStatus.Active)
                     return Result.Failure<LoginResponseDto>("Account is not active");
 
                 var accessTokenResult = await GenerateAccessTokenAsync(user);

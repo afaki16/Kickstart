@@ -1,4 +1,4 @@
-namespace {{PROJECT_NAME}}.Domain.Enums
+namespace {{PROJECT_NAME}}.Domain.Common.Enums;
 {
     public enum TokenType
     {

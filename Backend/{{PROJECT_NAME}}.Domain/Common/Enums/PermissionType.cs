@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace {{PROJECT_NAME}}.Domain.Enums
+namespace {{PROJECT_NAME}}.Domain.Common.Enums;
 {
     [Flags]
     public enum PermissionType

@@ -4,12 +4,13 @@ using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Models;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using {{PROJECT_NAME}}.Application.DTOs;
+using { {PROJECT_NAME}}.Application.DTOs;
 
 namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
 {

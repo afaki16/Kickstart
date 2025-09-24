@@ -1,6 +1,6 @@
 using {{PROJECT_NAME}}.Application.DTOs;
 using {{PROJECT_NAME}}.Application.Common.Results;
-using {{PROJECT_NAME}}.Domain.Enums;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;   

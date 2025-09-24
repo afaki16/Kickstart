@@ -1,4 +1,4 @@
-using {{PROJECT_NAME}}.Domain.Enums;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 using System;
 
 namespace {{PROJECT_NAME}}.Application.DTOs

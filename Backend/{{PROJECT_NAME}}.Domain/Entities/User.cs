@@ -1,5 +1,5 @@
 using {{PROJECT_NAME}}.Domain.Common;
-using {{PROJECT_NAME}}.Domain.Enums;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 using System;
 using System.Collections.Generic;
 

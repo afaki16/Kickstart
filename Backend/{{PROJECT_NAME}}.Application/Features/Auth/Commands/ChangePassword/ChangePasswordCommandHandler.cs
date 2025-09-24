@@ -7,7 +7,7 @@ using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace {{PROJECT_NAME }}.Application.Features.Auth.Handlers
+namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
 {
     public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand, Result>
 {

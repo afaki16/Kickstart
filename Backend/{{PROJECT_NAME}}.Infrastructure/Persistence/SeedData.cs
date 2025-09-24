@@ -1,6 +1,6 @@
 using {{PROJECT_NAME}}.Domain.Entities;
-using {{PROJECT_NAME}}.Domain.Enums;
-using {{PROJECT_NAME}}.Domain.Constants;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
+using { {PROJECT_NAME}}.Domain.Constants;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

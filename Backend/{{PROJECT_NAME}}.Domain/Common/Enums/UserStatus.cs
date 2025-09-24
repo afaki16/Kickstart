@@ -1,6 +1,5 @@
-namespace {{PROJECT_NAME}}.Domain.Enums
-{
-    public enum UserStatus
+namespace {{PROJECT_NAME}}.Domain.Common.Enums;
+public enum UserStatus
     {
         Inactive = 0,
         Active = 1,
