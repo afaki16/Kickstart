@@ -6,7 +6,8 @@ using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
-using { {PROJECT_NAME}}.Application.DTOs;
+using {{PROJECT_NAME}}.Application.DTOs;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 
 namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
 {

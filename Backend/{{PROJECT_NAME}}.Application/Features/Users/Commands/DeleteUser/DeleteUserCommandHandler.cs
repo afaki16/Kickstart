@@ -1,6 +1,8 @@
 using {{PROJECT_NAME}}.Application.Features.Users.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
+using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,9 +23,11 @@ namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
             var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
             
             if (user == null)
-                return Result.Failure("User not found");
+            return Result<UserListDto>.Failure(Error.Failure(
+              ErrorCode.NotFound,
+              "User not found"));
 
-            _unitOfWork.Users.SoftDelete(user);
+        _unitOfWork.Users.SoftDelete(user);
             await _unitOfWork.SaveChangesAsync();
 
             return Result.Success();

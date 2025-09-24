@@ -47,7 +47,7 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email,
-                PasswordHash = passwordResult.Data,
+                PasswordHash = passwordResult.Value,
                 PhoneNumber = request.PhoneNumber,
                 Status = UserStatus.Active,
                 EmailConfirmed = false

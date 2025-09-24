@@ -1,6 +1,8 @@
 using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
+using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,12 +23,16 @@ namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
             var role = await _unitOfWork.Roles.GetByIdAsync(request.Id);
             
             if (role == null)
-                return Result.Failure("Role not found");
+            return Result<RoleDto>.Failure(Error.Failure(
+              ErrorCode.NotFound,
+              "Role not found"));
 
-            if (role.IsSystemRole)
-                return Result.Failure("Cannot delete system roles");
+        if (role.IsSystemRole)
+            return Result<RoleDto>.Failure(Error.Failure(
+          ErrorCode.InvalidOperation,
+          "Cannot modify system roles"));
 
-            _unitOfWork.Roles.SoftDelete(role);
+        _unitOfWork.Roles.SoftDelete(role);
             await _unitOfWork.SaveChangesAsync();
 
             return Result.Success();

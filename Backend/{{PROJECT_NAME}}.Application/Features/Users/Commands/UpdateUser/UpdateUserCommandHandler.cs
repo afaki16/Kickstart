@@ -5,6 +5,7 @@ using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Models;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 using MediatR;
 using System.Linq;
 using System.Threading;

@@ -5,6 +5,7 @@ using {{PROJECT_NAME}}.Application.Features.Auth.Commands;
 using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
 using {{PROJECT_NAME}}.Application.Features.Users.Commands;
 using {{PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 
 namespace {{PROJECT_NAME}}.Application.Mappings
 {

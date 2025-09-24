@@ -2,6 +2,7 @@ using AutoMapper;
 using {{PROJECT_NAME}}.Application.Features.Roles.Queries;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.DTOs;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
 {
-    public class GetAllRolesQueryHandler : IRequestHandler<GetAllRolesQuery, Result<IEnumerable<Application.DTOs.RoleDto>>>
+    public class GetAllRolesQueryHandler : IRequestHandler<GetAllRolesQuery, Result<IEnumerable<RoleDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -23,7 +24,7 @@ namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
             _logger = logger;
         }
 
-        public async Task<Result<IEnumerable<Application.DTOs.RoleDto>>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<RoleDto>>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
         {
             try
             {
@@ -34,12 +35,12 @@ namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
                 
                 _logger.LogInformation($"Found {roles.Count()} roles");
                 
-                var roleDtos = _mapper.Map<IEnumerable<Application.DTOs.RoleDto>>(roles);
+                var roleDtos = _mapper.Map<IEnumerable<RoleDto>>(roles);
                 
                 _logger.LogInformation($"Mapped {roleDtos.Count()} role DTOs");
-                
-                return Result.Success(roleDtos);
-            }
+
+                return Result<IEnumerable<RoleDto>>.Success(roleDtos);
+        }
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while getting all roles");

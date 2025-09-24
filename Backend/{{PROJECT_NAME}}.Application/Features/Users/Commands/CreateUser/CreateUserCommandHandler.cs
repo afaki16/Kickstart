@@ -9,8 +9,9 @@ using MediatR;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using { {PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Application.DTOs;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 
 namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
 {
@@ -48,7 +49,7 @@ namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 Email = request.Email,
-                PasswordHash = passwordResult.Data,
+                PasswordHash = passwordResult.Value,
                 PhoneNumber = request.PhoneNumber,
                 Status = request.Status,
                 EmailConfirmed = false
