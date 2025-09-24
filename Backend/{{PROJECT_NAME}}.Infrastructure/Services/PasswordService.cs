@@ -1,6 +1,7 @@
 using BCrypt.Net;
 using {{PROJECT_NAME}}.Application.Services;
 using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using System;
 using System.Text;
 using System.Text.RegularExpressions;

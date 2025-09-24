@@ -1,4 +1,5 @@
 using {{PROJECT_NAME}}.Application.Services;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Common;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

@@ -209,7 +209,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Extensions
                 FirstName = "System",
                 LastName = "Administrator",
                 Email = "admin@{{PROJECT_NAME}}.com",
-                PasswordHash = hashedPasswordResult.Data,
+                PasswordHash = hashedPasswordResult.Value,
                 Status = UserStatus.Active,
                 EmailConfirmed = true,
                 PhoneConfirmed = false

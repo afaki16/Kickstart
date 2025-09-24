@@ -1,4 +1,4 @@
-namespace {{PROJECT_NAME}}.Infrastructure.Configuration
+namespace {{PROJECT_NAME}}.Infrastructure.Configuration;
 
 
 public class RedisConnectionConfig
