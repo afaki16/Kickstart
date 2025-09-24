@@ -39,4 +39,5 @@ public class Result
     public static Result Failure(params Error[] errors) => new(false, errors);
 
     public static Result Failure(IEnumerable<Error> errors) => new(false, errors);
+
 }

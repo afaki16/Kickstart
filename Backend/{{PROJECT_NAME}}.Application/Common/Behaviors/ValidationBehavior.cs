@@ -1,6 +1,6 @@
 using FluentValidation;
 using {{PROJECT_NAME}}.Application.Common.Results;
-using {{PROJECT_NAME}}Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 using System.Collections.Generic;
 using System.Linq;

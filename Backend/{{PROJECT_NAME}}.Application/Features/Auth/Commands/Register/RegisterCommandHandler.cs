@@ -29,12 +29,12 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
         {
             // Check if email already exists
             if (await _unitOfWork.Users.EmailExistsAsync(request.Email))
-                return Result.Failure<UserDto>("Email already exists");
+                return Result.Failure("Email already exists");
 
             // Hash password
             var passwordResult = _passwordService.HashPassword(request.Password);
             if (!passwordResult.IsSuccess)
-                return Result.Failure<UserDto>(passwordResult.Error);
+                return Result.Failure(passwordResult.Error);
 
             // Create user
             var user = new User
