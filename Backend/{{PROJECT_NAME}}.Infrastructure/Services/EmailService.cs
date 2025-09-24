@@ -1,6 +1,7 @@
 using {{PROJECT_NAME}}.Application.Services;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
@@ -34,8 +35,8 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, "Failed to send email to {To}", to);
-                return Result.Failure($"Failed to send email: {ex.Message}");
-            }
+            return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, $"Failed to send email: {ex.Message}"));
+        }
         }
 
         public async Task<Result> SendEmailConfirmationAsync(string email, string confirmationLink)

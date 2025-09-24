@@ -10,46 +10,53 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
 {
     public class PasswordService : IPasswordService
     {
-        public Result<string> HashPassword(string password)
+    public Result<string> HashPassword(string password)
+    {
+        try
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(password))
-                    return Result.Failure<string>("Password cannot be empty");
+            if (string.IsNullOrWhiteSpace(password))
+                return Result<string>.Failure(Error.Failure(
+                    ErrorCode.ValidationFailed,
+                    "Password cannot be empty"));
 
-                var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
-                return Result.Success(hashedPassword);
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure<string>($"Error hashing password: {ex.Message}");
-            }
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
+            return Result<string>.Success(hashedPassword);
         }
-
-        public Result<bool> VerifyPassword(string password, string hashedPassword)
+        catch (Exception ex)
         {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(hashedPassword))
-                    return Result.Success(false);
-
-                var isValid = BCrypt.Net.BCrypt.Verify(password, hashedPassword);
-                return Result.Success(isValid);
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure<bool>($"Error verifying password: {ex.Message}");
-            }
+            return Result<string>.Failure(Error.Failure(
+                ErrorCode.InternalError,
+                $"Error hashing password: {ex.Message}"));
         }
+    }
 
-        public Result<string> GenerateRandomPassword(int length = 12)
+    public Result<bool> VerifyPassword(string password, string hashedPassword)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(hashedPassword))
+                return Result<bool>.Success(false);
+
+            var isValid = BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+            return Result<bool>.Success(isValid);
+        }
+        catch (Exception ex)
+        {
+            return Result<bool>.Failure(Error.Failure(
+                ErrorCode.InternalError,
+                $"Error verifying password: {ex.Message}"));
+        }
+    }
+
+    public Result<string> GenerateRandomPassword(int length = 12)
         {
             try
             {
                 if (length < 8)
-                    return Result.Failure<string>("Password length must be at least 8 characters");
+                return Result<string>.Failure(
+            Error.Failure(ErrorCode.ValidationFailed, "Password must be at least 8 characters long"));
 
-                const string lowercase = "abcdefghijklmnopqrstuvwxyz";
+            const string lowercase = "abcdefghijklmnopqrstuvwxyz";
                 const string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
                 const string digits = "0123456789";
                 const string special = "!@#$%^&*";
@@ -78,32 +85,39 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                     (chars[i], chars[j]) = (chars[j], chars[i]);
                 }
 
-                return Result.Success(new string(chars));
-            }
+            return Result<string>.Success(new string(chars));
+        }
             catch (Exception ex)
             {
-                return Result.Failure<string>($"Error generating password: {ex.Message}");
+            return Result<string>.Failure(
+            Error.Failure(ErrorCode.ValidationFailed, $"Error generating password: {ex.Message}"));
             }
         }
 
-        public Result<bool> ValidatePasswordStrength(string password)
-        {
-            if (string.IsNullOrWhiteSpace(password))
-                return Result.Failure<bool>("Password cannot be empty");
+    public Result<bool> ValidatePasswordStrength(string password)
+    {
+        if (string.IsNullOrWhiteSpace(password))
+            return Result<bool>.Failure(
+                Error.Failure(ErrorCode.ValidationFailed, "Password cannot be empty"));
 
-            if (password.Length < 8)
-                return Result.Failure<bool>("Password must be at least 8 characters long");
+        if (password.Length < 8)
+            return Result<bool>.Failure(
+                Error.Failure(ErrorCode.ValidationFailed, "Password must be at least 8 characters long"));
 
-            if (!Regex.IsMatch(password, @"[a-z]"))
-                return Result.Failure<bool>("Password must contain at least one lowercase letter");
+        if (!Regex.IsMatch(password, @"[a-z]"))
+            return Result<bool>.Failure(
+                Error.Failure(ErrorCode.ValidationFailed, "Password must contain at least one lowercase letter"));
 
-            if (!Regex.IsMatch(password, @"[A-Z]"))
-                return Result.Failure<bool>("Password must contain at least one uppercase letter");
+        if (!Regex.IsMatch(password, @"[A-Z]"))
+            return Result<bool>.Failure(
+                Error.Failure(ErrorCode.ValidationFailed, "Password must contain at least one uppercase letter"));
 
-            if (!Regex.IsMatch(password, @"\d"))
-                return Result.Failure<bool>("Password must contain at least one digit");
+        if (!Regex.IsMatch(password, @"\d"))
+            return Result<bool>.Failure(
+                Error.Failure(ErrorCode.ValidationFailed, "Password must contain at least one digit"));
 
-            return Result.Success(true);
-        }
+        return Result<bool>.Success(true);
     }
+
+}
 } 

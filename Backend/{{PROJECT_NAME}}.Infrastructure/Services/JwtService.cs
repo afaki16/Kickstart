@@ -30,83 +30,90 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
             _passwordService = passwordService;
         }
 
-        public async Task<Result<LoginResponseDto>> LoginAsync(string email, string password, string ipAddress, string userAgent, string deviceId = null, string deviceName = null)
+    public async Task<Result<LoginResponseDto>> LoginAsync(string email, string password, string ipAddress, string userAgent, string deviceId = null, string deviceName = null)
+    {
+        try
         {
-            try
+            var user = await _unitOfWork.Users.GetUserWithPermissionsAsync(
+                (await _unitOfWork.Users.FindFirstAsync(u => u.Email == email))?.Id ?? 0);
+
+            if (user == null)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Invalid email or password"));
+
+            var passwordVerification = _passwordService.VerifyPassword(password, user.PasswordHash);
+            if (!passwordVerification.IsSuccess || !passwordVerification.Value)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Invalid email or password"));
+
+            if (user.Status != Domain.Common.Enums.UserStatus.Active)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Account is not active"));
+
+            var accessTokenResult = await GenerateAccessTokenAsync(user);
+            if (!accessTokenResult.IsSuccess)
+                return Result<LoginResponseDto>.Failure(accessTokenResult.Errors.ToArray());
+
+            var refreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent, deviceId, deviceName);
+            if (!refreshTokenResult.IsSuccess)
+                return Result<LoginResponseDto>.Failure(refreshTokenResult.Errors.ToArray());
+
+            user.LastLoginDate = DateTime.UtcNow;
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.SaveChangesAsync();
+
+            var response = new LoginResponseDto
             {
-                var user = await _unitOfWork.Users.GetUserWithPermissionsAsync(
-                    (await _unitOfWork.Users.FindFirstAsync(u => u.Email == email))?.Id ?? 0);
-
-                if (user == null)
-                    return Result.Failure<LoginResponseDto>("Invalid email or password");
-
-                var passwordVerification = _passwordService.VerifyPassword(password, user.PasswordHash);
-                if (!passwordVerification.IsSuccess || !passwordVerification.Data)
-                    return Result.Failure<LoginResponseDto>("Invalid email or password");
-
-                if (user.Status != Domain.Common.Enums.UserStatus.Active)
-                    return Result.Failure<LoginResponseDto>("Account is not active");
-
-                var accessTokenResult = await GenerateAccessTokenAsync(user);
-                if (!accessTokenResult.IsSuccess)
-                    return Result.Failure<LoginResponseDto>(accessTokenResult.Error);
-
-                var refreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent, deviceId, deviceName);
-                if (!refreshTokenResult.IsSuccess)
-                    return Result.Failure<LoginResponseDto>(refreshTokenResult.Error);
-
-                user.LastLoginDate = DateTime.UtcNow;
-                _unitOfWork.Users.Update(user);
-                await _unitOfWork.SaveChangesAsync();
-
-                var response = new LoginResponseDto
+                AccessToken = accessTokenResult.Value,
+                RefreshToken = refreshTokenResult.Value.Token,
+                ExpiresAt = refreshTokenResult.Value.ExpiryDate,
+                User = new Application.DTOs.UserDto
                 {
-                    AccessToken = accessTokenResult.Data,
-                    RefreshToken = refreshTokenResult.Data.Token,
-                    ExpiresAt = refreshTokenResult.Data.ExpiryDate,
-                    User = new Application.DTOs.UserDto
+                    Id = user.Id,
+                    FirstName = user.FirstName,
+                    LastName = user.LastName,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    PhoneNumber = user.PhoneNumber,
+                    Status = user.Status,
+                    EmailConfirmed = user.EmailConfirmed,
+                    PhoneConfirmed = user.PhoneConfirmed,
+                    ProfileImageUrl = user.ProfileImageUrl,
+                    CreatedDate = user.CreatedDate,
+                    Roles = user.UserRoles.Select(ur => new Application.DTOs.RoleDto
                     {
-                        Id = user.Id,
-                        FirstName = user.FirstName,
-                        LastName = user.LastName,
-                        FullName = user.FullName,
-                        Email = user.Email,
-                        PhoneNumber = user.PhoneNumber,
-                        Status = user.Status,
-                        EmailConfirmed = user.EmailConfirmed,
-                        PhoneConfirmed = user.PhoneConfirmed,
-                        ProfileImageUrl = user.ProfileImageUrl,
-                        CreatedDate = user.CreatedDate,
-                        Roles = user.UserRoles.Select(ur => new Application.DTOs.RoleDto
+                        Id = ur.Role.Id,
+                        Name = ur.Role.Name,
+                        Description = ur.Role.Description
+                    }).ToList(),
+                    Permissions = user.UserRoles
+                        .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission))
+                        .Distinct()
+                        .Select(p => new Application.DTOs.PermissionDto
                         {
-                            Id = ur.Role.Id,
-                            Name = ur.Role.Name,
-                            Description = ur.Role.Description
-                        }).ToList(),
-                        Permissions = user.UserRoles
-                            .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission))
-                            .Distinct()
-                            .Select(p => new Application.DTOs.PermissionDto
-                            {
-                                Id = p.Id,
-                                Name = p.Name,
-                                Description = p.Description,
-                                Resource = p.Resource,
-                                Type = p.Type,
-                                FullPermission = p.FullPermission
-                            }).ToList()
-                    }
-                };
+                            Id = p.Id,
+                            Name = p.Name,
+                            Description = p.Description,
+                            Resource = p.Resource,
+                            Type = p.Type,
+                            FullPermission = p.FullPermission
+                        }).ToList()
+                }
+            };
 
-                return Result.Success(response);
-            }
-            catch (Exception ex)
-            {
-                return Result.Failure<LoginResponseDto>($"Login failed: {ex.Message}");
-            }
+            return Result<LoginResponseDto>.Success(response);
         }
-
-        public async Task<Result<string>> GenerateAccessTokenAsync(User user)
+        catch (Exception ex)
+        {
+            return Result<LoginResponseDto>.Failure(Error.Failure(
+                ErrorCode.InternalError,
+                $"Login failed: {ex.Message}"));
+        }
+    }
+    public async Task<Result<string>> GenerateAccessTokenAsync(User user)
         {
             try
             {
@@ -160,13 +167,13 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                 );
 
                 var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-                return Result.Success(tokenString);
-            }
+                return Result<string>.Success(tokenString);
+        }
             catch (Exception ex)
             {
-                return Result.Failure<string>($"Error generating access token: {ex.Message}");
-            }
-        }
+               return Result<string>.Failure(Error.Failure(ErrorCode.ValidationFailed, $"Error generating access token: {ex.Message}"));
+             }
+    }
 
         public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(User user, string ipAddress, string userAgent, string deviceId = null, string deviceName = null)
         {
@@ -198,13 +205,13 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                 await _unitOfWork.RefreshTokens.AddAsync(refreshToken);
                 await _unitOfWork.SaveChangesAsync();
 
-                return Result.Success(refreshToken);
-            }
+               return Result<RefreshToken>.Success(refreshToken);
+        }
             catch (Exception ex)
             {
-                return Result.Failure<RefreshToken>($"Error generating refresh token: {ex.Message}");
-            }
-        }
+              return Result<RefreshToken>.Failure(Error.Failure(ErrorCode.ValidationFailed, $"Error generating refresh token: {ex.Message}"));
+             }
+    }
 
         private string GetDeviceType(string userAgent)
         {

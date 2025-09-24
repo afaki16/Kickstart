@@ -1,6 +1,7 @@
 using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.DTOs;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
