@@ -1,5 +1,4 @@
-using {{PROJECT_NAME}}.Domain.Common;
-using System.Threading.Tasks;
+using {{PROJECT_NAME}}.Application.Common.Results;
 
 namespace {{PROJECT_NAME}}.Application.Services
 {

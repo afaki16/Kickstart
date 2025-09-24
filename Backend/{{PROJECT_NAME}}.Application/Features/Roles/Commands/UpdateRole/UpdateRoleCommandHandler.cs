@@ -1,8 +1,8 @@
 using AutoMapper;
 using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
-using {{PROJECT_NAME}}.Domain.Common;
-using {{PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Application.Common.Results;
+using { {PROJECT_NAME}}.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Linq;

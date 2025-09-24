@@ -1,6 +1,6 @@
 using {{PROJECT_NAME}}.Application.DTOs.Auth;
-using {{PROJECT_NAME}}.Domain.Common;
-using {{PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Application.Common.Results;
+using { {PROJECT_NAME}}.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Security.Claims;

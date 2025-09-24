@@ -8,10 +8,12 @@ using MediatR;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.DTOs;
 
 namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
 {
-    public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Result<Application.DTOs.UserListDto>>
+    public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, Result<UserListDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
@@ -24,16 +26,16 @@ namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
             _mapper = mapper;
         }
 
-        public async Task<Result<Application.DTOs.UserListDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+        public async Task<Result<UserListDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             // Check if email already exists
             if (await _unitOfWork.Users.EmailExistsAsync(request.Email))
-                return Result.Failure<Application.DTOs.UserListDto>("Email already exists");
+                return Result.Failure<UserListDto>("Email already exists");
 
             // Hash password
             var passwordResult = _passwordService.HashPassword(request.Password);
             if (!passwordResult.IsSuccess)
-                return Result.Failure<Application.DTOs.UserListDto>(passwordResult.Error);
+                return Result.Failure<UserListDto>(passwordResult.Error);
 
             // Create user
             var user = new User
@@ -67,7 +69,7 @@ namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
 
             // Reload user with roles to get complete data for mapping
             var userWithRoles = await _unitOfWork.Users.GetUserWithRolesAsync(user.Id);
-            var userDto = _mapper.Map<Application.DTOs.UserListDto>(userWithRoles);
+            var userDto = _mapper.Map<UserListDto>(userWithRoles);
             return Result.Success(userDto);
         }
     }

@@ -1,4 +1,4 @@
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 using System;
 

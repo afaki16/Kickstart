@@ -1,6 +1,6 @@
 using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;

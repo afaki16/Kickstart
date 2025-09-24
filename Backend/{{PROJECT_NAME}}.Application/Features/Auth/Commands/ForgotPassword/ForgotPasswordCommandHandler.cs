@@ -1,9 +1,8 @@
 using {{PROJECT_NAME}}.Application.Features.Auth.Commands;
 using {{PROJECT_NAME}}.Application.Services;
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
+
 
 namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
 {
