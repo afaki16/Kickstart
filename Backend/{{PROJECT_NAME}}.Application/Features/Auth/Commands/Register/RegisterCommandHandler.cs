@@ -1,18 +1,18 @@
-using 
 using AutoMapper;
-{{PROJECT_NAME}}.Application.Features.Auth.Commands;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Services;
 using {{PROJECT_NAME}}.Application.Common.Results;
-using { {PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Enums;
+using {{PROJECT_NAME}}.Application.DTOs;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
 {
-    public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<Application.DTOs.UserDto>>
+    public class RegisterCommandHandler : IRequestHandler<RegisterCommand, Result<UserDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
@@ -25,16 +25,16 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
             _mapper = mapper;
         }
 
-        public async Task<Result<Application.DTOs.UserDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
+        public async Task<Result<UserDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
             // Check if email already exists
             if (await _unitOfWork.Users.EmailExistsAsync(request.Email))
-                return Result.Failure<Application.DTOs.UserDto>("Email already exists");
+                return Result.Failure<UserDto>("Email already exists");
 
             // Hash password
             var passwordResult = _passwordService.HashPassword(request.Password);
             if (!passwordResult.IsSuccess)
-                return Result.Failure<Application.DTOs.UserDto>(passwordResult.Error);
+                return Result.Failure<UserDto>(passwordResult.Error);
 
             // Create user
             var user = new User

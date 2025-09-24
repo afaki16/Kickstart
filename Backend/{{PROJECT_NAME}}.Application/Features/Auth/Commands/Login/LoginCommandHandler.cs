@@ -1,6 +1,5 @@
-using 
 using AutoMapper;
-{{PROJECT_NAME}}.Application.Features.Auth.Commands;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands;
 using {{PROJECT_NAME}}.Application.Services;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
