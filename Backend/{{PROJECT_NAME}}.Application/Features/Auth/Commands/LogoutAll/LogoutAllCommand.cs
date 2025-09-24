@@ -1,5 +1,4 @@
-using {{PROJECT_NAME}}.Domain.Common;
-using MediatR;
+using {{PROJECT_NAME}}.Application.Common.Results;
 
 namespace {{PROJECT_NAME}}.Application.Features.Auth.Commands
 {

@@ -1,5 +1,5 @@
 using {{PROJECT_NAME}}.Application.DTOs.Auth;
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 using System.Collections.Generic;
 

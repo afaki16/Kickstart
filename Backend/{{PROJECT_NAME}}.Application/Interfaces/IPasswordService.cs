@@ -1,4 +1,4 @@
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Application.Common.Results;
 
 namespace {{PROJECT_NAME}}.Application.Services

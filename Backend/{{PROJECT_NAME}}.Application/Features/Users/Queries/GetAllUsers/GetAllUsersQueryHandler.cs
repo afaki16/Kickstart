@@ -1,7 +1,7 @@
 using AutoMapper;
 using {{PROJECT_NAME}}.Application.Features.Users.Queries;
 using {{PROJECT_NAME}}.Application.Interfaces;
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 using System.Collections.Generic;
 using System.Threading;

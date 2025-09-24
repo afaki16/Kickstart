@@ -1,9 +1,10 @@
+using 
 using AutoMapper;
-using {{PROJECT_NAME}}.Application.Features.Auth.Commands;
+{{PROJECT_NAME}}.Application.Features.Auth.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Services;
-using {{PROJECT_NAME}}.Domain.Common;
-using {{PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Application.Common.Results;
+using { {PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Enums;
 using MediatR;
 using System.Threading;

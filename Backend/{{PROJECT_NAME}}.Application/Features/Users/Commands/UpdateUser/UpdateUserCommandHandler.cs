@@ -3,7 +3,7 @@ using {{PROJECT_NAME}}.Application.DTOs;
 using {{PROJECT_NAME}}.Application.Features.Users.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
-using { {PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Domain.Entities;
 using MediatR;
 using System.Linq;
 using System.Threading;
