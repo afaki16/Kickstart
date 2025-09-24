@@ -33,7 +33,10 @@ namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
 
                 // Check if role name already exists
                 if (await _unitOfWork.Roles.RoleExistsAsync(request.Name))
-                    return Result.Failure<RoleDto>("Role name already exists");
+                return Result<RoleDto>.Failure(Error.Failure(
+                  ErrorCode.AlreadyExists,
+                  "Role name already exists"));
+            
 
                 // Create role and assign permissions in a single transaction
                 var role = new Role
@@ -113,12 +116,14 @@ namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
                 _logger.LogInformation($"Mapped role DTO with {roleDto?.Permissions?.Count ?? 0} permissions");
                 
                 _logger.LogInformation($"Successfully created role: {role.Name}");
-                return Result.Success(roleDto);
+                return Result<RoleDto>.Success(roleDto);
             }
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, $"Error occurred while creating role: {request.Name}");
-                return Result.Failure<RoleDto>($"An error occurred while creating the role: {ex.Message}");
+            return Result<RoleDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidOperation,
+                    $"An error occurred while creating the role: {ex.Message}"));
             }
         }
     }

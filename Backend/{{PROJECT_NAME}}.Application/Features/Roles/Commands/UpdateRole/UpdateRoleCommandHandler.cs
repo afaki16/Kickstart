@@ -3,15 +3,17 @@ using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using {{PROJECT_NAME}}.Application.DTOs;
 
 namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
 {
-    public class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand, Result<Application.DTOs.RoleDto>>
+    public class UpdateRoleCommandHandler : IRequestHandler<UpdateRoleCommand, Result<RoleDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -24,7 +26,7 @@ namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
             _logger = logger;
         }
 
-        public async Task<Result<Application.DTOs.RoleDto>> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
+        public async Task<Result<RoleDto>> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
         {
             try
             {
@@ -33,18 +35,25 @@ namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
                 var role = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(request.Id);
 
                 if (role == null)
-                    return Result.Failure<Application.DTOs.RoleDto>("Role not found");
+                return Result<RoleDto>.Failure(Error.Failure(
+                  ErrorCode.NotFound,
+                  "Role not found"));
 
                 if (role.IsSystemRole)
-                    return Result.Failure<Application.DTOs.RoleDto>("Cannot modify system roles");
+                return Result<RoleDto>.Failure(Error.Failure(
+                ErrorCode.InvalidOperation,
+                "Cannot modify system roles"));
 
                 // Check if role name already exists for another role
                 var existingRole = await _unitOfWork.Roles.GetByNameAsync(request.Name);
                 if (existingRole != null && existingRole.Id != request.Id)
-                    return Result.Failure<Application.DTOs.RoleDto>("Role name already exists");
+                return Result<RoleDto>.Failure(Error.Failure(
+                                ErrorCode.AlreadyExists,
+                                "Role name already exists"));
 
-                // Update role properties
-                role.Name = request.Name;
+
+            // Update role properties
+            role.Name = request.Name;
                 role.Description = request.Description;
 
                 _unitOfWork.Roles.Update(role);
@@ -85,16 +94,18 @@ namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
 
                 // Get updated role with permissions
                 var updatedRole = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(role.Id);
-                var roleDto = _mapper.Map<Application.DTOs.RoleDto>(updatedRole);
+                var roleDto = _mapper.Map<RoleDto>(updatedRole);
                 
                 _logger.LogInformation($"Successfully updated role: {role.Name}");
-                return Result.Success(roleDto);
+                return Result<RoleDto>.Success(roleDto);
             }
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, $"Error occurred while updating role with ID: {request.Id}");
-                return Result.Failure<Application.DTOs.RoleDto>($"An error occurred while updating the role: {ex.Message}");
-            }
+            return Result<RoleDto>.Failure(Error.Failure(
+                ErrorCode.InvalidOperation,
+                $"An error occurred while creating the role: {ex.Message}"));
+        }
         }
     }
 } 

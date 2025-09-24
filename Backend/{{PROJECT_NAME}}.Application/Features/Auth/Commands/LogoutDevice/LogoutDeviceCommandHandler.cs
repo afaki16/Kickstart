@@ -4,6 +4,8 @@ using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
+using {{PROJECT_NAME}}.Domain.Models;
 
 namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
 {
@@ -22,9 +24,11 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
         {
             var userId = _currentUserService.UserId;
             if (!userId.HasValue)
-                return Result.Failure("User not authenticated");
+            return Result<int>.Failure(Error.Failure(
+                   ErrorCode.NotFound,
+                   "User not authenticated"));
 
-            return await _authService.RevokeTokensByDeviceAsync(userId.Value, request.DeviceId, request.IpAddress, request.UserAgent, request.Reason);
+        return await _authService.RevokeTokensByDeviceAsync(userId.Value, request.DeviceId, request.IpAddress, request.UserAgent, request.Reason);
         }
     }
 } 

@@ -5,6 +5,7 @@ using {{PROJECT_NAME}}.Application.Services;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Enums;
+using {{PROJECT_NAME}}.Domain.Models;
 using {{PROJECT_NAME}}.Application.DTOs;
 using MediatR;
 using System.Threading;
@@ -29,15 +30,19 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
         {
             // Check if email already exists
             if (await _unitOfWork.Users.EmailExistsAsync(request.Email))
-                return Result.Failure("Email already exists");
+             return Result<UserDto>.Failure(Error.Failure(
+                  ErrorCode.AlreadyExists,
+                  "Email already exists"));
 
-            // Hash password
-            var passwordResult = _passwordService.HashPassword(request.Password);
+        // Hash password
+        var passwordResult = _passwordService.HashPassword(request.Password);
             if (!passwordResult.IsSuccess)
-                return Result.Failure(passwordResult.Error);
+            return Result<UserDto>.Failure(Error.Failure(
+            ErrorCode.AlreadyExists,
+            $"{passwordResult.Error}"));
 
-            // Create user
-            var user = new User
+        // Create user
+        var user = new User
             {
                 FirstName = request.FirstName,
                 LastName = request.LastName,
@@ -58,8 +63,8 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
             await _unitOfWork.Users.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
-            var userDto = _mapper.Map<Application.DTOs.UserDto>(user);
-            return Result.Success(userDto);
+            var userDto = _mapper.Map<UserDto>(user);
+            return Result<UserDto>.Success(userDto);
         }
     }
 } 
