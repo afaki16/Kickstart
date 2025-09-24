@@ -1,5 +1,5 @@
 namespace {{PROJECT_NAME}}.Domain.Common.Enums;
-{
+
     public enum TokenType
     {
         AccessToken = 1,
@@ -7,4 +7,4 @@ namespace {{PROJECT_NAME}}.Domain.Common.Enums;
         EmailVerification = 3,
         PasswordReset = 4
     }
-} 
+ 

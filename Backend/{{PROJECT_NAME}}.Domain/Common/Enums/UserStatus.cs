@@ -6,4 +6,4 @@ public enum UserStatus
         Banned = 2,
         PendingVerification = 3
     }
-} 
+

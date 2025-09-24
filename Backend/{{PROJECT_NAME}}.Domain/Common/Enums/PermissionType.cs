@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 namespace {{PROJECT_NAME}}.Domain.Common.Enums;
-{
+
     [Flags]
     public enum PermissionType
     {
@@ -29,4 +29,4 @@ namespace {{PROJECT_NAME}}.Domain.Common.Enums;
                             permissionType.HasFlag(pt));
         }
     }
-} 
+

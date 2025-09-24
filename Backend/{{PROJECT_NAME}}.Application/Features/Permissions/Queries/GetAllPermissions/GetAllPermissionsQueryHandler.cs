@@ -1,4 +1,5 @@
 using AutoMapper;
+using {{PROJECT_NAME}}.Application.DTOs;
 using {{PROJECT_NAME}}.Application.Features.Permissions.Queries;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Application.Features.Permissions.Handlers
 {
-    public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQuery, Result<IEnumerable<Application.DTOs.PermissionDto>>>
+    public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQuery, Result<IEnumerable<PermissionDto>>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -20,11 +21,11 @@ namespace {{PROJECT_NAME}}.Application.Features.Permissions.Handlers
             _mapper = mapper;
         }
 
-        public async Task<Result<IEnumerable<Application.DTOs.PermissionDto>>> Handle(GetAllPermissionsQuery request, CancellationToken cancellationToken)
+        public async Task<Result<IEnumerable<PermissionDto>>> Handle(GetAllPermissionsQuery request, CancellationToken cancellationToken)
         {
             var permissions = await _unitOfWork.Permissions.GetAllAsync();
-            var permissionDtos = _mapper.Map<IEnumerable<Application.DTOs.PermissionDto>>(permissions);
-            return Result.Success(permissionDtos);
-        }
+            var permissionDtos = _mapper.Map<IEnumerable<PermissionDto>>(permissions);
+            return Result<IEnumerable<PermissionDto>>.Success(permissionDtos);
+    }
     }
 } 

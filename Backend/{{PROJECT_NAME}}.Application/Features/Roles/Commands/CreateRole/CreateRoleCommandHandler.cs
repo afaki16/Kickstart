@@ -9,6 +9,8 @@ using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using {{PROJECT_NAME}}.Domain.Models;
+using {{PROJECT_NAME}}.Domain.Common.Enums;
 
 namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
 {

@@ -4,6 +4,7 @@ using {{PROJECT_NAME}}.Application.Features.Users.Commands;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
 using System.Linq;
 using System.Threading;
@@ -27,12 +28,16 @@ namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
             var user = await _unitOfWork.Users.GetUserWithRolesAsync(request.Id);
 
             if (user == null)
-                return Result.Failure<UserListDto>("User not found");
+            return Result<UserListDto>.Failure(Error.Failure(
+                             ErrorCode.NotFound,
+                             "User not found"));
 
-            // Check if email already exists for another user
-            var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email);
+        // Check if email already exists for another user
+        var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email);
             if (existingUser != null && existingUser.Id != request.Id)
-                return Result.Failure<UserListDto>("Email already exists");
+            return Result<UserListDto>.Failure(Error.Failure(
+                        ErrorCode.AlreadyExists,
+                        "Email already exists"));
 
             // Update user properties
             user.FirstName = request.FirstName;
@@ -74,7 +79,7 @@ namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
             // Reload user with roles to get complete data for mapping
             _ = await _unitOfWork.Users.GetUserWithRolesAsync(user.Id);
             var userDto = _mapper.Map<UserListDto>(userWithRoles);
-            return Result.Success(userDto);
+            return Result<UserListDto>.Success(userDto);
         }
     }
 } 

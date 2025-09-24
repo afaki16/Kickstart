@@ -51,7 +51,6 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
             return Result<IEnumerable<SessionDto>>.Failure(Error.Failure(
                ErrorCode.InvalidOperation,
                $"Error retrieving user sessions: {ex.Message}"));
-            return Result.Failure<IEnumerable<SessionDto>>($"Error retrieving user sessions: {ex.Message}");
             }
         }
     }
