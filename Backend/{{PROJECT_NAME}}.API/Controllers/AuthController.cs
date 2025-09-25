@@ -71,7 +71,7 @@ namespace {{PROJECT_NAME}}.API.Controllers
             var result = await _mediator.Send(command);
             
             if (result.IsSuccess)
-                return CreatedAtAction(nameof(Login), new { }, new { success = true, data = result.Data });
+                return CreatedAtAction(nameof(Login), new { }, new { success = true, data = result.Value });
             
             return HandleResult(result);
         }

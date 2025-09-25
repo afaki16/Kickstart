@@ -90,7 +90,7 @@ namespace {{PROJECT_NAME}}.API.Controllers
             var result = await _mediator.Send(command);
             
             if (result.IsSuccess)
-                return CreatedAtAction(nameof(GetUserById), new { id = result.Data.Id }, new { success = true, data = result.Data });
+                return CreatedAtAction(nameof(GetUserById), new { id = result.Value.Id }, new { success = true, data = result.Value });
             
             return HandleResult(result);
         }

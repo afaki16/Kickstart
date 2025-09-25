@@ -50,7 +50,7 @@ namespace {{PROJECT_NAME}}.API.Controllers
             if (!result.IsSuccess)
                 return HandleResult(result);
 
-            var groupedPermissions = result.Data
+            var groupedPermissions = result.Value
                 .GroupBy(p => p.Resource)
                 .Select(g => new
                 {
@@ -88,7 +88,7 @@ namespace {{PROJECT_NAME}}.API.Controllers
             if (!result.IsSuccess)
                 return HandleResult(result);
 
-            var resourcePermissions = result.Data
+            var resourcePermissions = result.Value
                 .Where(p => p.Resource.Equals(resource, StringComparison.OrdinalIgnoreCase))
                 .OrderBy(p => p.Type);
 
