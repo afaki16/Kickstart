@@ -8,12 +8,10 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
 {
     public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, Result>
     {
-        private readonly IUserService _userService;
         private readonly IEmailService _emailService;
 
-        public ForgotPasswordCommandHandler(IUserService userService, IEmailService emailService)
+        public ForgotPasswordCommandHandler(IEmailService emailService)
         {
-            _userService = userService;
             _emailService = emailService;
         }
 

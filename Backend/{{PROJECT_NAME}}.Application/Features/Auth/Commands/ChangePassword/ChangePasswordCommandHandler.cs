@@ -11,16 +11,13 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
 {
     public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand, Result>
 {
-    private readonly IUserService _userService;
     private readonly IPasswordService _passwordService;
     private readonly ICurrentUserService _currentUserService;
 
     public ChangePasswordCommandHandler(
-        IUserService userService,
         IPasswordService passwordService,
         ICurrentUserService currentUserService)
     {
-        _userService = userService;
         _passwordService = passwordService;
         _currentUserService = currentUserService;
     }

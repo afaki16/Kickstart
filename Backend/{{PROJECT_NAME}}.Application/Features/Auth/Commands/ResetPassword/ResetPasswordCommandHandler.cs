@@ -9,12 +9,10 @@ namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
 {
     public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, Result>
     {
-        private readonly IUserService _userService;
         private readonly IPasswordService _passwordService;
 
-        public ResetPasswordCommandHandler(IUserService userService, IPasswordService passwordService)
+        public ResetPasswordCommandHandler(IPasswordService passwordService)
         {
-            _userService = userService;
             _passwordService = passwordService;
         }
 
