@@ -25,7 +25,7 @@ powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -Directory | 
 
 powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -File | Where-Object {$_.Name -like '*PROJECT_NAME*'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
 
-echo    📁 Dosya/klasör adlarını değiştiriyoruz...
+
 powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -Recurse -File | Where-Object {$_.Name -match '\{\{PROJECT_NAME\}\}'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
 powershell -ExecutionPolicy Bypass -Command "Get-ChildItem backend -Recurse -Directory | Where-Object {$_.Name -match '\{\{PROJECT_NAME\}\}'} | ForEach-Object { $newName = $_.Name -replace '\{\{PROJECT_NAME\}\}', '%PROJECT_NAME%'; Rename-Item $_.FullName $newName }"
 
