@@ -16,35 +16,44 @@ namespace {{PROJECT_NAME}}.Infrastructure.Extensions
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    {
+        // Add DbContext
+        services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
+
+        // Add Repositories
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddRepositories(typeof(DependencyInjection).Assembly);
+
+
+        // Add Services
+        services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<IAuthService, JwtService>();
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<ICurrentUserService, CurrentUserService>();
+
+
+
+        // Add JWT Authentication
+        AddJwtAuthentication(services, configuration);
+
+        return services;
+    }
+
+    public static void AddRepositories(this IServiceCollection services, Assembly assembly)
+    {
+        var repositoryTypes = assembly.GetTypes()
+            .Where(t => t.IsClass && !t.IsAbstract && t.GetInterfaces().Any(i => i.Name.EndsWith("Repository")));
+
+        foreach (var type in repositoryTypes)
         {
-            // Add DbContext
-            services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
-
-            // Add Repositories
-            services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
-            services.AddScoped<IUserRepository, UserRepository>();
-            services.AddScoped<IRoleRepository, RoleRepository>();
-            services.AddScoped<IPermissionRepository, PermissionRepository>();
-            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
-            services.AddScoped<IUnitOfWork, UnitOfWork>();
-
-            // Add Services
-            services.AddScoped<IPasswordService, PasswordService>();
-            services.AddScoped<IAuthService, JwtService>();
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<ICurrentUserService, CurrentUserService>();
-            
-          
-
-            // Add JWT Authentication
-            AddJwtAuthentication(services, configuration);
-
-            return services;
+            var interfaceType = type.GetInterfaces().First(i => i.Name.EndsWith("Repository"));
+            services.TryAddScoped(interfaceType, type);
         }
+    }
 
-        private static void AddJwtAuthentication(IServiceCollection services, IConfiguration configuration)
+    private static void AddJwtAuthentication(IServiceCollection services, IConfiguration configuration)
         {
             var jwtSettings = configuration.GetSection("JwtSettings");
             var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);

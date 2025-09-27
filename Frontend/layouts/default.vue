@@ -182,7 +182,7 @@ onMounted(async () => {
 })
 </script>
 
-<style scoped>
+
 /* Navbar styles */
 
 /* Navbar içindeki text renklerini ayarla */

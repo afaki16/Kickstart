@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Application.Interfaces
 {
-    public interface IUserRepository : IBaseRepository<User>
+    public interface IUserRepository : IRepository<User,int>
     {
         Task<User> GetByEmailAsync(string email);
         Task<User> GetUserWithRolesAsync(int userId);

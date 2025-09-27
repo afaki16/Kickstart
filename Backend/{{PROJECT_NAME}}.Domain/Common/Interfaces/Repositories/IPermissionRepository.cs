@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Application.Interfaces
 {
-    public interface IPermissionRepository : IBaseRepository<Permission>
+    public interface IPermissionRepository : IRepository<Permission,int>
     {
         Task<Permission> GetByNameAsync(string name);
         Task<IEnumerable<Permission>> GetPermissionsByRoleIdAsync(int roleId);

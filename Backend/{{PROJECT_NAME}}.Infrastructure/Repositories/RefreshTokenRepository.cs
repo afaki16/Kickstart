@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 {
-    public class RefreshTokenRepository : BaseRepository<RefreshToken>, IRefreshTokenRepository
+    public class RefreshTokenRepository : RepositoryBase<RefreshToken>, IRefreshTokenRepository
     {
         public RefreshTokenRepository(ApplicationDbContext context) : base(context)
         {

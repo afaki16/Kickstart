@@ -31,8 +31,8 @@
             <div class="logo-icon">
               <v-icon size="64" color="white">mdi-shield-account</v-icon>
             </div>
-            <h1 class="welcome-text">{{ loginConfig?.texts?.welcome || 'Welcome Back' }}</h1>
-            <p class="subtitle-text">{{ loginConfig?.texts?.subtitle || 'Sign in to your account' }}</p>
+            <h1 class="welcome-text">{{ loginConfig?.texts?.welcome }}</h1>
+            <p class="subtitle-text">{{ loginConfig?.texts?.subtitle }}</p>
           </div>
 
           <!-- Expired session alert -->

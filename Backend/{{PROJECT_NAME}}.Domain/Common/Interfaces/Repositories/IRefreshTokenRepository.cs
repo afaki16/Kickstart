@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Application.Interfaces
 {
-    public interface IRefreshTokenRepository : IBaseRepository<RefreshToken>
+    public interface IRefreshTokenRepository : IRepository<RefreshToken,int>
     {
         Task<RefreshToken> GetByTokenAsync(string token);
         Task<RefreshToken> GetActiveTokenByUserIdAsync(int userId);

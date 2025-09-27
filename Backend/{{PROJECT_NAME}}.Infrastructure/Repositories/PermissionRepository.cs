@@ -9,18 +9,20 @@ using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 {
-    public class PermissionRepository : BaseRepository<Permission>, IPermissionRepository
+    public class PermissionRepository : RepositoryBase<Permission>, IPermissionRepository
     {
-        public PermissionRepository(ApplicationDbContext context) : base(context)
-        {
-        }
+    private readonly ApplicationDbContext _context;
+    public PermissionRepository(ApplicationDbContext context) : base(context)
+    {
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+    }
 
-        public async Task<Permission> GetByNameAsync(string name)
-        {
-            return await _dbSet.FirstOrDefaultAsync(p => p.Name == name);
-        }
+    public async Task<Permission> GetByNameAsync(string name)
+    {
+        return await _context.Set<Permission>().FirstOrDefaultAsync(p => p.Name == name);
+    }
 
-        public async Task<IEnumerable<Permission>> GetPermissionsByRoleIdAsync(int roleId)
+    public async Task<IEnumerable<Permission>> GetPermissionsByRoleIdAsync(int roleId)
         {
             return await _context.RolePermissions
                 .Where(rp => rp.RoleId == roleId)
@@ -39,9 +41,9 @@ namespace {{PROJECT_NAME}}.Infrastructure.Repositories
                 .ToListAsync();
         }
 
-        public async Task<bool> PermissionExistsAsync(string name)
-        {
-            return await _dbSet.AnyAsync(p => p.Name == name);
-        }
+    public async Task<bool> PermissionExistsAsync(string name)
+    {
+        return await _context.Set<Permission>().AnyAsync(p => p.Name == name);
     }
+}
 } 
