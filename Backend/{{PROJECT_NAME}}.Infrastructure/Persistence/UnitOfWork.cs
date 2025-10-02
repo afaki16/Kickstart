@@ -17,16 +17,6 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     private readonly Lazy<IPermissionRepository> _permissions;
     private readonly Lazy<IRefreshTokenRepository> _refreshTokens;
 
-    public UnitOfWork(ApplicationDbContext context)
-    {
-        _context = context ?? throw new ArgumentNullException(nameof(context));
-
-        // Initialize repositories lazily for better performance
-        _users = new Lazy<IUserRepository>(() => new UserRepository(_context));
-        _roles = new Lazy<IRoleRepository>(() => new RoleRepository(_context));
-        _permissions = new Lazy<IPermissionRepository>(() => new PermissionRepository(_context));
-        _refreshTokens = new Lazy<IRefreshTokenRepository>(() => new RefreshTokenRepository(_context));
-    }
 
     // Repository properties - only created when accessed
     public IUserRepository Users => _users.Value;

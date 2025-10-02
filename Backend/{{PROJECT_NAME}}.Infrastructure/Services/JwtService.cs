@@ -93,7 +93,11 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                     {
                         Id = ur.Role.Id,
                         Name = ur.Role.Name,
-                        Description = ur.Role.Description
+                        Description = ur.Role.Description,
+                        IsSystemRole = ur.Role.IsSystemRole,
+                        CreatedDate = ur.Role.CreatedDate
+
+
                     }).ToList(),
                     Permissions = user.UserRoles
                         .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission))
@@ -142,23 +146,6 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                     claims.Add(new Claim(ClaimTypes.Role, role.Name));
                 }
 
-                // Add permission claims
-                var permissions = userWithPermissions.UserRoles
-                    .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission))
-                    .Distinct()
-                    .ToList();
-
-                foreach (var permission in permissions)
-                {
-                    // Add the full permission claim
-                    claims.Add(new Claim("permission", permission.FullPermission));
-                    
-                    // Add individual permission claims for each permission type
-                    foreach (var permissionType in permission.GetIndividualPermissions())
-                    {
-                        claims.Add(new Claim("permission", $"{permission.Resource}.{permissionType}"));
-                    }
-                }
 
                 var jwtSettings = _configuration.GetSection("JwtSettings");
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
