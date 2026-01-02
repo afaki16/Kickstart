@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 {
-    public class PermissionRepository : RepositoryBase<Permission>, IPermissionRepository
+    public class PermissionRepository : RepositoryBase<Permission, int>, IPermissionRepository
     {
     private readonly ApplicationDbContext _context;
     public PermissionRepository(ApplicationDbContext context) : base(context)

@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 {
-    public class RefreshTokenRepository : RepositoryBase<RefreshToken>, IRefreshTokenRepository
+    public class RefreshTokenRepository : RepositoryBase<RefreshToken, int>, IRefreshTokenRepository
     {
         public RefreshTokenRepository(ApplicationDbContext context) : base(context)
         {
@@ -17,14 +17,14 @@ namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 
         public async Task<RefreshToken> GetByTokenAsync(string token)
         {
-            return await _dbSet
+            return await GetQueryable()
                 .Include(rt => rt.User)
                 .FirstOrDefaultAsync(rt => rt.Token == token);
         }
 
         public async Task<RefreshToken> GetActiveTokenByUserIdAsync(int userId)
         {
-            return await _dbSet
+            return await GetQueryable()
                 .Where(rt => rt.UserId == userId && !rt.IsRevoked && rt.ExpiryDate > DateTime.UtcNow)
                 .OrderByDescending(rt => rt.CreatedDate)
                 .FirstOrDefaultAsync();
@@ -32,7 +32,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 
         public async Task<IEnumerable<RefreshToken>> GetUserTokensAsync(int userId, bool includeRevoked = false)
         {
-            var query = _dbSet
+            var query = GetQueryable()
                 .Include(rt => rt.User)
                 .Where(rt => rt.UserId == userId);
 
@@ -46,7 +46,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 
         public async Task<IEnumerable<RefreshToken>> GetTokensByDeviceAsync(int userId, string deviceId)
         {
-            return await _dbSet
+            return await GetQueryable()
                 .Include(rt => rt.User)
                 .Where(rt => rt.UserId == userId && rt.DeviceId == deviceId)
                 .OrderByDescending(rt => rt.CreatedDate)
@@ -55,7 +55,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 
         public async Task<IEnumerable<RefreshToken>> GetActiveTokensByIpAsync(string ipAddress)
         {
-            return await _dbSet
+            return await GetQueryable()
                 .Include(rt => rt.User)
                 .Where(rt => rt.IpAddress == ipAddress && !rt.IsRevoked && rt.ExpiryDate > DateTime.UtcNow)
                 .OrderByDescending(rt => rt.CreatedDate)
@@ -64,13 +64,13 @@ namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 
         public async Task<int> GetActiveTokenCountAsync(int userId)
         {
-            return await _dbSet
+            return await GetQueryable()
                 .CountAsync(rt => rt.UserId == userId && !rt.IsRevoked && rt.ExpiryDate > DateTime.UtcNow);
         }
 
         public async Task RevokeAllUserTokensAsync(int userId, string ipAddress = null, string userAgent = null, string reason = "User logout")
         {
-            var tokens = await _dbSet
+            var tokens = await GetQueryable()
                 .Where(rt => rt.UserId == userId && !rt.IsRevoked)
                 .ToListAsync();
 
@@ -119,7 +119,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Repositories
 
         public async Task CleanupExpiredTokensAsync()
         {
-            var expiredTokens = await _dbSet
+            var expiredTokens = await GetQueryable()
                 .Where(rt => rt.ExpiryDate <= DateTime.UtcNow)
                 .ToListAsync();
 
@@ -129,7 +129,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Repositories
         public async Task CleanupRevokedTokensAsync(int daysOld = 30)
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-daysOld);
-            var oldRevokedTokens = await _dbSet
+            var oldRevokedTokens = await GetQueryable()
                 .Where(rt => rt.IsRevoked && rt.RevokedDate <= cutoffDate)
                 .ToListAsync();
 
@@ -139,7 +139,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Repositories
         public async Task<IEnumerable<RefreshToken>> GetExpiringSoonTokensAsync(int minutesThreshold = 30)
         {
             var cutoffTime = DateTime.UtcNow.AddMinutes(minutesThreshold);
-            return await _dbSet
+            return await GetQueryable()
                 .Include(rt => rt.User)
                 .Where(rt => !rt.IsRevoked && rt.ExpiryDate <= cutoffTime && rt.ExpiryDate > DateTime.UtcNow)
                 .ToListAsync();

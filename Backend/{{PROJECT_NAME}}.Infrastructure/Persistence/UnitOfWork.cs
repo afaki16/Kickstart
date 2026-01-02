@@ -1,13 +1,15 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using {{PROJECT_NAME}}.Application.Interfaces;
 using {{PROJECT_NAME}}.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.Threading.Tasks;
 
 namespace {{PROJECT_NAME}}.Infrastructure.Repositories;
 public class UnitOfWork : IUnitOfWork, IAsyncDisposable
 {
     private readonly ApplicationDbContext _context;
+    private readonly IServiceProvider _serviceProvider;
     private IDbContextTransaction? _currentTransaction;
     private bool _disposed;
 
@@ -17,6 +19,17 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     private readonly Lazy<IPermissionRepository> _permissions;
     private readonly Lazy<IRefreshTokenRepository> _refreshTokens;
 
+    public UnitOfWork(ApplicationDbContext context, IServiceProvider serviceProvider)
+    {
+        _context = context ?? throw new ArgumentNullException(nameof(context));
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        
+        // Lazy repository'leri initialize et
+        _users = new Lazy<IUserRepository>(() => _serviceProvider.GetRequiredService<IUserRepository>());
+        _roles = new Lazy<IRoleRepository>(() => _serviceProvider.GetRequiredService<IRoleRepository>());
+        _permissions = new Lazy<IPermissionRepository>(() => _serviceProvider.GetRequiredService<IPermissionRepository>());
+        _refreshTokens = new Lazy<IRefreshTokenRepository>(() => _serviceProvider.GetRequiredService<IRefreshTokenRepository>());
+    }
 
     // Repository properties - only created when accessed
     public IUserRepository Users => _users.Value;
