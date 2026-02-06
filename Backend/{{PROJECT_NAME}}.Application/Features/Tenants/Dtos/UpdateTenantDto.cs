@@ -1,4 +1,5 @@
-namespace Features.Tenants.Dtos
+
+namespace {{PROJECT_NAME}}.Application.DTOs
 {
     public class UpdateTenantDto
     {

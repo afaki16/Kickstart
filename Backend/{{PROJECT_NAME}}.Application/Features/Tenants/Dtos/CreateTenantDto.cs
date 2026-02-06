@@ -1,4 +1,3 @@
-using static System.Net.Mime.MediaTypeNames;
 
 namespace {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
 
