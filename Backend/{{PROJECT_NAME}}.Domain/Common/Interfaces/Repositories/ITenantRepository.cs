@@ -1,10 +1,11 @@
-﻿using System;
+﻿using {{PROJECT_NAME}}.Domain.Entities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
+namespace {{PROJECT_NAME }}.Application.Interfaces;
 
 public interface ITenantRepository : IRepository<Tenant, int>
 {
