@@ -45,7 +45,10 @@ namespace {{PROJECT_NAME}}.Infrastructure.Data.Configurations
             builder.Property(x => x.ProfileImageUrl)
                 .HasMaxLength(500);
 
-            builder.Property(x => x.EmailConfirmed)
+        builder.Property(x => x.TenantId)
+               .IsRequired(false);
+
+        builder.Property(x => x.EmailConfirmed)
                 .IsRequired()
                 .HasDefaultValue(false);
 

@@ -4,11 +4,13 @@ using {{PROJECT_NAME}}.Application.DTOs.Auth;
 using {{PROJECT_NAME}}.Application.Features.Auth.Commands;
 using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
 using {{PROJECT_NAME}}.Application.Features.Users.Commands;
-using {{PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using { {PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 
-namespace {{PROJECT_NAME}}.Application.Mappings
-{
+namespace {{PROJECT_NAME}}.Application.Mappings;
+
     public class MappingProfile : Profile
     {
         public MappingProfile()
@@ -107,6 +109,17 @@ namespace {{PROJECT_NAME}}.Application.Mappings
                 .ForMember(dest => dest.ExpiresAt, opt => opt.MapFrom(src => src.ExpiryDate))
                 .ForMember(dest => dest.AccessToken, opt => opt.Ignore())
                 .ForMember(dest => dest.User, opt => opt.Ignore());
-        }
+
+        // Tenant mappings
+        CreateMap<Tenant, TenantDto>()
+            .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.Users != null ? src.Users.Count : 0));
+
+        CreateMap<Tenant, TenantListDto>()
+            .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.Users != null ? src.Users.Count : 0));
+
+        // DTO -> Command mappings (Controller'da kullanýlýr)
+        CreateMap<CreateTenantDto, CreateTenantCommand>();
+        CreateMap<UpdateTenantDto, UpdateTenantCommand>();
     }
-} 
+    }
+

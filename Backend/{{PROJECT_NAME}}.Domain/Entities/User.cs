@@ -17,12 +17,16 @@ namespace {{PROJECT_NAME}}.Domain.Entities
         public bool EmailConfirmed { get; set; }
         public bool PhoneConfirmed { get; set; }
         public string ProfileImageUrl { get; set; } = string.Empty;
+        public int? TenantId { get; set; }
 
-        // Navigation properties
-        public ICollection<UserRole> UserRoles { get; set; }
-        public ICollection<RefreshToken> RefreshTokens { get; set; }
+  
 
-        public User()
+    // Navigation properties
+    public ICollection<UserRole> UserRoles { get; set; }
+    public ICollection<RefreshToken> RefreshTokens { get; set; }
+    public Tenant Tenant { get; set; }
+
+    public User()
         {
             UserRoles = new HashSet<UserRole>();
             RefreshTokens = new HashSet<RefreshToken>();

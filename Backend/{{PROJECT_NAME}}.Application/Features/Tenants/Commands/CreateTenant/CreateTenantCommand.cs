@@ -1,0 +1,16 @@
+﻿using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using MediatR;
+
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Commands
+{
+    public class CreateTenantCommand : IRequest<Result<TenantListDto>>
+{
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string Domain { get; set; }
+    public bool IsActive { get; set; } = true;
+    public string ContactEmail { get; set; }
+    public string ContactPhone { get; set; }
+}
+}

@@ -28,8 +28,13 @@ namespace {{PROJECT_NAME}}.Infrastructure.Data
                 // Seed Roles
                 await SeedRolesAsync(context);
 
+                // Seed Tenants
+                await SeedTenantsAsync(context);
+                
                 // Seed Admin User
                 await SeedAdminUserAsync(context);
+
+
 
                 logger.LogInformation("Seed data completed successfully.");
             }
@@ -51,9 +56,11 @@ namespace {{PROJECT_NAME}}.Infrastructure.Data
                 // Check if database has any data
                 var hasAnyData = await context.Users.AnyAsync() || 
                                 await context.Roles.AnyAsync() || 
-                                await context.Permissions.AnyAsync();
+                                await context.Permissions.AnyAsync() ||
+                                await context.Tenants.AnyAsync();
+            ;
 
-                if (hasAnyData)
+            if (hasAnyData)
                 {
                     logger.LogInformation("Database already contains data. Skipping seed data.");
                     return;
@@ -66,7 +73,10 @@ namespace {{PROJECT_NAME}}.Infrastructure.Data
 
                 // Seed Roles
                 await SeedRolesAsync(context);
-
+                
+                // Seed Tenants
+                await SeedTenantsAsync(context);
+            
                 // Seed Admin User
                 await SeedAdminUserAsync(context);
 
@@ -89,6 +99,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Data
                 context.UserRoles.RemoveRange(context.UserRoles);
                 context.RolePermissions.RemoveRange(context.RolePermissions);
                 context.Users.RemoveRange(context.Users);
+                context.Tenants.RemoveRange(context.Tenants);
                 context.Roles.RemoveRange(context.Roles);
                 context.Permissions.RemoveRange(context.Permissions);
                 context.RefreshTokens.RemoveRange(context.RefreshTokens);
@@ -179,9 +190,48 @@ namespace {{PROJECT_NAME}}.Infrastructure.Data
             await context.SaveChangesAsync();
         }
 
+    private static async Task SeedTenantsAsync(ApplicationDbContext context)
+    {
+        // Check if tenants already exist
+        if (await context.Tenants.AnyAsync())
+        {
+            return; // Tenants already seeded
+        }
+
+        var defaultTenant = new Tenant
+        {
+            Name = "Default Tenant",
+            Description = "Default system tenant",
+            Domain = "default",
+            IsActive = true,
+            ContactEmail = "admin@default.com",
+            ContactPhone = "+905551234567",
+            CreatedDate = DateTime.UtcNow
+        };
+
+        var demoTenant = new Tenant
+        {
+            Name = "Demo Tenant",
+            Description = "Demo tenant for testing purposes",
+            Domain = "demo",
+            IsActive = true,
+            ContactEmail = "admin@demo.com",
+            ContactPhone = "+905559876543",
+            CreatedDate = DateTime.UtcNow
+        };
+
+        await context.Tenants.AddRangeAsync(defaultTenant, demoTenant);
+        await context.SaveChangesAsync();
+    }
+
         private static async Task SeedAdminUserAsync(ApplicationDbContext context)
         {
-            var adminUser = new User
+
+        // Get default tenant
+        var defaultTenant = await context.Tenants.FirstOrDefaultAsync(t => t.Domain == "default");
+
+
+        var adminUser = new User
             {
                 FirstName = "System",
                 LastName = "Administrator",

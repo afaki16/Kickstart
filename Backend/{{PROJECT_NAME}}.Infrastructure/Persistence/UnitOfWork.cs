@@ -18,6 +18,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     private readonly Lazy<IRoleRepository> _roles;
     private readonly Lazy<IPermissionRepository> _permissions;
     private readonly Lazy<IRefreshTokenRepository> _refreshTokens;
+    private readonly Lazy<ITenantRepository> _tenants;
 
     public UnitOfWork(ApplicationDbContext context, IServiceProvider serviceProvider)
     {
@@ -29,6 +30,8 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         _roles = new Lazy<IRoleRepository>(() => _serviceProvider.GetRequiredService<IRoleRepository>());
         _permissions = new Lazy<IPermissionRepository>(() => _serviceProvider.GetRequiredService<IPermissionRepository>());
         _refreshTokens = new Lazy<IRefreshTokenRepository>(() => _serviceProvider.GetRequiredService<IRefreshTokenRepository>());
+        _tenants = new Lazy<ITenantRepository>(() => _serviceProvider.GetRequiredService<ITenantRepository>());
+
     }
 
     // Repository properties - only created when accessed
@@ -36,6 +39,10 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public IRoleRepository Roles => _roles.Value;
     public IPermissionRepository Permissions => _permissions.Value;
     public IRefreshTokenRepository RefreshTokens => _refreshTokens.Value;
+    public ITenantRepository Tenants => _tenants.Value;
+
+
+
 
     /// <summary>
     /// Save all changes made in this unit of work

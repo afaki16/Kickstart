@@ -29,6 +29,15 @@ namespace {{PROJECT_NAME}}.Domain.Constants
         public const string Delete = "Permissions.Delete";
     }
 
+    // Tenant permissions
+    public static class Tenants
+    {
+        public const string Read = "Tenants.Read";
+        public const string Create = "Tenants.Create";
+        public const string Update = "Tenants.Update";
+        public const string Delete = "Tenants.Delete";
+    }
+
     // Helper methods
     public static class Helper
     {
