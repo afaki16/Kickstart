@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace {{PROJECT_NAME }}.Application.Interfaces;
+namespace {{PROJECT_NAME}}.Application.Interfaces;
 
 public interface ITenantRepository : IRepository<Tenant, int>
 {
