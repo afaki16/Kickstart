@@ -13,7 +13,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     IRoleRepository Roles { get; }
     IPermissionRepository Permissions { get; }
     IRefreshTokenRepository RefreshTokens { get; }
-
+    ITenantRepository Tenants { get; }
     // Core operations
     /// <summary>
     /// Save all changes made in this unit of work

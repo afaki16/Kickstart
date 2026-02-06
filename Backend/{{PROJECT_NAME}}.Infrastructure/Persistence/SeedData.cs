@@ -241,7 +241,8 @@ namespace {{PROJECT_NAME}}.Infrastructure.Data
                 Status = UserStatus.Active,
                 EmailConfirmed = true,
                 PhoneConfirmed = true,
-                CreatedDate = DateTime.UtcNow
+            TenantId = defaultTenant?.Id, 
+            CreatedDate = DateTime.UtcNow
             };
 
             await context.Users.AddAsync(adminUser);
