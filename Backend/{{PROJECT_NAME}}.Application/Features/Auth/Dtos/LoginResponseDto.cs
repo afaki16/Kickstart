@@ -1,4 +1,5 @@
 using System;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
 
 namespace {{PROJECT_NAME}}.Application.Features.Auth.Dtos
 {

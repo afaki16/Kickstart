@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
 
 namespace {{PROJECT_NAME}}.Application.Features.Roles.Dtos
 {

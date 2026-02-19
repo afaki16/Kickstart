@@ -1,4 +1,6 @@
 using {{PROJECT_NAME}}.Domain.Common.Enums;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
 using System;
 using System.Collections.Generic;
 

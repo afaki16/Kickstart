@@ -1,4 +1,5 @@
 using {{PROJECT_NAME}}.Domain.Common.Enums;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
 using System;
 
 namespace {{PROJECT_NAME}}.Application.Features.Users.Dtos
