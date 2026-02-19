@@ -1,3 +1,4 @@
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Threading.Tasks;
 
