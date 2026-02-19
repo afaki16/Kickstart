@@ -1,7 +1,7 @@
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 using System;
 
-namespace {{PROJECT_NAME}}.Application.DTOs
+namespace {{PROJECT_NAME}}.Application.Features.Users.Dtos
 {
     public class UserListDto
     {

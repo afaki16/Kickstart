@@ -1,7 +1,7 @@
 using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 
-namespace {{PROJECT_NAME}}.Application.Features.Auth.Commands
+namespace {{PROJECT_NAME}}.Application.Features.Auth.Commands.RevokeSession
 {
     public class RevokeSessionCommand : IRequest<Result>
     {

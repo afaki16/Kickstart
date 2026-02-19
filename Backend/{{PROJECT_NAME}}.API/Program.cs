@@ -1,5 +1,5 @@
-using {{PROJECT_NAME}}.Infrastructure.Extensions;
-using {{PROJECT_NAME}}.Infrastructure.Data;
+using {{PROJECT_NAME}}.Infrastructure;
+using {{PROJECT_NAME}}.Infrastructure.Persistence;
 using {{PROJECT_NAME}}.Application;
 using {{PROJECT_NAME}}.API.Extensions;
 
@@ -50,8 +50,8 @@ await SeedData.SeedAsyncIfEmpty(app.Services);
 // Her başlatmada eksik permission'ları ekle
 using (var scope = app.Services.CreateScope())
 {
-    var context = scope.ServiceProvider.GetRequiredService<{{PROJECT_NAME}}.Infrastructure.Data.ApplicationDbContext>();
-    await {{PROJECT_NAME}}.Infrastructure.Data.SeedData.SeedPermissionsAsync(context);
+    var context = scope.ServiceProvider.GetRequiredService<{{PROJECT_NAME}}.Infrastructure.Persistence.ApplicationDbContext>();
+    await {{PROJECT_NAME}}.Infrastructure.Persistence.SeedData.SeedPermissionsAsync(context);
 }
 
 app.Run();

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace {{PROJECT_NAME}}.Application.DTOs
+namespace {{PROJECT_NAME}}.Application.Features.Permissions.Dtos
 {
     public class PermissionDto
     {

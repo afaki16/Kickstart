@@ -1,16 +1,16 @@
 using AutoMapper;
-using MemberShip.Application.Interfaces;
-using MemberShip.Application.Common.Results;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
+using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MemberShip.Domain.Entities;
-using Features.Tenants.Dtos;
-
-namespace Features.Tenants.Queries.GetAllTenants
+using {{PROJECT_NAME}}.Domain.Entities;
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Queries.GetAllTenants
 {
     public class GetAllTenantsQueryHandler : IRequestHandler<GetAllTenantsQuery, Result<IEnumerable<TenantListDto>>>
     {

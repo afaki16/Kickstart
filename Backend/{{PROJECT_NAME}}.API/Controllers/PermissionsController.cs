@@ -1,6 +1,9 @@
 using {{PROJECT_NAME}}.API.Controllers;
-using {{PROJECT_NAME}}.Application.DTOs;
-using {{PROJECT_NAME}}.Application.Features.Permissions.Queries;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Queries.GetAllPermissions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

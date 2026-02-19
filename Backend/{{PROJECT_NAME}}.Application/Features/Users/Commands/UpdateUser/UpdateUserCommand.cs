@@ -1,11 +1,14 @@
-using {{PROJECT_NAME}}.Application.DTOs;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 using MediatR;
 using System;
 using System.Collections.Generic;
 
-namespace {{PROJECT_NAME}}.Application.Features.Users.Commands
+namespace {{PROJECT_NAME}}.Application.Features.Users.Commands.UpdateUser
 {
     public class UpdateUserCommand : IRequest<Result<UserListDto>>
     {

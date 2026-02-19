@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Threading.Tasks;
 
-namespace {{PROJECT_NAME}}.Application.Interfaces;
+namespace {{PROJECT_NAME}}.Domain.Common.Interfaces;
 
 /// <summary>
 /// Unit of Work pattern interface for managing repositories and transactions

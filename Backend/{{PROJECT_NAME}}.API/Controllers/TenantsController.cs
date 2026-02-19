@@ -1,7 +1,10 @@
-﻿using AutoMapper;
-using {{PROJECT_NAME}}.Application.Features.Tenants.Commands;
+using AutoMapper;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.CreateTenant;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.UpdateTenant;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.DeleteTenant;
 using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
-using {{PROJECT_NAME}}.Application.Features.Tenants.Queries;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Queries.GetAllTenants;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Queries.GetTenantById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

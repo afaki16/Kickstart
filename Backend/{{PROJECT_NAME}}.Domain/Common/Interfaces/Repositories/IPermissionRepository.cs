@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace {{PROJECT_NAME}}.Application.Interfaces
+namespace {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories
 {
     public interface IPermissionRepository : IRepository<Permission,int>
     {

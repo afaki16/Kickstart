@@ -1,7 +1,9 @@
 using FluentValidation;
-using {{PROJECT_NAME}}.Application.Features.Users.Commands;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.CreateUser;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.UpdateUser;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.DeleteUser;
 
-namespace {{PROJECT_NAME}}.Application.Validators.Users
+namespace {{PROJECT_NAME}}.Application.Features.Users.Commands.UpdateUser
 {
     public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
     {

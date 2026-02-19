@@ -1,16 +1,31 @@
 using AutoMapper;
-using {{PROJECT_NAME}}.Application.DTOs;
-using {{PROJECT_NAME}}.Application.DTOs.Auth;
-using {{PROJECT_NAME}}.Application.Features.Auth.Commands;
-using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
-using {{PROJECT_NAME}}.Application.Features.Users.Commands;
-using {{PROJECT_NAME}}.Application.Features.Tenants.Commands;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
 using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Auth.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.Login;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.Logout;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.LogoutAll;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.LogoutDevice;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.Register;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.RefreshToken;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.RevokeSession;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.ChangePassword;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.ForgotPassword;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.ResetPassword;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.CreateRole;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.UpdateRole;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.DeleteRole;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.CreateUser;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.UpdateUser;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.DeleteUser;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.CreateTenant;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.UpdateTenant;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.DeleteTenant;
 using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
-using Features.Tenants.Dtos;
-
-namespace {{PROJECT_NAME}}.Application.Mappings;
+namespace {{PROJECT_NAME}}.Application.Features.Mappings;
 
     public class MappingProfile : Profile
     {
@@ -118,7 +133,7 @@ namespace {{PROJECT_NAME}}.Application.Mappings;
         CreateMap<Tenant, TenantListDto>()
             .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.Users != null ? src.Users.Count : 0));
 
-        // DTO -> Command mappings (Controller'da kullanýlýr)
+        // DTO -> Command mappings (Controller'da kullanï¿½lï¿½r)
         CreateMap<CreateTenantDto, CreateTenantCommand>();
         CreateMap<UpdateTenantDto, UpdateTenantCommand>();
     }

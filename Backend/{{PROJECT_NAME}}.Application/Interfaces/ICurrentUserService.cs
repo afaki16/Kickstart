@@ -1,6 +1,6 @@
 using System;
 
-namespace {{PROJECT_NAME}}.Application.Services
+namespace {{PROJECT_NAME}}.Application.Interfaces
 {
     public interface ICurrentUserService
     {

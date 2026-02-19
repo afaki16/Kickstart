@@ -1,6 +1,6 @@
 using System;
 
-namespace {{PROJECT_NAME}}.Application.DTOs
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Dtos
 {
     public class TenantListDto
     {

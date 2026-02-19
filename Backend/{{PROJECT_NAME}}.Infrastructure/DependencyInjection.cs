@@ -1,6 +1,7 @@
 using {{PROJECT_NAME}}.Application.Interfaces;
-using {{PROJECT_NAME}}.Application.Services;
-using {{PROJECT_NAME}}.Infrastructure.Data;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
+using {{PROJECT_NAME}}.Infrastructure.Persistence;
 using {{PROJECT_NAME}}.Infrastructure.Identity;
 using {{PROJECT_NAME}}.Infrastructure.Repositories;
 using {{PROJECT_NAME}}.Infrastructure.Services;
@@ -14,7 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
 using System.Text;
 
-namespace {{PROJECT_NAME}}.Infrastructure.Extensions
+namespace {{PROJECT_NAME}}.Infrastructure
 {
     public static class DependencyInjection
     {

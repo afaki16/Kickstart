@@ -1,8 +1,11 @@
-using {{PROJECT_NAME}}.Application.DTOs;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 
-namespace {{PROJECT_NAME}}.Application.Features.Auth.Commands
+namespace {{PROJECT_NAME}}.Application.Features.Auth.Commands.Register
 {
     public class RegisterCommand : IRequest<Result<UserDto>>
     {

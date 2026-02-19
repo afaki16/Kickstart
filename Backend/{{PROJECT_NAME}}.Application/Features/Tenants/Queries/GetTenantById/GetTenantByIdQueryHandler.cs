@@ -1,14 +1,14 @@
 using AutoMapper;
-using MemberShip.Application.Interfaces;
-using MemberShip.Application.Common.Results;
-using MemberShip.Domain.Models;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
+using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
-using MemberShip.Domain.Common.Enums;
-using Features.Tenants.Dtos;
-
-namespace Features.Tenants.Queries.GetTenantById
+using {{PROJECT_NAME}}.Domain.Common.Enums;
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Queries.GetTenantById
 {
     public class GetTenantByIdQueryHandler : IRequestHandler<GetTenantByIdQuery, Result<TenantDto>>
     {

@@ -1,7 +1,13 @@
 using AutoMapper;
-using {{PROJECT_NAME}}.Application.DTOs;
-using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
-using {{PROJECT_NAME}}.Application.Interfaces;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.CreateRole;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.UpdateRole;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.DeleteRole;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Entities;
 using MediatR;
@@ -12,7 +18,7 @@ using System.Threading.Tasks;
 using {{PROJECT_NAME}}.Domain.Models;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 
-namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
+namespace {{PROJECT_NAME}}.Application.Features.Roles.Commands.CreateRole
 {
     public class CreateRoleCommandHandler : IRequestHandler<CreateRoleCommand, Result<RoleDto>>
     {

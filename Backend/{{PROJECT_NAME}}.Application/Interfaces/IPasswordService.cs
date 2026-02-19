@@ -1,7 +1,6 @@
 using {{PROJECT_NAME}}.Application.Common.Results;
-using {{PROJECT_NAME}}.Application.Common.Results;
 
-namespace {{PROJECT_NAME}}.Application.Services
+namespace {{PROJECT_NAME}}.Application.Interfaces
 {
     public interface IPasswordService
     {

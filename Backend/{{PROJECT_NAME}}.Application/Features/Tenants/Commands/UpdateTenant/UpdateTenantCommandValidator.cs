@@ -1,7 +1,9 @@
 using FluentValidation;
-using {{PROJECT_NAME}}.Application.Features.Tenants.Commands;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.CreateTenant;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.UpdateTenant;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.DeleteTenant;
 
-namespace {{PROJECT_NAME}}.Application.Features.Tenants.Validators;
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Commands.UpdateTenant;
 
     public class UpdateTenantCommandValidator : AbstractValidator<UpdateTenantCommand>
 {

@@ -1,7 +1,13 @@
 using {{PROJECT_NAME}}.API.Controllers;
-using {{PROJECT_NAME}}.Application.DTOs;
-using {{PROJECT_NAME}}.Application.Features.Users.Commands;
-using {{PROJECT_NAME}}.Application.Features.Users.Queries;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.CreateUser;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.UpdateUser;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.DeleteUser;
+using {{PROJECT_NAME}}.Application.Features.Users.Queries.GetAllUsers;
+using {{PROJECT_NAME}}.Application.Features.Users.Queries.GetUserById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

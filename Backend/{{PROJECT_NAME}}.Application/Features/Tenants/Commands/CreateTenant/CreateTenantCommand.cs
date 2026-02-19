@@ -1,8 +1,8 @@
-﻿using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
 using MediatR;
 
-namespace {{PROJECT_NAME}}.Application.Features.Tenants.Commands
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Commands.CreateTenant
 {
     public class CreateTenantCommand : IRequest<Result<TenantListDto>>
 {

@@ -1,5 +1,5 @@
 using FluentValidation;
-using {{PROJECT_NAME}}.Application.Behaviors;
+using {{PROJECT_NAME}}.Application.Common.Behaviors;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;

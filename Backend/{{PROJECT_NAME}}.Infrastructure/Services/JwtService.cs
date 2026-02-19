@@ -1,8 +1,8 @@
-using {{PROJECT_NAME}}.Application.DTOs.Auth;
 using {{PROJECT_NAME}}.Application.Interfaces;
-using {{PROJECT_NAME}}.Application.Services;
+using {{PROJECT_NAME}}.Application.Features.Auth.Dtos;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using {{PROJECT_NAME}}.Application.Common.Results;
-using {{PROJECT_NAME}}.Domain.Common;
 using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Models;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
@@ -76,7 +76,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                 AccessToken = accessTokenResult.Value,
                 RefreshToken = refreshTokenResult.Value.Token,
                 ExpiresAt = refreshTokenResult.Value.ExpiryDate,
-                User = new Application.DTOs.UserDto
+                User = new Application.Features.Users.Dtos.UserDto
                 {
                     Id = user.Id,
                     FirstName = user.FirstName,
@@ -89,7 +89,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                     PhoneConfirmed = user.PhoneConfirmed,
                     ProfileImageUrl = user.ProfileImageUrl,
                     CreatedDate = user.CreatedDate,
-                    Roles = user.UserRoles.Select(ur => new Application.DTOs.RoleDto
+                    Roles = user.UserRoles.Select(ur => new Application.Features.Roles.Dtos.RoleDto
                     {
                         Id = ur.Role.Id,
                         Name = ur.Role.Name,
@@ -102,7 +102,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                     Permissions = user.UserRoles
                         .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission))
                         .Distinct()
-                        .Select(p => new Application.DTOs.PermissionDto
+                        .Select(p => new Application.Features.Permissions.Dtos.PermissionDto
                         {
                             Id = p.Id,
                             Name = p.Name,
@@ -286,7 +286,7 @@ namespace {{PROJECT_NAME}}.Infrastructure.Services
                 AccessToken = newAccessTokenResult.Value,
                 RefreshToken = newRefreshTokenResult.Value.Token,
                 ExpiresAt = newRefreshTokenResult.Value.ExpiryDate,
-                User = new Application.DTOs.UserDto
+                User = new Application.Features.Users.Dtos.UserDto
                 {
                     Id = user.Id,
                     FirstName = user.FirstName,

@@ -1,15 +1,20 @@
 using AutoMapper;
-using {{PROJECT_NAME}}.Application.Features.Roles.Queries;
-using {{PROJECT_NAME}}.Application.Interfaces;
+using {{PROJECT_NAME}}.Application.Features.Roles.Queries.GetAllRoles;
+using {{PROJECT_NAME}}.Application.Features.Roles.Queries.GetRoleById;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
-using {{PROJECT_NAME}}.Application.DTOs;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 
-namespace {{PROJECT_NAME}}.Application.Features.Roles.Handlers
+namespace {{PROJECT_NAME}}.Application.Features.Roles.Queries.GetRoleById
 {
     public class GetRoleByIdQueryHandler : IRequestHandler<GetRoleByIdQuery, Result<RoleDto>>
     {

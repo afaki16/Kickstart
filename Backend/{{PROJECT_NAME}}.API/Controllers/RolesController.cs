@@ -1,7 +1,13 @@
 using {{PROJECT_NAME}}.API.Controllers;
-using {{PROJECT_NAME}}.Application.DTOs;
-using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
-using {{PROJECT_NAME}}.Application.Features.Roles.Queries;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.CreateRole;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.UpdateRole;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.DeleteRole;
+using {{PROJECT_NAME}}.Application.Features.Roles.Queries.GetAllRoles;
+using {{PROJECT_NAME}}.Application.Features.Roles.Queries.GetRoleById;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

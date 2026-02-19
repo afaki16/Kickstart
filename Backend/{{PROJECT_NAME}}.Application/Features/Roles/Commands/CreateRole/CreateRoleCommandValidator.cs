@@ -1,7 +1,9 @@
 using FluentValidation;
-using {{PROJECT_NAME}}.Application.Features.Roles.Commands;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.CreateRole;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.UpdateRole;
+using {{PROJECT_NAME}}.Application.Features.Roles.Commands.DeleteRole;
 
-namespace {{PROJECT_NAME}}.Application.Validators.Roles
+namespace {{PROJECT_NAME}}.Application.Features.Roles.Commands.CreateRole
 {
     public class CreateRoleCommandValidator : AbstractValidator<CreateRoleCommand>
     {

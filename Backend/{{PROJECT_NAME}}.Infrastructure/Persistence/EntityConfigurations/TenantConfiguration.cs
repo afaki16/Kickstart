@@ -1,8 +1,8 @@
-﻿using {{PROJECT_NAME}}.Domain.Entities;
+using {{PROJECT_NAME}}.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace {{PROJECT_NAME}}.Infrastructure.Data.Configurations
+namespace {{PROJECT_NAME}}.Infrastructure.Persistence.EntityConfigurations
 {
     public class TenantConfiguration : IEntityTypeConfiguration<Tenant>
 {

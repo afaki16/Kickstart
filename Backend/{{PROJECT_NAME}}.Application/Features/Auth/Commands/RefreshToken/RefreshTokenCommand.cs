@@ -1,8 +1,8 @@
-using {{PROJECT_NAME}}.Application.DTOs.Auth;
+using {{PROJECT_NAME}}.Application.Features.Auth.Dtos;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 
-namespace {{PROJECT_NAME}}.Application.Features.Auth.Commands
+namespace {{PROJECT_NAME}}.Application.Features.Auth.Commands.RefreshToken
 {
     public class RefreshTokenCommand : IRequest<Result<LoginResponseDto>>
     {

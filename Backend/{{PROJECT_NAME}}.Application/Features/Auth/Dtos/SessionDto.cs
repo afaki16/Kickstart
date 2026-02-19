@@ -1,6 +1,6 @@
 using System;
 
-namespace {{PROJECT_NAME}}.Application.DTOs.Auth
+namespace {{PROJECT_NAME}}.Application.Features.Auth.Dtos
 {
     public class SessionDto
     {

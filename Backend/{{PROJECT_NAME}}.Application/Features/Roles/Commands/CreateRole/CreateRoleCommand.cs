@@ -1,10 +1,13 @@
-using {{PROJECT_NAME}}.Application.DTOs;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 using System;
 using System.Collections.Generic;
 
-namespace {{PROJECT_NAME}}.Application.Features.Roles.Commands
+namespace {{PROJECT_NAME}}.Application.Features.Roles.Commands.CreateRole
 {
     public class CreateRoleCommand : IRequest<Result<RoleDto>>
     {

@@ -1,6 +1,8 @@
+using {{PROJECT_NAME}}.Application.Interfaces;
 using BCrypt.Net;
-using {{PROJECT_NAME}}.Application.Services;
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
+using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using System;
 using System.Text;

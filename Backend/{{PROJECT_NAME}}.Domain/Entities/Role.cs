@@ -1,4 +1,4 @@
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Domain.Entities;
 using System.Collections.Generic;
 
 namespace {{PROJECT_NAME}}.Domain.Entities

@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 
-namespace {{PROJECT_NAME}}.Infrastructure.Data
+namespace {{PROJECT_NAME}}.Infrastructure.Persistence
 {
     public static class SeedData
     {

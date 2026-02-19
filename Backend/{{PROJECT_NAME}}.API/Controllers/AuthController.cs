@@ -1,7 +1,16 @@
 using {{PROJECT_NAME}}.API.Controllers;
-using {{PROJECT_NAME}}.Application.DTOs.Auth;
-using {{PROJECT_NAME}}.Application.Features.Auth.Commands;
-using {{PROJECT_NAME}}.Application.Features.Auth.Queries;
+using {{PROJECT_NAME}}.Application.Features.Auth.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.Login;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.Logout;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.LogoutAll;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.LogoutDevice;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.Register;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.RefreshToken;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.RevokeSession;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.ChangePassword;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.ForgotPassword;
+using {{PROJECT_NAME}}.Application.Features.Auth.Commands.ResetPassword;
+using {{PROJECT_NAME}}.Application.Features.Auth.Queries.GetUserSessions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -52,7 +61,7 @@ namespace {{PROJECT_NAME}}.API.Controllers
         /// <returns>Created user information</returns>
         [HttpPost("register")]
         [AllowAnonymous]
-        [ProducesResponseType(typeof(Application.DTOs.UserDto), 201)]
+        [ProducesResponseType(typeof(Application.Features.Users.Dtos.UserDto), 201)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
         {
@@ -175,7 +184,7 @@ namespace {{PROJECT_NAME}}.API.Controllers
         /// <returns>Current user details</returns>
         [HttpGet("me")]
         [Authorize]
-        [ProducesResponseType(typeof(Application.DTOs.UserListDto), 200)]
+        [ProducesResponseType(typeof(Application.Features.Users.Dtos.UserListDto), 200)]
         [ProducesResponseType(401)]
         public async Task<IActionResult> GetCurrentUser()
         {
@@ -184,7 +193,7 @@ namespace {{PROJECT_NAME}}.API.Controllers
             if (!int.TryParse(userId, out var userIdInt))
                 return Unauthorized();
 
-            var query = new Application.Features.Users.Queries.GetUserByIdQuery { Id = userIdInt };
+            var query = new Application.Features.Users.Queries.GetUserById.GetUserByIdQuery { Id = userIdInt };
             var result = await _mediator.Send(query);
             
             return HandleResult(result);

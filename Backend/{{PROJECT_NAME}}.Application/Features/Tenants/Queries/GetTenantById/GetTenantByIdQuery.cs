@@ -1,8 +1,7 @@
-using MemberShip.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
 using MediatR;
-using Features.Tenants.Dtos;
-
-namespace Features.Tenants.Queries.GetTenantById
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Queries.GetTenantById
 {
     public class GetTenantByIdQuery : IRequest<Result<TenantDto>>
     {

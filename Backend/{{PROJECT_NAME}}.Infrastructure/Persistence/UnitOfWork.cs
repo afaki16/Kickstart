@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore.Storage;
-using {{PROJECT_NAME}}.Application.Interfaces;
-using {{PROJECT_NAME}}.Infrastructure.Data;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
+using {{PROJECT_NAME}}.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
-namespace {{PROJECT_NAME}}.Infrastructure.Repositories;
+namespace {{PROJECT_NAME}}.Infrastructure.Persistence;
 public class UnitOfWork : IUnitOfWork, IAsyncDisposable
 {
     private readonly ApplicationDbContext _context;

@@ -1,7 +1,12 @@
 using AutoMapper;
-using {{PROJECT_NAME}}.Application.DTOs;
-using {{PROJECT_NAME}}.Application.Features.Users.Queries;
-using {{PROJECT_NAME}}.Application.Interfaces;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Users.Queries.GetAllUsers;
+using {{PROJECT_NAME}}.Application.Features.Users.Queries.GetUserById;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 using MediatR;
@@ -9,7 +14,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using {{PROJECT_NAME}}.Domain.Models;
 
-namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
+namespace {{PROJECT_NAME}}.Application.Features.Users.Queries.GetUserById
 {
     public class GetUserByIdQueryHandler : IRequestHandler<GetUserByIdQuery, Result<UserListDto>>
     {

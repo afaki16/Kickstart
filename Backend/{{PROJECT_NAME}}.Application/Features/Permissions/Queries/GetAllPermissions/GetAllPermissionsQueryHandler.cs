@@ -1,14 +1,18 @@
 using AutoMapper;
-using {{PROJECT_NAME}}.Application.DTOs;
-using {{PROJECT_NAME}}.Application.Features.Permissions.Queries;
-using {{PROJECT_NAME}}.Application.Interfaces;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Queries.GetAllPermissions;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using MediatR;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace {{PROJECT_NAME}}.Application.Features.Permissions.Handlers
+namespace {{PROJECT_NAME}}.Application.Features.Permissions.Queries.GetAllPermissions
 {
     public class GetAllPermissionsQueryHandler : IRequestHandler<GetAllPermissionsQuery, Result<IEnumerable<PermissionDto>>>
     {

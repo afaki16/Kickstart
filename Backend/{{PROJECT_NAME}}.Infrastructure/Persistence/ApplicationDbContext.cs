@@ -1,11 +1,12 @@
-using {{PROJECT_NAME}}.Application.Services;
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Application.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using {{PROJECT_NAME}}.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using System.Linq.Expressions;
 
-namespace {{PROJECT_NAME}}.Infrastructure.Data
+namespace {{PROJECT_NAME}}.Infrastructure.Persistence
 {
     public class ApplicationDbContext : DbContext
     {

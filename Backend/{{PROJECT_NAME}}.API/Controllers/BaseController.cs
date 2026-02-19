@@ -1,4 +1,4 @@
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 using {{PROJECT_NAME}}.Application.Common.Results;
 

@@ -1,4 +1,6 @@
-using {{PROJECT_NAME}}.Application.Services;
+using {{PROJECT_NAME}}.Application.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;

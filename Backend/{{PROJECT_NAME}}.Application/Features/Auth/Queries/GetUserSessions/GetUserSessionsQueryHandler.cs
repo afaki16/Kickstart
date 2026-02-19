@@ -1,6 +1,7 @@
-using {{PROJECT_NAME}}.Application.Features.Auth.Queries;
-using {{PROJECT_NAME}}.Application.Interfaces;
-using {{PROJECT_NAME}}.Application.DTOs.Auth;
+using {{PROJECT_NAME}}.Application.Features.Auth.Queries.GetUserSessions;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
+using {{PROJECT_NAME}}.Application.Features.Auth.Dtos;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 using {{PROJECT_NAME}}.Domain.Models;
@@ -11,7 +12,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace {{PROJECT_NAME}}.Application.Features.Auth.Handlers
+namespace {{PROJECT_NAME}}.Application.Features.Auth.Queries.GetUserSessions
 {
     public class GetUserSessionsQueryHandler : IRequestHandler<GetUserSessionsQuery, Result<IEnumerable<SessionDto>>>
     {

@@ -1,9 +1,8 @@
-using MemberShip.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Common.Results;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
 using MediatR;
 using System.Collections.Generic;
-using Features.Tenants.Dtos;
-
-namespace Features.Tenants.Queries.GetAllTenants
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Queries.GetAllTenants
 {
     public class GetAllTenantsQuery : IRequest<Result<IEnumerable<TenantListDto>>>
     {

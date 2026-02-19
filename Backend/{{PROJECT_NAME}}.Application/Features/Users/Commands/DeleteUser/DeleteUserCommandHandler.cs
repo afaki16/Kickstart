@@ -1,14 +1,20 @@
-using {{PROJECT_NAME}}.Application.Features.Users.Commands;
-using {{PROJECT_NAME}}.Application.Interfaces;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.CreateUser;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.UpdateUser;
+using {{PROJECT_NAME}}.Application.Features.Users.Commands.DeleteUser;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using {{PROJECT_NAME}}.Application.Common.Results;
-using {{PROJECT_NAME}}.Application.DTOs;
+using {{PROJECT_NAME}}.Application.Features.Users.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Roles.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
+using {{PROJECT_NAME}}.Application.Features.Permissions.Dtos;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 using {{PROJECT_NAME}}.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace {{PROJECT_NAME}}.Application.Features.Users.Handlers
+namespace {{PROJECT_NAME}}.Application.Features.Users.Commands.DeleteUser
 {
     public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand, Result>
     {

@@ -1,6 +1,8 @@
-using {{PROJECT_NAME}}.Application.Services;
+using {{PROJECT_NAME}}.Application.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using {{PROJECT_NAME}}.Application.Common.Results;
-using {{PROJECT_NAME}}.Domain.Common;
+using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Models;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 using Microsoft.Extensions.Configuration;

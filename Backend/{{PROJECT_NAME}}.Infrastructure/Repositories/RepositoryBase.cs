@@ -1,5 +1,6 @@
-using {{PROJECT_NAME}}.Application.Interfaces;
-using {{PROJECT_NAME}}.Infrastructure.Data;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
+using {{PROJECT_NAME}}.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

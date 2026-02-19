@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace {{PROJECT_NAME}}.Application.DTOs
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Dtos
 {
     public class TenantDto
     {

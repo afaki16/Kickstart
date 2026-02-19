@@ -2,7 +2,7 @@ using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
 using MediatR;
 
-namespace {{PROJECT_NAME}}.Application.Features.Tenants.Commands;
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Commands.UpdateTenant;
 
     public class UpdateTenantCommand : IRequest<Result<TenantListDto>>
 {

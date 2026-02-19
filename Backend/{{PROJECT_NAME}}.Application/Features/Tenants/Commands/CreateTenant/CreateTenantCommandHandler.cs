@@ -1,7 +1,10 @@
-﻿using AutoMapper;
-using {{PROJECT_NAME}}.Application.Features.Tenants.Commands;
+using AutoMapper;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.CreateTenant;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.UpdateTenant;
+using {{PROJECT_NAME}}.Application.Features.Tenants.Commands.DeleteTenant;
 using {{PROJECT_NAME}}.Application.Features.Tenants.Dtos;
-using {{PROJECT_NAME}}.Application.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces;
+using {{PROJECT_NAME}}.Domain.Common.Interfaces.Repositories;
 using {{PROJECT_NAME}}.Application.Common.Results;
 using {{PROJECT_NAME}}.Domain.Entities;
 using {{PROJECT_NAME}}.Domain.Models;
@@ -10,7 +13,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using {{PROJECT_NAME}}.Domain.Common.Enums;
 
-namespace {{PROJECT_NAME}}.Application.Features.Tenants.Handlers;
+namespace {{PROJECT_NAME}}.Application.Features.Tenants.Commands.CreateTenant;
 
     public class CreateTenantCommandHandler : IRequestHandler<CreateTenantCommand, Result<TenantListDto>>
 {
