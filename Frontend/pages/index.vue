@@ -1,4 +1,35 @@
 <template>
+  <!-- Splash Screen -->
+  <Transition name="splash-fade">
+    <div v-if="showSplash" class="splash-screen">
+      <div class="splash-bg-glow"></div>
+      <div class="splash-rings">
+        <div class="splash-ring ring-1"></div>
+        <div class="splash-ring ring-2"></div>
+        <div class="splash-ring ring-3"></div>
+      </div>
+      <div class="splash-content" :class="{ 'splash-animate': splashReady }">
+        <div class="splash-logo-wrapper">
+          <div class="splash-logo-pulse"></div>
+          <div class="splash-logo-border"></div>
+          <img
+            :src="appData?.app?.logo?.src || '/images/logo.svg'"
+            :alt="appData?.app?.logo?.alt || 'Logo'"
+            class="splash-logo-img"
+          />
+        </div>
+        <h1 class="splash-brand">{{ appData?.app?.brand?.text || 'MemberShip' }}</h1>
+        <p class="splash-tagline">{{ appData?.app?.brand?.tagline || 'Secure Authentication System' }}</p>
+        <div class="splash-loader">
+          <div class="splash-loader-bar"></div>
+        </div>
+      </div>
+      <div class="splash-particles-container">
+        <div v-for="i in 30" :key="'sp'+i" class="splash-particle" :style="getSplashParticleStyle(i)"></div>
+      </div>
+    </div>
+  </Transition>
+
   <div class="login-container" :style="{ background: themeGradients?.login || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }">
     <!-- 3D Background with rotating images -->
     <div class="background-container">
@@ -15,7 +46,7 @@
     </div>
 
     <!-- 3D Login Card -->
-    <div class="login-card-container">
+    <div class="login-card-container" :class="{ 'card-enter-active': !showSplash }">
       <div 
         class="login-card"
         :style="{
@@ -158,6 +189,10 @@ const authStore = useAuthStore()
 const auth = useAuth()
 const { validationRules } = useValidators()
 
+// Splash screen
+const showSplash = ref(true)
+const splashReady = ref(false)
+
 // Reactive data
 const loginForm = ref()
 const isFormValid = ref(false)
@@ -165,7 +200,7 @@ const showPassword = ref(false)
 const currentImageIndex = ref(0)
 
 // App data
-const { loadAppData, getBackgroundImages, getLoginConfig, getThemeGradients } = useAppData()
+const { loadAppData, appData, getBackgroundImages, getLoginConfig, getThemeGradients } = useAppData()
 
 // Background images from data.json
 const backgroundImages = computed(() => getBackgroundImages.value || [])
@@ -209,6 +244,24 @@ const getParticleStyle = (index: number) => {
   }
 }
 
+const getSplashParticleStyle = (index: number) => {
+  const angle = (index / 30) * Math.PI * 2
+  const radius = 120 + Math.random() * 200
+  const size = Math.random() * 6 + 2
+  const delay = Math.random() * 1.5
+  const duration = 1.5 + Math.random() * 1.5
+  const tx = Math.cos(angle) * radius
+  const ty = Math.sin(angle) * radius
+  return {
+    '--tx': `${tx}px`,
+    '--ty': `${ty}px`,
+    width: `${size}px`,
+    height: `${size}px`,
+    animationDelay: `${delay}s`,
+    animationDuration: `${duration}s`
+  } as Record<string, string>
+}
+
 // Background image rotation
 let imageInterval: NodeJS.Timeout
 
@@ -216,6 +269,11 @@ let imageInterval: NodeJS.Timeout
 onMounted(async () => {
   // Load app data
   await loadAppData()
+
+  // Trigger splash animation after a tiny delay for DOM paint
+  nextTick(() => { splashReady.value = true })
+  setTimeout(() => { showSplash.value = false }, 3000)
+
   // Pre-fill email from registration if available
   const registeredEmail = route.query.email as string
   if (registeredEmail) {
@@ -320,6 +378,8 @@ useHead({
   position: relative;
   z-index: 10;
   perspective: 1000px;
+  opacity: 0;
+  transform: translateY(40px) scale(0.95);
 }
 
 .login-card {
@@ -512,5 +572,224 @@ useHead({
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== Splash Screen ===== */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #0f0c29 0%, #302b63 50%, #24243e 100%);
+  overflow: hidden;
+}
+
+.splash-bg-glow {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.35) 0%, transparent 70%);
+  animation: splash-glow-pulse 2s ease-in-out infinite alternate;
+}
+
+@keyframes splash-glow-pulse {
+  0% { transform: scale(0.8); opacity: 0.4; }
+  100% { transform: scale(1.3); opacity: 0.8; }
+}
+
+.splash-rings {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.splash-ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(102, 126, 234, 0.3);
+  animation: splash-ring-expand 2.5s ease-out infinite;
+}
+
+.ring-1 { width: 120px; height: 120px; animation-delay: 0s; }
+.ring-2 { width: 120px; height: 120px; animation-delay: 0.6s; }
+.ring-3 { width: 120px; height: 120px; animation-delay: 1.2s; }
+
+@keyframes splash-ring-expand {
+  0% { transform: scale(1); opacity: 0.6; border-color: rgba(102, 126, 234, 0.5); }
+  100% { transform: scale(4); opacity: 0; border-color: rgba(118, 75, 162, 0.1); }
+}
+
+.splash-content {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.splash-content.splash-animate {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.splash-logo-wrapper {
+  position: relative;
+  width: 130px;
+  height: 130px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.splash-logo-pulse {
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(102, 126, 234, 0.4) 0%, transparent 70%);
+  animation: logo-pulse 1.5s ease-in-out infinite alternate;
+}
+
+@keyframes logo-pulse {
+  0% { transform: scale(0.9); opacity: 0.5; }
+  100% { transform: scale(1.2); opacity: 1; }
+}
+
+.splash-logo-border {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background:
+    linear-gradient(#0f0c29, #0f0c29) padding-box,
+    linear-gradient(135deg, #667eea, #764ba2, #667eea) border-box;
+  animation: splash-border-spin 2.5s linear infinite;
+}
+
+@keyframes splash-border-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.splash-logo-img {
+  position: relative;
+  z-index: 2;
+  width: 70px;
+  height: 70px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+  animation: splash-logo-float 2s ease-in-out infinite alternate;
+}
+
+@keyframes splash-logo-float {
+  0% { transform: translateY(4px) scale(1); }
+  100% { transform: translateY(-4px) scale(1.05); }
+}
+
+.splash-brand {
+  font-size: 2.6rem;
+  font-weight: 800;
+  letter-spacing: 3px;
+  background: linear-gradient(135deg, #ffffff 0%, #667eea 50%, #764ba2 100%);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: splash-text-shimmer 2s ease-in-out infinite alternate;
+  margin-bottom: 8px;
+}
+
+@keyframes splash-text-shimmer {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
+}
+
+.splash-tagline {
+  font-size: 1rem;
+  color: rgba(255, 255, 255, 0.55);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 32px;
+  animation: splash-tagline-in 1s ease-out 0.5s both;
+}
+
+@keyframes splash-tagline-in {
+  0% { opacity: 0; transform: translateY(10px); letter-spacing: 8px; }
+  100% { opacity: 1; transform: translateY(0); letter-spacing: 2px; }
+}
+
+.splash-loader {
+  width: 160px;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.splash-loader-bar {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+  animation: splash-load 2.6s ease-in-out forwards;
+}
+
+@keyframes splash-load {
+  0% { width: 0; }
+  30% { width: 40%; }
+  70% { width: 75%; }
+  100% { width: 100%; }
+}
+
+.splash-particles-container {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.splash-particle {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(102, 126, 234, 0.7);
+  animation: splash-particle-burst var(--duration, 2s) ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes splash-particle-burst {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(var(--tx), var(--ty)) scale(0);
+    opacity: 0;
+  }
+}
+
+.splash-fade-leave-active {
+  transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.splash-fade-leave-to {
+  opacity: 0;
+  transform: scale(1.08);
+}
+
+.login-card-container.card-enter-active {
+  animation: card-slide-in 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes card-slide-in {
+  0% { opacity: 0; transform: translateY(40px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
 }
 </style> 
