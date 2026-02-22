@@ -10,15 +10,12 @@
       </div>
       <div class="splash-content" :class="{ 'splash-animate': splashReady }">
         <div class="splash-logo-wrapper">
-          <div class="splash-logo-pulse"></div>
-          <div class="splash-logo-border"></div>
           <img
             :src="appData?.app?.logo?.src || '/images/logo.svg'"
             :alt="appData?.app?.logo?.alt || 'Logo'"
             class="splash-logo-img"
           />
         </div>
-        <h1 class="splash-brand">{{ appData?.app?.brand?.text || 'MemberShip' }}</h1>
         <p class="splash-tagline">{{ appData?.app?.brand?.tagline || 'Secure Authentication System' }}</p>
         <div class="splash-loader">
           <div class="splash-loader-bar"></div>
@@ -272,7 +269,7 @@ onMounted(async () => {
 
   // Trigger splash animation after a tiny delay for DOM paint
   nextTick(() => { splashReady.value = true })
-  setTimeout(() => { showSplash.value = false }, 3000)
+  setTimeout(() => { showSplash.value = false }, 13000)
 
   // Pre-fill email from registration if available
   const registeredEmail = route.query.email as string
@@ -641,74 +638,27 @@ useHead({
 
 .splash-logo-wrapper {
   position: relative;
-  width: 130px;
-  height: 130px;
+  width: 280px;
+  height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 28px;
-}
-
-.splash-logo-pulse {
-  position: absolute;
-  inset: -10px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(102, 126, 234, 0.4) 0%, transparent 70%);
-  animation: logo-pulse 1.5s ease-in-out infinite alternate;
-}
-
-@keyframes logo-pulse {
-  0% { transform: scale(0.9); opacity: 0.5; }
-  100% { transform: scale(1.2); opacity: 1; }
-}
-
-.splash-logo-border {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 3px solid transparent;
-  background:
-    linear-gradient(#0f0c29, #0f0c29) padding-box,
-    linear-gradient(135deg, #667eea, #764ba2, #667eea) border-box;
-  animation: splash-border-spin 2.5s linear infinite;
-}
-
-@keyframes splash-border-spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  margin-bottom: 40px;
 }
 
 .splash-logo-img {
   position: relative;
   z-index: 2;
-  width: 70px;
-  height: 70px;
+  width: 250px;
+  height: 250px;
   object-fit: contain;
-  filter: drop-shadow(0 0 20px rgba(102, 126, 234, 0.6));
+  filter: drop-shadow(0 0 30px rgba(102, 126, 234, 0.6));
   animation: splash-logo-float 2s ease-in-out infinite alternate;
 }
 
 @keyframes splash-logo-float {
   0% { transform: translateY(4px) scale(1); }
   100% { transform: translateY(-4px) scale(1.05); }
-}
-
-.splash-brand {
-  font-size: 2.6rem;
-  font-weight: 800;
-  letter-spacing: 3px;
-  background: linear-gradient(135deg, #ffffff 0%, #667eea 50%, #764ba2 100%);
-  background-size: 200% 200%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: splash-text-shimmer 2s ease-in-out infinite alternate;
-  margin-bottom: 8px;
-}
-
-@keyframes splash-text-shimmer {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
 }
 
 .splash-tagline {
@@ -737,7 +687,7 @@ useHead({
   height: 100%;
   border-radius: 3px;
   background: linear-gradient(90deg, #667eea, #764ba2);
-  animation: splash-load 2.6s ease-in-out forwards;
+  animation: splash-load 12s ease-in-out forwards;
 }
 
 @keyframes splash-load {
