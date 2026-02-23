@@ -6,18 +6,20 @@
       :class="isSidebarOpen ? 'w-64' : 'w-16'"
       :style="{ background: sidebarGradient }"
     >
-      <!-- Sidebar Header: Hamburger + Logo -->
+      <!-- Sidebar Header: Logo + Brand + Hamburger -->
       <div class="flex items-center h-16 flex-shrink-0 px-3" :class="isSidebarOpen ? 'justify-between' : 'justify-center'">
-        <img 
-          v-if="isSidebarOpen"
-          :src="appData?.app?.logo?.src" 
-          class="object-contain"
-          :style="{ height: '36px', width: 'auto' }"
-          :alt="appData?.app?.logo?.alt || 'Logo'" 
-        />
+        <div v-if="isSidebarOpen" class="flex items-center gap-2.5 min-w-0">
+          <img 
+            :src="appData?.app?.logo?.src" 
+            class="object-contain flex-shrink-0"
+            :style="{ height: '34px', width: 'auto' }"
+            :alt="appData?.app?.logo?.alt || 'Logo'" 
+          />
+          <span class="brand-text truncate">{{ appData?.app?.brand?.text || 'MemberShip' }}</span>
+        </div>
         <button 
           @click="toggleSidebar" 
-          class="flex items-center justify-center w-10 h-10 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
+          class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
         >
           <v-icon size="x-large" class="font-weight-black">mdi-menu</v-icon>
         </button>
@@ -238,6 +240,19 @@ nav::-webkit-scrollbar-thumb {
 
 nav::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.4);
+}
+
+.brand-text {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: white;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .sidebar-divider {

@@ -33,6 +33,7 @@ export default defineNuxtConfig({
   googleFonts: {
     families: {
       Inter: [300, 400, 500, 600, 700],
+      'Plus+Jakarta+Sans': [600, 700, 800],
       'Material+Icons': true
     }
   },

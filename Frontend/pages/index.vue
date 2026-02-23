@@ -259,7 +259,7 @@ onMounted(async () => {
   // Start background image rotation
   imageInterval = setInterval(() => {
     currentImageIndex.value = (currentImageIndex.value + 1) % backgroundImages.value.length
-  }, loginConfig.value?.rotationInterval || 3000)
+  }, loginConfig.value?.rotationInterval || 1000)
 })
 
 onUnmounted(() => {
