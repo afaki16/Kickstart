@@ -2,65 +2,52 @@
   <div class="min-h-screen bg-gray-100">
     <!-- Sidebar -->
     <aside 
-      class="fixed inset-y-0 left-0 shadow-lg transition-all duration-300 ease-in-out flex flex-col z-40"
+      class="fixed inset-y-0 left-0 bg-white shadow-lg transition-all duration-300 ease-in-out flex flex-col z-40"
       :class="isSidebarOpen ? 'w-64' : 'w-16'"
-      :style="{ background: sidebarGradient }"
     >
-      <!-- Sidebar Header: Hamburger + Logo -->
-      <div class="flex items-center h-16 flex-shrink-0 px-3" :class="isSidebarOpen ? 'justify-between' : 'justify-center'">
+      <div class="flex items-center justify-center h-16 border-b flex-shrink-0">
         <img 
-          v-if="isSidebarOpen"
           :src="appData?.app?.logo?.src" 
           class="object-contain"
-          :style="{ height: '36px', width: 'auto' }"
+          :style="{ height: '40px', width: 'auto' }"
           :alt="appData?.app?.logo?.alt || 'Logo'" 
         />
-        <button 
-          @click="toggleSidebar" 
-          class="flex items-center justify-center w-10 h-10 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
-        >
-          <v-icon size="x-large" class="font-weight-black">mdi-menu</v-icon>
-        </button>
       </div>
-
-      <div class="sidebar-divider"></div>
       
-      <nav class="flex-1 mt-3 px-2 space-y-1 overflow-y-auto overflow-x-hidden">
+      <nav class="flex-1 mt-5 px-2 space-y-6 overflow-y-auto overflow-x-hidden">
+        <!-- Dinamik Navigation Items -->
         <template v-for="item in visibleMenus" :key="item.title">
+          <!-- Ana menü öğesi (alt menü yoksa) -->
           <NuxtLink 
             v-if="!item.children && item.to" 
             :to="item.to" 
-            class="group flex items-center py-2.5 text-sm font-medium rounded-lg whitespace-nowrap transition-all duration-200"
+            class="group flex items-center py-2 text-base font-medium rounded-md whitespace-nowrap"
             :class="[
-              $route.path === item.to 
-                ? 'bg-white/20 text-white shadow-sm' 
-                : 'text-white/70 hover:bg-white/10 hover:text-white',
-              isSidebarOpen ? 'px-3' : 'justify-center px-0'
+              $route.path === item.to ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+              isSidebarOpen ? 'px-2' : 'justify-center px-0'
             ]"
             :title="!isSidebarOpen ? item.title : undefined"
           >
-            <Icon :name="item.icon" class="h-5 w-5 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
+            <Icon :name="item.icon" class="h-6 w-6 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
             <span v-if="isSidebarOpen">{{ item.title }}</span>
           </NuxtLink>
 
+          <!-- Alt menü grubu varsa -->
           <div v-else-if="item.children">
-            <h3 v-if="isSidebarOpen" class="px-3 pt-4 pb-1 text-xs font-semibold text-white/50 uppercase tracking-wider">
+            <h3 v-if="isSidebarOpen" class="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
               {{ item.title }}
             </h3>
-            <div v-else class="sidebar-divider my-2"></div>
             <template v-for="child in item.children" :key="child.title">
               <NuxtLink 
                 :to="child.to" 
-                class="group flex items-center py-2.5 text-sm font-medium rounded-lg mt-0.5 whitespace-nowrap transition-all duration-200"
+                class="group flex items-center py-2 text-base font-medium rounded-md mt-1 whitespace-nowrap"
                 :class="[
-                  $route.path.startsWith(child.to) 
-                    ? 'bg-white/20 text-white shadow-sm' 
-                    : 'text-white/70 hover:bg-white/10 hover:text-white',
-                  isSidebarOpen ? 'px-3' : 'justify-center px-0'
+                  $route.path.startsWith(child.to) ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                  isSidebarOpen ? 'px-2' : 'justify-center px-0'
                 ]"
                 :title="!isSidebarOpen ? child.title : undefined"
               >
-                <Icon :name="child.icon" class="h-5 w-5 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
+                <Icon :name="child.icon" class="h-6 w-6 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
                 <span v-if="isSidebarOpen">{{ child.title }}</span>
               </NuxtLink>
             </template>
@@ -69,21 +56,20 @@
       </nav>
 
       <!-- User Profile - Sidebar Bottom -->
-      <div class="flex-shrink-0 relative">
-        <div class="sidebar-divider"></div>
+      <div class="border-t flex-shrink-0 relative">
         <button
           @click="showUserMenu = !showUserMenu"
-          class="sidebar-user-btn w-full flex items-center p-3 transition-all duration-200"
+          class="w-full flex items-center p-3 hover:bg-gray-50 transition-all duration-200"
           :class="isSidebarOpen ? 'space-x-3' : 'justify-center'"
         >
           <div class="sidebar-avatar flex-shrink-0">
             <Icon name="mdi:account" class="w-5 h-5 text-white" />
           </div>
           <div v-if="isSidebarOpen" class="flex-1 min-w-0 text-left">
-            <div class="text-sm font-semibold text-white truncate">{{ userInfo.name || 'Kullanıcı Adı' }}</div>
-            <div class="text-xs text-white/60 truncate">{{ userInfo.email || 'admin@theetify.com' }}</div>
+            <div class="text-sm font-semibold text-gray-800 truncate">{{ userInfo.name || 'Kullanıcı Adı' }}</div>
+            <div class="text-xs text-gray-500 truncate">{{ userInfo.email || 'admin@theetify.com' }}</div>
           </div>
-          <svg v-if="isSidebarOpen" class="w-4 h-4 text-white/60 transition-transform duration-200" :class="{ 'rotate-180': showUserMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg v-if="isSidebarOpen" class="w-4 h-4 text-gray-400 transition-transform duration-200" :class="{ 'rotate-180': showUserMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
           </svg>
         </button>
@@ -149,8 +135,33 @@
 
     <!-- Main content -->
     <div class="flex flex-col min-h-screen transition-all duration-300" :class="isSidebarOpen ? 'pl-64' : 'pl-16'">
+      <!-- Top navbar -->
+      <header 
+        class="fixed top-0 right-0 shadow-sm z-50 transition-all duration-300" 
+        :class="isSidebarOpen ? 'left-64' : 'left-16'"
+        :style="{ background: appData?.theme?.gradients?.navbar || 'linear-gradient(135deg, #ffffff 0%, #2563eb 100%)' }"
+      >
+        <div class="flex items-center justify-between h-16 px-4">
+          <div class="flex items-center">
+            <v-btn 
+              icon 
+              @click="toggleSidebar" 
+              class="bg-transparent hover:bg-white/10" 
+              variant="text"
+              color="primary"
+            >
+              <v-icon size="x-large" class="font-weight-black">mdi-menu</v-icon>
+            </v-btn>
+          </div>
+          
+          <div class="flex items-center space-x-4">
+            <!-- <LanguageSelector class="mr-4" /> -->
+          </div>
+        </div>
+      </header>
+
       <!-- Page content -->
-      <main class="flex-1 p-6">
+      <main class="flex-1 p-6 mt-16">
         <slot />
       </main>
     </div>
@@ -170,10 +181,6 @@ const authUtils = useAuth()
 const router = useRouter()
 
 const { loadAppData, appData } = useAppData()
-
-const sidebarGradient = computed(() => {
-  return appData.value?.theme?.gradients?.sidebar || 'linear-gradient(180deg, #4338ca 0%, #2563eb 50%, #3b82f6 100%)'
-})
 
 const userInfo = computed(() => ({
   name: authStore.userFullName || 'Kullanıcı',
@@ -215,7 +222,7 @@ onMounted(async () => {
   await loadAppData()
   
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.sidebar-user-btn') && !e.target.closest('.sidebar-user-dropdown')) {
+    if (!e.target.closest('.border-t')) {
       showUserMenu.value = false
     }
   })
@@ -223,42 +230,33 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Scrollbar */
 nav::-webkit-scrollbar {
-  width: 4px;
+  width: 6px;
 }
 
 nav::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f1f1;
 }
 
 nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
+  background: #cbd5e1;
+  border-radius: 3px;
 }
 
 nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-.sidebar-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
-  margin: 0 8px;
+  background: #94a3b8;
 }
 
 /* Sidebar Avatar */
 .sidebar-avatar {
   width: 36px;
   height: 36px;
-  background: rgba(255, 255, 255, 0.2);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.sidebar-user-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
 }
 
 /* Sidebar User Dropdown */
@@ -332,16 +330,19 @@ nav::-webkit-scrollbar-thumb:hover {
   width: fit-content;
 }
 
+/* Dropdown Divider */
 .dropdown-divider {
   height: 1px;
   background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%);
   margin: 0;
 }
 
+/* Dropdown Menu */
 .dropdown-menu {
   padding: 8px;
 }
 
+/* Dropdown Item */
 .dropdown-item {
   width: 100%;
   display: flex;

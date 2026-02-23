@@ -52,6 +52,7 @@
     },
     "gradients": {
       "navbar": "linear-gradient(135deg, #ffffff 0%, #2563eb 100%)",
+      "sidebar": "linear-gradient(180deg, #4338ca 0%, #2563eb 50%, #3b82f6 100%)",
       "login": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
       "register": "linear-gradient(135deg, #764ba2 0%, #667eea 100%)",
       "button": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
