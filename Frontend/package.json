@@ -35,10 +35,12 @@
     "@vueuse/core": "^10.7.0",
     "@vueuse/nuxt": "^10.7.0",
     "axios": "^1.6.2",
+    "chart.js": "^4.5.1",
     "flag-icons": "^7.5.0",
     "jwt-decode": "^4.0.0",
     "pinia": "^2.1.7",
     "vee-validate": "^4.12.4",
+    "vue-chartjs": "^5.3.3",
     "vuetify": "^3.4.8",
     "yup": "^1.4.0"
   }
