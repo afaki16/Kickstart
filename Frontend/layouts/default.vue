@@ -1,37 +1,54 @@
 <template>
   <div class="min-h-screen bg-gray-100">
     <!-- Sidebar -->
-    <aside class="fixed inset-y-0 left-0 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out flex flex-col" :class="{ '-translate-x-full': !isSidebarOpen }">
-      <div class="flex items-center justify-center h-8 border-b flex-shrink-0">
+    <aside 
+      class="fixed inset-y-0 left-0 bg-white shadow-lg transition-all duration-300 ease-in-out flex flex-col z-40"
+      :class="isSidebarOpen ? 'w-64' : 'w-16'"
+    >
+      <div class="flex items-center justify-center h-16 border-b flex-shrink-0">
+        <img 
+          :src="appData?.app?.logo?.src" 
+          class="object-contain"
+          :style="{ height: '40px', width: 'auto' }"
+          :alt="appData?.app?.logo?.alt || 'Logo'" 
+        />
       </div>
       
-      <nav class="flex-1 mt-5 px-2 space-y-6 overflow-y-auto">
+      <nav class="flex-1 mt-5 px-2 space-y-6 overflow-y-auto overflow-x-hidden">
         <!-- Dinamik Navigation Items -->
         <template v-for="item in visibleMenus" :key="item.title">
           <!-- Ana menü öğesi (alt menü yoksa) -->
           <NuxtLink 
             v-if="!item.children && item.to" 
             :to="item.to" 
-            class="group flex items-center px-2 py-2 text-base font-medium rounded-md" 
-            :class="[$route.path === item.to ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900']"
+            class="group flex items-center py-2 text-base font-medium rounded-md whitespace-nowrap"
+            :class="[
+              $route.path === item.to ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+              isSidebarOpen ? 'px-2' : 'justify-center px-0'
+            ]"
+            :title="!isSidebarOpen ? item.title : undefined"
           >
-            <Icon :name="item.icon" class="mr-3 h-6 w-6" />
-            {{ item.title }}
+            <Icon :name="item.icon" class="h-6 w-6 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
+            <span v-if="isSidebarOpen">{{ item.title }}</span>
           </NuxtLink>
 
           <!-- Alt menü grubu varsa -->
           <div v-else-if="item.children">
-            <h3 class="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+            <h3 v-if="isSidebarOpen" class="px-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
               {{ item.title }}
             </h3>
             <template v-for="child in item.children" :key="child.title">
               <NuxtLink 
                 :to="child.to" 
-                class="group flex items-center px-2 py-2 text-base font-medium rounded-md mt-1" 
-                :class="[$route.path.startsWith(child.to) ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900']"
+                class="group flex items-center py-2 text-base font-medium rounded-md mt-1 whitespace-nowrap"
+                :class="[
+                  $route.path.startsWith(child.to) ? 'bg-indigo-100 text-indigo-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
+                  isSidebarOpen ? 'px-2' : 'justify-center px-0'
+                ]"
+                :title="!isSidebarOpen ? child.title : undefined"
               >
-                <Icon :name="child.icon" class="mr-3 h-6 w-6" />
-                {{ child.title }}
+                <Icon :name="child.icon" class="h-6 w-6 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
+                <span v-if="isSidebarOpen">{{ child.title }}</span>
               </NuxtLink>
             </template>
           </div>
@@ -40,27 +57,19 @@
     </aside>
 
     <!-- Main content -->
-    <div class="flex flex-col min-h-screen transition-all duration-300" :class="{ 'pl-64': isSidebarOpen, 'pl-0': !isSidebarOpen }">
+    <div class="flex flex-col min-h-screen transition-all duration-300" :class="isSidebarOpen ? 'pl-64' : 'pl-16'">
       <!-- Top navbar -->
       <header 
-        class="fixed top-0 right-0 left-0 shadow-sm z-50" 
-        :class="{ 'left-64': isSidebarOpen, 'left-0': !isSidebarOpen }"
+        class="fixed top-0 right-0 shadow-sm z-50 transition-all duration-300" 
+        :class="isSidebarOpen ? 'left-64' : 'left-16'"
         :style="{ background: appData?.theme?.gradients?.navbar || 'linear-gradient(135deg, #ffffff 0%, #2563eb 100%)' }"
       >
         <div class="flex items-center justify-between h-16 px-4">
           <div class="flex items-center">
-            <div class="flex items-center">
-              <img 
-                :src="appData?.app?.logo?.src" 
-                class="object-contain"
-                :style="{ height: '40px', width: 'auto' }"
-                :alt="appData?.app?.logo?.alt || 'Logo'" 
-              />
-            </div>
             <v-btn 
               icon 
               @click="toggleSidebar" 
-              class="ml-4 bg-transparent hover:bg-white/10" 
+              class="bg-transparent hover:bg-white/10" 
               variant="text"
               color="primary"
             >
