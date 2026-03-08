@@ -1,18 +1,18 @@
 <template>
   <div class="modern-data-table">
     <!-- Header Section -->
-    <div class="table-header">
+    <div class="table-header glassmorphism-header">
       <div class="header-content">
         <!-- Title & Description -->
-        <div class="header-left">
+        <div class="header-left animate-fade-in">
           <div class="title-section">
             <div class="title-wrapper">
-              <div class="title-icon">
-                <v-icon :icon="toolbarIcon" size="24" />
+              <div class="title-icon modern-icon">
+                <v-icon :icon="toolbarIcon" size="28" />
               </div>
               <div class="title-content">
-                <h2 class="page-title">{{ title }}</h2>
-                <p class="page-description">{{ description }}</p>
+                <h2 class="page-title modern-title">{{ title }}</h2>
+                <p class="page-description modern-description">{{ description }}</p>
               </div>
             </div>
           </div>
@@ -57,6 +57,24 @@
             <span v-if="activeFiltersCount" class="filter-count">{{ activeFiltersCount }}</span>
           </button>
 
+          <!-- Refresh Button -->
+          <button
+            @click="handleRefresh"
+            class="refresh-btn icon-only-btn"
+            :disabled="refreshing"
+            :title="refreshing ? 'Yeniliyor...' : 'Tabloyu Yenile'"
+          >
+            <svg 
+              class="btn-icon" 
+              :class="{ 'animate-spin': refreshing }" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+
           <!-- Export Button -->
           <button
             v-if="showExportButton"
@@ -96,11 +114,11 @@
           <div
             v-for="column in filterableColumns"
             :key="column.key"
-            class="filter-item mb-3"
+            class="filter-item"
           >
             <!-- Text Filter -->
             <v-text-field
-            :label="column.label"
+              :label="column.label"
               v-if="column.filterType === 'text' || !column.filterType"
               v-model="columnFilters[column.key]"
               :placeholder="`${column.label} filtrele...`"
@@ -108,13 +126,13 @@
               density="compact"
               hide-details
               clearable
-              class="filter-input"
+              class="filter-input compact-filter"
               @update:model-value="debouncedApplyFilters"
             />
             
             <!-- Select Filter -->
             <v-select
-            :label="column.label"
+              :label="column.label"
               v-else-if="column.filterType === 'select'"
               v-model="columnFilters[column.key]"
               :items="getColumnSelectOptions(column.key)"
@@ -125,31 +143,21 @@
               hide-details
               clearable
               placeholder="Tümü"
-              class="filter-select"
+              class="filter-select compact-filter"
               @update:model-value="applyFilters"
             />
             
-            <!-- Date Range Filter -->
-            <div v-else-if="column.filterType === 'date'" class="date-range-filter">
+            <!-- Single Date Filter -->
+            <div v-else-if="column.filterType === 'date' || column.filterType === 'single-date'" class="date-filter-wrapper">
               <v-text-field
-              :label="column.label"
-                v-model="columnFilters[column.key + '_start']"
+                :label="column.label"
+                v-model="columnFilters[column.key]"
                 type="date"
                 variant="outlined"
                 density="compact"
                 hide-details
-                 clearable
-                class="filter-input date-input"
-                @update:model-value="debouncedApplyFilters"
-              />
-              <span class="date-separator">-</span>
-              <v-text-field
-                v-model="columnFilters[column.key + '_end']"
-                type="date"
-                variant="outlined"
-                density="compact"
-                hide-details
-                class="filter-input date-input"
+                clearable
+                class="professional-date-filter"
                 @update:model-value="debouncedApplyFilters"
               />
             </div>
@@ -160,12 +168,33 @@
  
     <!-- Table Container -->
     <div class="table-container">
-      <!-- Loading State -->
-      <div v-if="loading" class="loading-state">
-        <div class="loading-spinner">
-          <div class="spinner"></div>
+      <!-- Loading State - Skeleton -->
+      <div v-if="loading" class="skeleton-loading-state">
+        <div class="skeleton-table">
+          <div class="skeleton-header">
+            <div class="skeleton-header-row">
+              <div 
+                v-for="column in columns" 
+                :key="column.key" 
+                class="skeleton-header-cell"
+              ></div>
+            </div>
+          </div>
+          <div class="skeleton-body">
+            <div 
+              v-for="row in 8" 
+              :key="row" 
+              class="skeleton-row"
+              :style="{ animationDelay: `${row * 0.02}s` }"
+            >
+              <div 
+                v-for="column in columns" 
+                :key="column.key" 
+                class="skeleton-cell"
+              ></div>
+            </div>
+          </div>
         </div>
-        <p class="loading-text">{{ loadingText }}</p>
       </div>
 
       <!-- Empty State -->
@@ -180,8 +209,34 @@
       </div>
 
       <!-- Data Table -->
-      <div v-else class="table-wrapper">
-        <div class="table-responsive">
+      <div v-else class="table-wrapper modern-scroll-container">
+        <!-- Horizontal Scroll Indicators -->
+        <div class="scroll-indicators">
+          <div 
+            class="scroll-indicator left" 
+            :class="{ 'visible': canScrollLeft }"
+            @click="scrollHorizontal('left')"
+          >
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+          </div>
+          <div 
+            class="scroll-indicator right" 
+            :class="{ 'visible': canScrollRight }"
+            @click="scrollHorizontal('right')"
+          >
+            <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </div>
+        </div>
+        
+        <div 
+          class="table-responsive infinite-scroll-table" 
+          ref="tableContainer"
+          @scroll="handleScroll"
+        >
           <table class="data-table">
             <thead class="table-header-section">
               <tr class="table-header-row">
@@ -226,7 +281,7 @@
               <tr
                 v-for="(item, index) in paginatedItems"
                 :key="item.id || index"
-                class="table-row"
+                class="table-row modern-table-row"
                 @click="$emit('row-click', item)"
               >
                 <td
@@ -249,7 +304,7 @@
                       <div class="actions-inline">
                         <button
                           v-if="canRead"
-                          @click="$emit('view', item)"
+                          @click.stop="handleViewClick(item)"
                           class="action-button view-button"
                           title="Görüntüle"
                         >
@@ -291,7 +346,7 @@
         <div class="pagination">
           <div class="pagination-info">
             <div class="results-info">
-              <span class="results-text">Result per page</span>
+              <span class="results-text">Sayfa / Sonuç</span>
               <select v-model="itemsPerPageLocal" @change="changeItemsPerPage" class="items-per-page-select">
                 <option :value="5">5</option>
                 <option :value="10">10</option>
@@ -299,7 +354,7 @@
                 <option :value="50">50</option>
                 <option :value="100">100</option>
               </select>
-              <span class="total-count">{{ (currentPage - 1) * itemsPerPageLocal + 1 }}-{{ Math.min(currentPage * itemsPerPageLocal, totalItems) }} of {{ totalItems }}</span>
+              <span class="total-count">{{ (currentPage - 1) * itemsPerPageLocal + 1 }}-{{ Math.min(currentPage * itemsPerPageLocal, totalItems) }} / {{ totalItems }}</span>
             </div>
           </div>
           <div class="pagination-controls">
@@ -364,9 +419,9 @@
 </template>
 
 <script setup>
-// Props
+import { getCurrentInstance, onMounted, nextTick } from 'vue'
+
 const props = defineProps({
-  // Data
   items: {
     type: Array,
     default: () => []
@@ -375,8 +430,6 @@ const props = defineProps({
     type: Array,
     required: true
   },
-  
-  // Display options
   title: {
     type: String,
     default: 'Veri Tablosu'
@@ -397,8 +450,6 @@ const props = defineProps({
     type: String,
     default: 'Yeni Ekle'
   },
-  
-  // Loading and empty states
   loading: {
     type: Boolean,
     default: false
@@ -415,8 +466,6 @@ const props = defineProps({
     type: String,
     default: 'Henüz hiç veri eklenmemiş veya arama kriterlerinize uygun veri bulunamadı.'
   },
-  
-  // Visibility controls
   showAddButton: {
     type: Boolean,
     default: true
@@ -427,7 +476,7 @@ const props = defineProps({
   },
   showAdvancedFilters: {
     type: Boolean,
-    default: true
+    default: false
   },
   showActions: {
     type: Boolean,
@@ -449,60 +498,80 @@ const props = defineProps({
     type: Boolean,
     default: true
   },
-  
-  // Pagination
+  useViewModal: {
+    type: Boolean,
+    default: false
+  },
+  disablePermissions: {
+    type: Boolean,
+    default: false
+  },
   itemsPerPage: {
     type: Number,
     default: 10
   }
 })
 
-// Emits
 const emit = defineEmits([
-  'add', 'view', 'edit', 'delete', 'export', 'search', 'sort', 'row-click', 'filter'
+  'add', 'view', 'edit', 'delete', 'export', 'search', 'sort', 'row-click', 'filter', 'refresh', 'table-refresh', 'load-more'
 ])
 
-// Composables
+onMounted(() => {
+  nextTick(() => {
+    if (tableContainer.value) {
+      updateScrollIndicators(tableContainer.value)
+      
+      const resizeObserver = new ResizeObserver(() => {
+        if (tableContainer.value) {
+          updateScrollIndicators(tableContainer.value)
+        }
+      })
+      
+      resizeObserver.observe(tableContainer.value)
+    }
+  })
+})
+
 const { hasPermission } = useAuth()
 const route = useRoute()
+const router = useRouter()
 
-// Auto-detect resource from route path
 const getResourceFromRoute = () => {
   const path = route.path
-  // Extract resource from path like /users -> users, /roles -> roles
   const segments = path.split('/').filter(Boolean)
   return segments[0] || 'unknown'
 }
 
-// Auto-generate permission names based on resource
 const getPermissionName = (action) => {
   const resource = getResourceFromRoute()
-  // Convert to PascalCase and add action
   const resourceName = resource.charAt(0).toUpperCase() + resource.slice(1)
   return `${resourceName}.${action}`
 }
 
-// Permission control functions - Auto-detect from route
 const canCreate = computed(() => {
   if (!props.showAddButton) return false
+  if (props.disablePermissions) return true
   const permission = getPermissionName('Create')
   return hasPermission(permission)
 })
 
 const canRead = computed(() => {
   if (!props.showViewButton) return false
+  if (props.disablePermissions) return true
   const permission = getPermissionName('Read')
   return hasPermission(permission)
 })
 
 const canUpdate = computed(() => {
   if (!props.showEditButton) return false
+  if (props.disablePermissions) return true
   const permission = getPermissionName('Update')
   return hasPermission(permission)
 })
 
 const canDelete = computed(() => {
   if (!props.showDeleteButton) return false
+  if (props.disablePermissions) return true
   const permission = getPermissionName('Delete')
   return hasPermission(permission)
 })
@@ -515,8 +584,16 @@ const currentPage = ref(1)
 const itemsPerPageLocal = ref(props.itemsPerPage)
 const showFilters = ref(false)
 const columnFilters = ref({})
+const datePickerMenus = ref({})
+const refreshing = ref(false)
 
-// Computed properties
+// Scroll related
+const tableContainer = ref(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false) 
+const isLoadingMore = ref(false)
+const hasReachedEnd = ref(false)
+
 const filterableColumns = computed(() => {
   return props.columns.filter(col => col.filterable !== false)
 })
@@ -528,7 +605,6 @@ const activeFiltersCount = computed(() => {
 const filteredItems = computed(() => {
   let filtered = [...props.items]
   
-  // Global search filtering
   if (searchQuery.value.trim()) {
     const query = searchQuery.value.toLowerCase()
     filtered = filtered.filter(item => {
@@ -539,11 +615,9 @@ const filteredItems = computed(() => {
     })
   }
   
-  // Column-specific filtering
   Object.entries(columnFilters.value).forEach(([key, value]) => {
     if (value && value.toString().trim()) {
       if (key.endsWith('_start') || key.endsWith('_end')) {
-        // Date range filtering logic
         const baseKey = key.replace('_start', '').replace('_end', '')
         const startDate = columnFilters.value[baseKey + '_start']
         const endDate = columnFilters.value[baseKey + '_end']
@@ -573,7 +647,6 @@ const filteredItems = computed(() => {
     }
   })
   
-  // Sorting
   if (sortBy.value) {
     filtered.sort((a, b) => {
       const aValue = getNestedValue(a, sortBy.value)
@@ -598,10 +671,6 @@ const paginatedItems = computed(() => {
   return filteredItems.value.slice(start, end)
 })
 
-const paginationInfo = computed(() => {
-  return `Toplam Kayıt : ${totalItems.value}`
-})
-
 const visiblePages = computed(() => {
   const pages = []
   const maxVisible = 5
@@ -619,7 +688,6 @@ const visiblePages = computed(() => {
   return pages
 })
 
-// Methods
 const getNestedValue = (obj, path) => {
   return path.split('.').reduce((current, key) => {
     return current && current[key] !== undefined ? current[key] : ''
@@ -640,15 +708,14 @@ const getColumnSelectOptions = (columnKey) => {
   const uniqueValues = [...new Set(values)]
   
   return uniqueValues.map(value => {
-    // Özel değerler için metin dönüşümü
     let displayText = value.toString()
     
-    // Boolean değerler için
     if (value === 0 || value === '0') {
       displayText = 'Pasif'
     } else if (value === 1 || value === '1') {
       displayText = 'Aktif'
     }
+    
     return {
       title: displayText,
       value: value
@@ -656,16 +723,14 @@ const getColumnSelectOptions = (columnKey) => {
   })
 }
 
-// Debounced filter function to prevent excessive API calls
 let filterTimeout = null
 const debouncedApplyFilters = () => {
   if (filterTimeout) {
     clearTimeout(filterTimeout)
   }
-  
   filterTimeout = setTimeout(() => {
     applyFilters()
-  }, 500) // 500ms delay
+  }, 500)
 }
 
 const handleSearch = () => {
@@ -675,6 +740,79 @@ const handleSearch = () => {
 const clearSearch = () => {
   searchQuery.value = ''
   handleSearch()
+}
+
+const handleRefresh = async () => {
+  refreshing.value = true
+  try {
+    emit('refresh')
+    emit('table-refresh')
+    await new Promise(resolve => setTimeout(resolve, 500))
+  } finally {
+    refreshing.value = false
+  }
+}
+
+const handleScroll = (event) => {
+  const container = event.target
+  updateScrollIndicators(container)
+  
+  const scrollThreshold = 100
+  const isNearBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + scrollThreshold
+  
+  if (isNearBottom && !isLoadingMore.value && !hasReachedEnd.value) {
+    loadMoreData()
+  }
+}
+
+const updateScrollIndicators = (container) => {
+  if (!container) return
+  
+  const scrollLeft = container.scrollLeft
+  const scrollWidth = container.scrollWidth
+  const clientWidth = container.clientWidth
+  const hasHorizontalScroll = scrollWidth > clientWidth
+  
+  if (!hasHorizontalScroll) {
+    canScrollLeft.value = false
+    canScrollRight.value = false
+    return
+  }
+  
+  const leftThreshold = 10
+  const rightThreshold = 50
+  
+  canScrollLeft.value = scrollLeft > leftThreshold
+  canScrollRight.value = scrollLeft < (scrollWidth - clientWidth - rightThreshold)
+}
+
+const scrollHorizontal = (direction) => {
+  if (!tableContainer.value) return
+  
+  const scrollAmount = 200
+  const currentScroll = tableContainer.value.scrollLeft
+  const newScroll = direction === 'left' 
+    ? currentScroll - scrollAmount 
+    : currentScroll + scrollAmount
+  
+  tableContainer.value.scrollTo({
+    left: newScroll,
+    behavior: 'smooth'
+  })
+}
+
+const loadMoreData = async () => {
+  if (isLoadingMore.value) return
+  isLoadingMore.value = true
+  
+  try {
+    emit('load-more')
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  } catch (error) {
+    console.error('Load more error:', error)
+  } finally {
+    isLoadingMore.value = false
+  }
 }
 
 const handleSort = (key) => {
@@ -696,10 +834,8 @@ const toggleAdvancedFilters = () => {
 const applyFilters = () => {
   currentPage.value = 1
   
-  // Select filter'lar için değer dönüşümü yap
   const processedFilters = { ...columnFilters.value }
   
-  // Her column için select filter varsa, display text'i gerçek değere çevir
   props.columns.forEach(column => {
     if (column.filterType === 'select' && processedFilters[column.key]) {
       const selectOptions = getColumnSelectOptions(column.key)
@@ -715,6 +851,7 @@ const applyFilters = () => {
 
 const clearAllFilters = () => {
   columnFilters.value = {}
+  datePickerMenus.value = {}
   applyFilters()
 }
 
@@ -728,7 +865,16 @@ const changeItemsPerPage = () => {
   currentPage.value = 1
 }
 
-// Watch for items changes
+const handleViewClick = (item) => {
+  if (props.useViewModal) {
+    emit('view', item)
+  } else {
+    const resource = getResourceFromRoute()
+    const detailPath = `/${resource}/${item.id}`
+    router.push(detailPath)
+  }
+}
+
 watch(() => props.items, () => {
   currentPage.value = 1
 })
@@ -794,6 +940,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 
 /* Buttons */
 .filter-toggle-btn,
+.refresh-btn,
 .export-btn,
 .add-button {
   @apply inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-xl transition-all duration-200;
@@ -811,12 +958,67 @@ watch(() => props.itemsPerPage, (newValue) => {
   @apply absolute -top-2 -right-2 bg-blue-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center;
 }
 
+.refresh-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 1px solid #667eea;
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.refresh-btn:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  border-color: #5a6fd8;
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  transform: translateY(-1px);
+}
+
+.refresh-btn:disabled {
+  @apply opacity-60 cursor-not-allowed;
+}
+
+.refresh-btn .animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+.icon-only-btn {
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+.icon-only-btn .btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
 .export-btn {
   @apply bg-gray-100 border border-gray-200 text-gray-700 hover:bg-gray-200;
 }
 
 .add-button {
-  @apply bg-gradient-to-r from-blue-500 to-indigo-600 text-white hover:from-blue-600 hover:to-indigo-700 shadow-lg hover:shadow-xl;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: 1px solid #667eea;
+  color: white;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(102, 126, 234, 0.2);
+}
+
+.add-button:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  border-color: #5a6fd8;
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  transform: translateY(-1px);
 }
 
 .btn-icon {
@@ -824,10 +1026,6 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 /* Search */
-.search-container {
-  @apply flex-1 lg:flex-none lg:min-w-[320px];
-}
-
 .search-input-wrapper {
   @apply relative;
 }
@@ -863,16 +1061,11 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .filters-grid {
-  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4;
+  @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4;
 }
 
-/* Filter Item Styles */
 .filter-item {
-  @apply flex flex-col mb-3;
-}
-
-.filter-label {
-  @apply text-sm font-medium text-gray-700 mb-2;
+  @apply flex flex-col mb-4;
 }
 
 .filter-input :deep(.v-field),
@@ -880,35 +1073,52 @@ watch(() => props.itemsPerPage, (newValue) => {
   @apply bg-white border border-gray-200 rounded-lg transition-colors;
 }
 
-
-
-.date-range-filter {
-  @apply flex items-center gap-2;
+.compact-filter :deep(.v-field) {
+  min-height: 40px !important;
 }
 
-.date-input {
-  @apply flex-1;
+.compact-filter :deep(.v-field__input) {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+  font-size: 14px !important;
 }
 
-.date-separator {
-  @apply text-gray-400 font-medium px-2;
+.compact-filter :deep(.v-field__prepend-inner),
+.compact-filter :deep(.v-field__append-inner) {
+  padding-top: 4px !important;
 }
 
-/* Loading State */
-.loading-state {
-  @apply flex flex-col items-center justify-center py-16;
+/* Date Filter */
+.date-filter-wrapper {
+  position: relative;
 }
 
-.loading-spinner {
-  @apply mb-4;
+.professional-date-filter {
+  border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
-.spinner {
-  @apply animate-spin rounded-full h-12 w-12 border-4 border-gray-200 border-t-blue-600;
+.professional-date-filter .v-field {
+  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
 }
 
-.loading-text {
-  @apply text-gray-600 font-medium;
+.professional-date-filter .v-field:hover {
+  border-color: #667eea;
+  box-shadow: 0 2px 6px rgba(102, 126, 234, 0.15);
+}
+
+.professional-date-filter .v-field--focused {
+  border-color: #667eea !important;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+}
+
+.professional-date-filter .v-field__input {
+  color: #374151;
+  font-weight: 500;
 }
 
 /* Empty State */
@@ -926,10 +1136,6 @@ watch(() => props.itemsPerPage, (newValue) => {
 
 .empty-description {
   @apply text-gray-600 text-center mb-6 max-w-md;
-}
-
-.empty-add-button {
-  @apply inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all shadow-lg hover:shadow-xl;
 }
 
 /* Table */
@@ -957,32 +1163,13 @@ watch(() => props.itemsPerPage, (newValue) => {
   @apply px-6 py-4 text-left font-semibold text-gray-900 whitespace-nowrap;
 }
 
-.table-header-cell.center {
-  @apply text-center;
-}
-
-.table-header-cell.right {
-  @apply text-right;
-}
-
-.table-header-cell.sortable {
-  @apply cursor-pointer hover:bg-gray-100 transition-colors select-none;
-}
-
-.table-header-cell.sorted {
-  @apply bg-blue-50 text-blue-700;
-}
+.table-header-cell.center { @apply text-center; }
+.table-header-cell.right { @apply text-right; }
+.table-header-cell.sortable { @apply cursor-pointer hover:bg-gray-100 transition-colors select-none; }
+.table-header-cell.sorted { @apply bg-blue-50 text-blue-700; }
 
 .header-cell-content {
   @apply flex items-center gap-2;
-}
-
-.header-cell-content.center {
-  @apply justify-center;
-}
-
-.header-cell-content.right {
-  @apply justify-end;
 }
 
 .header-text {
@@ -1022,24 +1209,12 @@ watch(() => props.itemsPerPage, (newValue) => {
   @apply px-6 py-4 whitespace-nowrap;
 }
 
-.table-cell.center {
-  @apply text-center;
-}
-
-.table-cell.right {
-  @apply text-right;
-}
+.table-cell.center { @apply text-center; }
+.table-cell.right { @apply text-right; }
 
 .cell-content {
   @apply flex items-center;
-}
-
-.cell-content.center {
-  @apply justify-center;
-}
-
-.cell-content.right {
-  @apply justify-end;
+  transition: none;
 }
 
 .cell-text {
@@ -1067,17 +1242,9 @@ watch(() => props.itemsPerPage, (newValue) => {
   @apply w-4 h-4;
 }
 
-.view-button {
-  @apply text-blue-600 hover:bg-blue-50 hover:text-blue-700;
-}
-
-.edit-button {
-  @apply text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700;
-}
-
-.delete-button {
-  @apply text-red-600 hover:bg-red-50 hover:text-red-700;
-}
+.view-button { @apply text-blue-600 hover:bg-blue-50 hover:text-blue-700; }
+.edit-button { @apply text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700; }
+.delete-button { @apply text-red-600 hover:bg-red-50 hover:text-red-700; }
 
 /* Pagination */
 .pagination {
@@ -1093,7 +1260,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .results-text {
-  @apply text-sm text-gray-900 ;
+  @apply text-sm text-gray-900;
 }
 
 .items-per-page-select {
@@ -1124,71 +1291,287 @@ watch(() => props.itemsPerPage, (newValue) => {
   @apply w-4 h-4;
 }
 
-/* Responsive Design */
+/* Glassmorphism Header */
+.glassmorphism-header {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  position: relative;
+  overflow: hidden;
+}
+
+.glassmorphism-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, 
+    rgba(102, 126, 234, 0.3) 0%, 
+    rgba(118, 75, 162, 0.3) 100%);
+}
+
+.animate-fade-in {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.modern-icon {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  padding: 8px;
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+  transition: all 0.3s ease;
+}
+
+.modern-icon:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+.modern-title {
+  font-weight: 700;
+  font-size: 1.5rem;
+  background: linear-gradient(135deg, #1f2937 0%, #4f46e5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.modern-description {
+  color: #64748b;
+  font-weight: 500;
+  margin: 4px 0 0 0;
+  font-size: 0.875rem;
+}
+
+/* Skeleton Loading */
+.skeleton-loading-state {
+  padding: 24px;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.skeleton-table {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.skeleton-header {
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.skeleton-header-row {
+  display: flex;
+  padding: 16px;
+  gap: 16px;
+}
+
+.skeleton-header-cell {
+  height: 20px;
+  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 4px;
+  flex: 1;
+}
+
+.skeleton-body {
+  padding: 0;
+}
+
+.skeleton-row {
+  display: flex;
+  padding: 16px;
+  gap: 16px;
+  border-bottom: 1px solid #f3f4f6;
+  animation: skeletonFadeIn 0.2s ease-out both;
+}
+
+.skeleton-row:last-child {
+  border-bottom: none;
+}
+
+.skeleton-cell {
+  height: 16px;
+  background: linear-gradient(90deg, #f8f9fa 25%, #ffffff 50%, #f8f9fa 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s infinite;
+  border-radius: 4px;
+  flex: 1;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes skeletonFadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modern Table Rows */
+.modern-table-row {
+  transition: all 0.2s ease-in-out;
+  position: relative;
+  cursor: pointer;
+}
+
+.modern-table-row:hover {
+  background: linear-gradient(135deg, 
+    rgba(102, 126, 234, 0.02) 0%, 
+    rgba(118, 75, 162, 0.02) 100%);
+  box-shadow: 
+    0 2px 6px rgba(102, 126, 234, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.03);
+}
+
+.action-buttons .actions-inline button {
+  transition: all 0.2s ease;
+  border-radius: 8px;
+}
+
+.action-buttons .actions-inline button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Scroll Features */
+.modern-scroll-container {
+  position: relative;
+}
+
+.scroll-indicators {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.scroll-indicator {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.3) 0%, 
+    rgba(102, 126, 234, 0.9) 40%, 
+    rgba(118, 75, 162, 0.9) 100%);
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  pointer-events: all;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  opacity: 0;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 4px 16px rgba(102, 126, 234, 0.3);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  z-index: 15;
+}
+
+.scroll-indicator.visible {
+  opacity: 0.9;
+}
+
+.scroll-indicator.left { left: 8px; }
+.scroll-indicator.right { right: 8px; }
+
+.scroll-indicator:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.05);
+  background: linear-gradient(135deg, 
+    rgba(255, 255, 255, 0.4) 0%, 
+    rgba(102, 126, 234, 1) 35%, 
+    rgba(118, 75, 162, 1) 100%);
+  box-shadow: 0 6px 24px rgba(102, 126, 234, 0.6);
+  border-color: rgba(255, 255, 255, 0.8);
+}
+
+.scroll-indicator:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.scroll-indicator svg {
+  width: 16px;
+  height: 16px;
+  stroke-width: 2;
+}
+
+.infinite-scroll-table {
+  position: relative;
+  overflow: auto;
+  scroll-behavior: smooth;
+}
+
+/* Custom Scrollbar */
+.infinite-scroll-table::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.infinite-scroll-table::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.infinite-scroll-table::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.infinite-scroll-table::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* Responsive */
 @media (max-width: 1024px) {
-  .header-content {
-    @apply flex-col items-stretch;
-  }
-  
-  .header-right {
-    @apply flex-col sm:flex-row;
-  }
-  
-  .filters-grid {
-    @apply grid-cols-1 sm:grid-cols-2;
-  }
+  .header-content { @apply flex-col items-stretch; }
+  .header-right { @apply flex-col sm:flex-row; }
+  .filters-grid { @apply grid-cols-1 sm:grid-cols-2; }
 }
 
 @media (max-width: 768px) {
-  .modern-data-table {
-    @apply rounded-xl;
-  }
-  
-  .header-content {
-    @apply px-4 py-4;
-  }
-  
-  .filters-panel {
-    @apply p-4;
-  }
-  
-  .table-header-cell,
-  .table-cell {
-    @apply px-3 py-3;
-  }
-  
-  .pagination {
-    @apply px-4 py-3 flex-col items-stretch;
-  }
-  
-  .pagination-controls {
-    @apply justify-center;
-  }
-  
-  .results-info {
-    @apply flex-col sm:flex-row items-start sm:items-center text-center sm:text-left;
-  }
+  .modern-data-table { @apply rounded-xl; }
+  .header-content { @apply px-4 py-4; }
+  .filters-panel { @apply p-4; }
+  .table-header-cell, .table-cell { @apply px-3 py-3; }
+  .pagination { @apply px-4 py-3 flex-col items-stretch; }
+  .pagination-controls { @apply justify-center; }
+  .results-info { @apply flex-col sm:flex-row items-start sm:items-center text-center sm:text-left; }
 }
 
 @media (max-width: 640px) {
-  .title-wrapper {
-    @apply flex-col items-start;
-  }
-  
-  .header-right {
-    @apply flex-col;
-  }
-  
-  .search-container {
-    @apply min-w-full;
-  }
-  
-  .filters-grid {
-    @apply grid-cols-1;
-  }
-  
-  .actions-menu {
-    @apply right-auto left-0;
-  }
+  .title-wrapper { @apply flex-col items-start; }
+  .header-right { @apply flex-col; }
+  .filters-grid { @apply grid-cols-1; }
 }
 </style>

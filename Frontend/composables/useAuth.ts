@@ -63,19 +63,18 @@ export const useAuth = () => {
       
       const response = await api.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, requestData)
       
-      console.log('Login Response:', response)
-      
       // Farklı response formatlarını destekle
       let loginData = null
       
-      if (response.success && response.data) {
-        // Standart format
+      if (response.isSuccess && response.value) {
+        loginData = response.value
+      } else if (response.success && response.data) {
         loginData = response.data
       } else if (response.accessToken) {
-        // Direkt response format
         loginData = response
+      } else if (response.value && response.value.accessToken) {
+        loginData = response.value
       } else if (response.data && response.data.accessToken) {
-        // Nested data format
         loginData = response.data
       }
       
@@ -180,6 +179,10 @@ export const useAuth = () => {
     return permissions.every(permission => hasPermission(permission))
   }
 
+  const hasSystemRole = (): boolean => {
+    return authStore.user?.roles?.some(r => r.isSystemRole) ?? false
+  }
+
   return {
     login,
     register,
@@ -189,6 +192,7 @@ export const useAuth = () => {
     hasPermission,
     hasRole,
     hasAnyPermission,
-    hasAllPermissions
+    hasAllPermissions,
+    hasSystemRole
   }
 } 
