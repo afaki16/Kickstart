@@ -5,7 +5,9 @@ using {{PROJECT_NAME}}.Infrastructure.Persistence;
 using {{PROJECT_NAME}}.Infrastructure.Identity;
 using {{PROJECT_NAME}}.Infrastructure.Repositories;
 using {{PROJECT_NAME}}.Infrastructure.Services;
+using {{PROJECT_NAME}}.Infrastructure.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -30,13 +32,17 @@ namespace {{PROJECT_NAME}}.Infrastructure
         services.AddRepositories(typeof(DependencyInjection).Assembly);
 
 
+        // Add Memory Cache
+        services.AddMemoryCache();
+
         // Add Services
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IAuthService, JwtService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
-
-
+        services.AddScoped<IPermissionService, PermissionService>();
+        services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
+        services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
         // Add JWT Authentication
         AddJwtAuthentication(services, configuration);
