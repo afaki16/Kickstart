@@ -59,7 +59,7 @@ onMounted(() => {
   setTimeout(() => { 
     showSplash.value = false;
     emit('complete');
-  }, 13000);
+  }, 2000);
 })
 </script>
 
