@@ -1,0 +1,35 @@
+using Kickstart.Application.Interfaces;
+using Kickstart.Application.Features.Auth.Commands.Login;
+using Kickstart.Application.Features.Auth.Commands.Logout;
+using Kickstart.Application.Features.Auth.Commands.LogoutAll;
+using Kickstart.Application.Features.Auth.Commands.LogoutDevice;
+using Kickstart.Application.Features.Auth.Commands.Register;
+using Kickstart.Application.Features.Auth.Commands.RefreshToken;
+using Kickstart.Application.Features.Auth.Commands.RevokeSession;
+using Kickstart.Application.Features.Auth.Commands.ChangePassword;
+using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
+using Kickstart.Application.Features.Auth.Commands.ResetPassword;
+using Kickstart.Domain.Common.Interfaces;
+using Kickstart.Domain.Common.Interfaces.Repositories;
+using Kickstart.Application.Common.Results;
+using MediatR;
+
+
+namespace Kickstart.Application.Features.Auth.Commands.ForgotPassword
+{
+    public class ForgotPasswordCommandHandler : IRequestHandler<ForgotPasswordCommand, Result>
+    {
+        private readonly IEmailService _emailService;
+
+        public ForgotPasswordCommandHandler(IEmailService emailService)
+        {
+            _emailService = emailService;
+        }
+
+        public async Task<Result> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
+        {
+            // TODO: Implement forgot password logic
+            return Result.Success();
+        }
+    }
+} 

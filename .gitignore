@@ -1,0 +1,24 @@
+# IDE
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userprefs
+
+# .NET
+**/bin/
+**/obj/
+*.dll
+*.exe
+*.pdb
+
+# Node
+**/node_modules/
+**/.nuxt/
+**/.output/
+**/dist/
+
+# OS
+.DS_Store
+Thumbs.db

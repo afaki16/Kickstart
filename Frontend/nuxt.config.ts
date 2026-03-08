@@ -41,14 +41,14 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       apiBase: process.env.API_BASE_URL || 'https://localhost:44333',
-      appName: '{{PROJECT_NAME}}',
+      appName: 'Kickstart',
       appVersion: '1.0.0'
     }
   },
   
   app: {
     head: {
-      title: '{{PROJECT_NAME}}',
+      title: 'Kickstart',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },

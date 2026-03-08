@@ -1,7 +1,7 @@
 {
-  "name": "{{PROJECT_NAME}}-frontend",
+  "name": "kickstart-frontend",
   "version": "1.0.0",
-  "description": "{{PROJECT_NAME}} Frontend with Nuxt.js and Vuetify",
+  "description": "Kickstart Frontend with Nuxt.js and Vuetify",
   "private": true,
   "scripts": {
     "build": "nuxt build",

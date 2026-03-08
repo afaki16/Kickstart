@@ -21,17 +21,17 @@ gibi öğeleri kolayca özelleştirebilirsiniz.
 ```json
 {
   "app": {
-    "name": "{{PROJECT_NAME}}",
+    "name": "Kickstart",
     "version": "1.0.0",
     "description": "Modern Authentication System",
     "logo": {
       "src": "/images/logo.svg",
-      "alt": "{{PROJECT_NAME}} Logo",
+      "alt": "Kickstart Logo",
       "width": "32",
       "height": "32"
     },
     "brand": {
-      "text": "{{PROJECT_NAME}}",
+      "text": "Kickstart",
       "tagline": "Secure Authentication System"
     }
   }

@@ -406,7 +406,7 @@ onBeforeUnmount(() => {
 })
 
 useHead({
-  title: 'Dashboard - {{PROJECT_NAME}}'
+  title: 'Dashboard - Kickstart'
 })
 </script>
 
