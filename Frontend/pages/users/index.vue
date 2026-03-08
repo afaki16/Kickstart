@@ -25,11 +25,13 @@
       :show-delete-button="true"
       :show-pagination="true"
       :items-per-page="10"
+      use-view-modal
       @add="openCreateDialog"
       @view="openViewDialog"
       @edit="openEditDialog"
       @delete="openDeleteDialog"
       @search="handleSearch"
+      @refresh="refreshData"
     >
     <!-- For FullName -->
  <template #cell-fullName="{ item, value }">
@@ -58,10 +60,14 @@
 </template>
   </BaseDataTable>
 
-<!-- Create/Edit User Dialog -->
-<v-dialog v-model="dialogs.create" max-width="800" scrollable>
-  <v-card>
-    <v-card-text>
+  <!-- Create/Edit Drawer -->
+  <ResizableDrawer
+    v-model="dialogs.create"
+    :title="isEditMode ? 'Kullanıcıyı Düzenle' : 'Yeni Kullanıcı Ekle'"
+    icon="mdi-account"
+    :default-width="600"
+    :min-width="400"
+  >
     <UserForm
       :user="selectedItem"
       :roles="roles"
@@ -69,21 +75,34 @@
       @submit="handleSubmit"
       @cancel="closeCreateDialog"
     />
-    </v-card-text>
-  </v-card>
-</v-dialog>
+  </ResizableDrawer>
 
-<!-- Confirm Delete Dialog -->
-<ConfirmDialog
-  v-model="dialogs.delete"
-  title="Kullanıcıyı Sil"
-  :message="`'${itemToDelete?.fullName || itemToDelete?.email}' kullanıcısını silmek istediğinizden emin misiniz?`"
-  type="error"
-  confirm-text="Sil"
-  :loading="isDeleting"
-  @confirm="confirmDelete"
-  @cancel="closeDeleteDialog"
-/>
+  <!-- View Detail Drawer -->
+  <ResizableDrawer
+    v-model="dialogs.view"
+    title="Kullanıcı Detayları"
+    icon="mdi-account-details"
+    :default-width="800"
+    :min-width="600"
+  >
+    <UserDetail
+      :user="selectedItem"
+      @close="closeViewDialog"
+      @edit="handleEditFromDetail"
+    />
+  </ResizableDrawer>
+
+  <!-- Confirm Delete Dialog -->
+  <ConfirmDialog
+    v-model="dialogs.delete"
+    title="Kullanıcıyı Sil"
+    :message="`'${itemToDelete?.fullName || itemToDelete?.email}' kullanıcısını silmek istediğinizden emin misiniz?`"
+    type="error"
+    confirm-text="Sil"
+    :loading="isDeleting"
+    @confirm="confirmDelete"
+    @cancel="closeDeleteDialog"
+  />
 
 </template>
 
@@ -91,7 +110,9 @@
 import { ref, onMounted } from 'vue'
 import { dateTimeFormatLong } from '~/utils/datesFormat.ts'
 import BaseDataTable from '~/components/UI/BaseDataTable.vue'
+import ResizableDrawer from '~/components/UI/ResizableDrawer.vue'
 import UserForm from '~/components/Users/UserForm.vue'
+import UserDetail from '~/components/Users/UserDetail.vue'
 import ConfirmDialog from '~/components/UI/ConfirmDialog.vue'
 
 //#region Page Metadata
@@ -147,7 +168,6 @@ const tableColumns = [
 const { getUsers, createUser, updateUser, deleteUser } = useUsers()
 const { getRoles } = useRoles()
 
-// CRUD Operations with Dialog Manager
 const {
   items,
   isLoading,
@@ -161,10 +181,12 @@ const {
   openEditDialog,
   openDeleteDialog,
   closeCreateDialog,
+  closeViewDialog,
   closeDeleteDialog,
   handleSubmit,
   confirmDelete,
   handleSearch,
+  refreshData,
   loadItemsData
 } = useCrudOperations({
   loadItems: getUsers,
@@ -187,6 +209,11 @@ const loadRoles = async () => {
     console.error('Error loading roles:', error)
     roles.value = []
   }
+}
+
+const handleEditFromDetail = (user) => {
+  closeViewDialog()
+  openEditDialog(user)
 }
 //#endregion
 

@@ -26,11 +26,13 @@
       :show-delete-button="true"
       :show-pagination="true"
       :items-per-page="10"
+      use-view-modal
       @add="openCreateDialog"
       @view="openViewDialog"
       @edit="openEditDialog"
       @delete="openDeleteDialog"
       @search="handleSearch"
+      @refresh="refreshData"
     >
        <!-- For RoleName -->
     <template #cell-name="{ value }">
@@ -57,20 +59,22 @@
 
      </BaseDataTable>
 
-    <!-- Create/Edit Role Dialog -->
-    <v-dialog v-model="dialogs.create" max-width="800" scrollable>
-      <v-card>
-        <v-card-text>
-          <RoleForm
-            :role="selectedItem"
-            :permissions="permissions"
-            :loading="isLoading"
-            @submit="handleSubmit"
-            @cancel="closeCreateDialog"
-          />
-        </v-card-text>
-      </v-card>
-    </v-dialog>
+    <!-- Create/Edit Role Drawer -->
+    <ResizableDrawer
+      v-model="dialogs.create"
+      :title="isEditMode ? 'Rolü Düzenle' : 'Yeni Rol Ekle'"
+      icon="mdi-shield-account"
+      :default-width="600"
+      :min-width="400"
+    >
+      <RoleForm
+        :role="selectedItem"
+        :permissions="permissions"
+        :loading="isLoading"
+        @submit="handleSubmit"
+        @cancel="closeCreateDialog"
+      />
+    </ResizableDrawer>
 
     <!-- Confirm Delete Dialog -->
     <ConfirmDialog
@@ -90,6 +94,7 @@
 import { ref, onMounted } from 'vue'
 import RoleForm from '~/components/Roles/RoleForm.vue'
 import BaseDataTable from '~/components/UI/BaseDataTable.vue'
+import ResizableDrawer from '~/components/UI/ResizableDrawer.vue'
 import ConfirmDialog from '~/components/UI/ConfirmDialog.vue'
 
 //#region Page Metadata
@@ -136,7 +141,6 @@ const tableColumns = [
 const { getRoles, createRole, updateRole, deleteRole } = useRoles()
 const { getPermissions } = usePermissions()
 
-// CRUD Operations with Dialog Manager
 const {
   items,
   isLoading,
@@ -154,6 +158,7 @@ const {
   handleSubmit,
   confirmDelete,
   handleSearch,
+  refreshData,
   loadItemsData
 } = useCrudOperations({
   loadItems: getRoles,

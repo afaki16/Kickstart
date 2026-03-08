@@ -99,6 +99,11 @@ export const useCrudOperations = (config) => {
     loadItemsData()
   }
 
+  // Refresh handler
+  const refreshData = () => {
+    loadItemsData()
+  }
+
   return {
     // Data
     items,
@@ -110,6 +115,7 @@ export const useCrudOperations = (config) => {
     
     // Operations
     loadItemsData,
+    refreshData,
     handleSubmit,
     confirmDelete,
     handleSearch

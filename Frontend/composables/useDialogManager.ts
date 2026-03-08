@@ -19,8 +19,14 @@ export const useDialogManager = () => {
     }
 
     selectedItem.value = item ? { ...item } : null
-    isEditMode.value = type === 'edit'
-    dialogs.value.create = true // create/edit/view hepsi aynı dialog'u kullanıyor
+    
+    if (type === 'view') {
+      dialogs.value.view = true
+      isEditMode.value = false
+    } else {
+      isEditMode.value = type === 'edit'
+      dialogs.value.create = true
+    }
   }
 
   const closeDialog = (type) => {
@@ -50,6 +56,7 @@ export const useDialogManager = () => {
   const openDeleteDialog = (item) => openDialog('delete', item)
   
   const closeCreateDialog = () => closeDialog('create')
+  const closeViewDialog = () => closeDialog('view')
   const closeDeleteDialog = () => closeDialog('delete')
 
   return {
@@ -64,12 +71,13 @@ export const useDialogManager = () => {
     closeDialog,
     closeAllDialogs,
     
-    // Convenience methods (backward compatibility için)
+    // Convenience methods
     openCreateDialog,
     openViewDialog,
     openEditDialog,
     openDeleteDialog,
     closeCreateDialog,
+    closeViewDialog,
     closeDeleteDialog
   }
 }
