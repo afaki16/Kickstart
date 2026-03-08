@@ -3,6 +3,75 @@
    ======================================== */
 
 /* ========================================
+   TAB NAVIGATION
+   ======================================== */
+.tabs-container {
+  display: flex;
+  gap: 0;
+  justify-content: flex-start;
+  max-width: 100%;
+  min-width: min-content;
+}
+
+.tab-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: auto;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #757575;
+  border-bottom: 2px solid transparent;
+  white-space: nowrap;
+  min-width: 80px;
+  border-radius: 8px;
+  min-height: 60px;
+  text-align: center;
+}
+
+.tab-item:hover:not(:disabled) {
+  color: #667eea;
+  border-bottom-color: #667eea;
+  transform: translateY(-2px);
+}
+
+.tab-item.active {
+  color: #f8f7f7;
+  border-bottom-color: #4f46e5;
+  background: #4f46e5;
+  font-weight: 600;
+}
+
+.tab-item:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.tab-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tab-icon-wrapper .v-icon {
+  font-size: 22px;
+}
+
+.tab-label {
+  font-size: 10px;
+  font-weight: 500;
+  white-space: nowrap;
+  text-align: center;
+}
+
+/* ========================================
    CONTAINER & LAYOUT
    ======================================== */
 /* Container */

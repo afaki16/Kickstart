@@ -287,46 +287,6 @@ const formatDateTime = (date?: string | null) => {
   flex-wrap: wrap;
 }
 
-/* Tabs */
-.tabs-container {
-  display: flex;
-  gap: 8px;
-  border-bottom: 2px solid #e2e8f0;
-  padding-bottom: 0;
-}
-
-.tab-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 16px;
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  transition: all 0.2s ease;
-  color: #64748b;
-  font-weight: 500;
-  font-size: 0.875rem;
-}
-
-.tab-item:hover {
-  color: #3b82f6;
-  background: #f0f7ff;
-  border-radius: 8px 8px 0 0;
-}
-
-.tab-item.active {
-  color: #3b82f6;
-  border-bottom-color: #3b82f6;
-}
-
-.tab-icon-wrapper {
-  display: flex;
-  align-items: center;
-}
-
 .info-section {
   margin-bottom: 24px;
 }
@@ -552,10 +512,6 @@ const formatDateTime = (date?: string | null) => {
   .info-grid,
   .security-grid {
     grid-template-columns: 1fr;
-  }
-
-  .tabs-container {
-    flex-wrap: wrap;
   }
 
   .detail-footer {

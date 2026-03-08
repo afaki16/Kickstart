@@ -1,1 +1,53 @@
-/* Main CSS file - Toast styles removed */
+/* Main CSS file */
+
+/* ========================================
+   GRADIENT BUTTONS
+   ======================================== */
+.btn-gradient-primary {
+  background: linear-gradient(to right, #3b82f6, #4f46e5) !important;
+  color: white !important;
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-primary:hover:not(:disabled) {
+  background: linear-gradient(to right, #2563eb, #4338ca) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.btn-gradient-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-gradient-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-gradient-dark {
+  background: rgba(0, 0, 0, 0.04);
+  color: rgb(75, 66, 66) !important;
+  text-transform: none;
+  font-weight: 600;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-dark:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(44, 62, 80, 0.4) !important;
+}
+
+.btn-gradient-dark:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-gradient-dark:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

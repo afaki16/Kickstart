@@ -1,143 +1,95 @@
 <template>
-  <div class="form-container">
-    <PageHeader
-      :title="user ? 'Kullanıcı Düzenle' : 'Yeni Kullanıcı Oluştur'"
-      subtitle="Sistem kullanıcılarını ve rollerini yönetin"
-      icon="mdi-account-plus"
-    />
-      
-    <v-form ref="form" v-model="isValid" @submit.prevent="handleSubmit">
-      <div class="form-content">
-        <!-- Kişisel Bilgiler Card -->
-        <v-card class="form-card" elevation="0">
-          <v-card-title class="form-card-title">
-            <v-icon class="form-card-title-icon">mdi-account</v-icon>
-            Kişisel Bilgiler
-          </v-card-title>
-          
-          <v-card-text class="form-card-content">
-            <div class="input-group">
-              <div class="input-row">
-                <v-text-field
-                  v-model="formData.firstName"
-                  label="Ad"
-                  placeholder="Adınızı giriniz"
-                  :rules="[rules.required, rules.minLength(2), rules.maxLength(50)]"
-                  variant="outlined"
-                  :disabled="loading"
-                  prepend-inner-icon="mdi-account"
-                  color="primary"
-                  class="modern-input"
-                  hide-details="auto"
-                />
-                
-                <v-text-field
-                  v-model="formData.lastName"
-                  label="Soyad"
-                  placeholder="Soyadınızı giriniz"
-                  :rules="[rules.required, rules.minLength(2), rules.maxLength(50)]"
-                  variant="outlined"
-                  :disabled="loading"
-                  prepend-inner-icon="mdi-account"
-                  color="primary"
-                  class="modern-input"
-                  hide-details="auto"
-                />
-              </div>
-              
-                             <v-text-field
-                 v-model="formData.email"
-                 label="E-posta"
-                 placeholder="ornek@email.com"
-                 :rules="[rules.required, rules.email]"
-                 variant="outlined"
-                 :disabled="loading || !!user"
-                 prepend-inner-icon="mdi-email"
-                 color="primary"
-                 class="modern-input"
-                 hide-details="auto"
-                 type="email"
-               />
-              
-              <v-text-field
-                v-model="formData.phoneNumber"
-                label="Telefon Numarası"
-                placeholder="5xxxxxxxxx"
-                :rules="[rules.required, rules.phoneNumber]"
-                variant="outlined"
-                :disabled="loading"
-                prepend-inner-icon="mdi-phone"
-                color="primary"
-                class="modern-input"
-                hide-details="auto"
-                type="tel"
-              />
-            </div>
-          </v-card-text>
-        </v-card>
+  <!-- Modern Tab Navigation -->
+  <div class="tabs-container">
+    <button
+      v-for="tab in tabs"
+      :key="tab.value"
+      :class="['tab-item', { active: currentTab === tab.value }]"
+      @click="currentTab = tab.value"
+      :disabled="loading"
+    >
+      <div class="tab-icon-wrapper">
+        <v-icon :icon="tab.icon" size="22" />
+      </div>
+      <span class="tab-label">{{ tab.label }}</span>
+    </button>
+  </div>
 
-        <!-- Şifre Bilgileri Card (Sadece yeni kullanıcı oluştururken) -->
-        <v-card v-if="!user" class="form-card" elevation="0">
-          <v-card-title class="form-card-title">
-            <v-icon class="form-card-title-icon">mdi-lock</v-icon>
-            Şifre Bilgileri
-          </v-card-title>
-          
-          <v-card-text class="form-card-content">
-            <div class="input-group">
-              <v-text-field
-                v-model="formData.password"
-                label="Şifre"
-                placeholder="En az 8 karakter, büyük harf, küçük harf, rakam ve özel karakter"
-                :rules="[rules.required, rules.password]"
-                variant="outlined"
-                :disabled="loading"
-                :type="showPassword ? 'text' : 'password'"
-                prepend-inner-icon="mdi-lock"
-                :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showPassword = !showPassword"
-                color="primary"
-                class="modern-input"
-                hide-details="auto"
-              />
-              
-              <v-text-field
-                v-model="formData.confirmPassword"
-                label="Şifre Tekrar"
-                placeholder="Şifreyi tekrar giriniz"
-                :rules="[rules.required, rules.confirmPassword(formData.password)]"
-                variant="outlined"
-                :disabled="loading"
-                :type="showConfirmPassword ? 'text' : 'password'"
-                prepend-inner-icon="mdi-lock-check"
-                :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showConfirmPassword = !showConfirmPassword"
-                color="primary"
-                class="modern-input"
-                hide-details="auto"
-              />
-            </div>
-          </v-card-text>
-        </v-card>
+  <v-window v-model="currentTab" class="mt-6">
+    <!-- Tab 1: Kişisel Bilgiler -->
+    <v-window-item value="personal">
+      <v-container>
+        <v-row>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="formData.firstName"
+              label="Ad"
+              placeholder="Adınızı giriniz"
+              variant="outlined"
+              :disabled="loading"
+              prepend-inner-icon="mdi-account"
+              density="comfortable"
+              hide-details="auto"
+              class="modern-input"
+            />
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="formData.lastName"
+              label="Soyad"
+              placeholder="Soyadınızı giriniz"
+              variant="outlined"
+              :disabled="loading"
+              prepend-inner-icon="mdi-account"
+              density="comfortable"
+              hide-details="auto"
+              class="modern-input"
+            />
+          </v-col>
+        </v-row>
 
-        <!-- Kullanıcı Durumu Card (Sadece edit modunda) -->
-        <v-card v-if="user" class="form-card" elevation="0">
-          <v-card-title class="form-card-title">
-            <v-icon class="form-card-title-icon">mdi-account-check</v-icon>
-            Kullanıcı Durumu
-          </v-card-title>
-          
-          <v-card-text class="form-card-content">
+        <v-row>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="formData.email"
+              label="E-posta"
+              placeholder="ornek@email.com"
+              variant="outlined"
+              :disabled="loading || !!user"
+              prepend-inner-icon="mdi-email"
+              density="comfortable"
+              hide-details="auto"
+              type="email"
+              class="modern-input"
+            />
+          </v-col>
+          <v-col cols="12" sm="6">
+            <v-text-field
+              v-model="formData.phoneNumber"
+              label="Telefon Numarası"
+              placeholder="5xxxxxxxxx"
+              variant="outlined"
+              :disabled="loading"
+              prepend-inner-icon="mdi-phone"
+              density="comfortable"
+              hide-details="auto"
+              type="tel"
+              class="modern-input"
+            />
+          </v-col>
+        </v-row>
+
+        <!-- Status (Sadece edit modunda) -->
+        <v-row v-if="user">
+          <v-col cols="12">
             <v-switch
               v-model="formData.status"
               :true-value="1"
               :false-value="0"
-              label="Kullanıcı Aktif"
               color="primary"
               :disabled="loading"
               hide-details
               class="status-switch"
-              @update:model-value="(value) => { debugger; console.log('Status changed to:', value); formData.status = value; }"
             >
               <template #label>
                 <div class="status-label">
@@ -152,192 +104,211 @@
                 </div>
               </template>
             </v-switch>
-            <p class="status-description">
+            <p class="status-description mt-2">
               {{ formData.status === 1 
                   ? 'Kullanıcı sisteme giriş yapabilir ve tüm yetkilerini kullanabilir.' 
                   : 'Kullanıcı sisteme giriş yapamaz ve hesabı devre dışıdır.' 
               }}
             </p>
-          </v-card-text>
-        </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-window-item>
 
-        <!-- Roller Card -->
-        <v-card class="form-card" elevation="0">
-          <v-card-title class="form-card-title">
-            <v-icon class="form-card-title-icon">mdi-shield-account</v-icon>
-            Roller
-            <v-chip 
-              v-if="formData.roleIds.length" 
-              size="small" 
-              color="primary" 
-              variant="tonal"
-              class="ml-auto"
-            >
-              {{ formData.roleIds.length }} seçili
-            </v-chip>
-          </v-card-title>
+    <!-- Tab 2: Şifre (Sadece yeni kullanıcı) -->
+    <v-window-item v-if="!user" value="password">
+      <v-container>
+        <v-row>
+          <v-col cols="12">
+            <v-text-field
+              v-model="formData.password"
+              label="Şifre"
+              placeholder="En az 8 karakter"
+              variant="outlined"
+              :disabled="loading"
+              :type="showPassword ? 'text' : 'password'"
+              prepend-inner-icon="mdi-lock"
+              :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showPassword = !showPassword"
+              density="comfortable"
+              hide-details="auto"
+              class="modern-input"
+            />
+          </v-col>
+        </v-row>
 
-          <v-card-text class="roles-content">
-            <div v-if="roles && roles.length" class="roles-list">
-              <!-- Search Bar -->
-              <div class="search-container">
-                <v-text-field
-                  v-model="searchQuery"
-                  placeholder="Rollerde ara..."
-                  prepend-inner-icon="mdi-magnify"
-                  variant="outlined"
-                  density="compact"
+        <v-row>
+          <v-col cols="12">
+            <v-text-field
+              v-model="formData.confirmPassword"
+              label="Şifre Tekrar"
+              placeholder="Şifreyi tekrar giriniz"
+              variant="outlined"
+              :disabled="loading"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              prepend-inner-icon="mdi-lock-check"
+              :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showConfirmPassword = !showConfirmPassword"
+              density="comfortable"
+              hide-details="auto"
+              class="modern-input"
+            />
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-window-item>
+
+    <!-- Tab 3: Roller -->
+    <v-window-item value="roles">
+      <v-container>
+        <v-row v-if="roles && roles.length">
+          <v-col cols="12">
+            <v-text-field
+              v-model="searchQuery"
+              placeholder="Rollerde ara..."
+              prepend-inner-icon="mdi-magnify"
+              variant="outlined"
+              density="compact"
+              hide-details
+              clearable
+              class="mb-4 modern-input"
+            />
+
+            <div class="quick-actions mb-4">
+              <v-btn
+                variant="outlined"
+                size="small"
+                @click="selectAllRoles"
+                :disabled="loading"
+                prepend-icon="mdi-check-all"
+              >
+                Tümünü Seç
+              </v-btn>
+              <v-btn
+                variant="outlined"
+                size="small"
+                @click="clearAllRoles"
+                :disabled="loading"
+                prepend-icon="mdi-close-box"
+              >
+                Temizle
+              </v-btn>
+              <v-chip 
+                v-if="formData.roleIds.length" 
+                size="small" 
+                color="primary" 
+                variant="tonal"
+              >
+                {{ formData.roleIds.length }} seçili
+              </v-chip>
+            </div>
+
+            <div class="roles-grid">
+              <div
+                v-for="role in filteredRoles"
+                :key="role.id"
+                class="role-item"
+                :class="{ 'selected': formData.roleIds.includes(String(role.id)) }"
+              >
+                <v-checkbox
+                  v-model="formData.roleIds"
+                  :value="String(role.id)"
+                  :disabled="loading"
+                  color="primary"
                   hide-details
-                  clearable
-                  class="search-input"
+                  class="role-checkbox"
                 />
-              </div>
-
-              <!-- Quick Actions -->
-              <div class="quick-actions">
-                <v-btn
-                  variant="outlined"
-                  size="small"
-                  @click="selectAllRoles"
-                  :disabled="loading"
-                  prepend-icon="mdi-check-all"
-                >
-                  Tümünü Seç
-                </v-btn>
-                <v-btn
-                  variant="outlined"
-                  size="small"
-                  @click="clearAllRoles"
-                  :disabled="loading"
-                  prepend-icon="mdi-close-box"
-                >
-                  Temizle
-                </v-btn>
-              </div>
-
-              <!-- Roles List -->
-              <div class="roles-grid">
-                <div
-                  v-for="role in filteredRoles"
-                  :key="role.id"
-                  class="role-item"
-                  :class="{ 'selected': formData.roleIds.includes(String(role.id)) }"
-                >
-                  <v-checkbox
-                    v-model="formData.roleIds"
-                    :value="String(role.id)"
-                    :disabled="loading"
-                    color="primary"
-                    hide-details
-                    class="role-checkbox"
-                  />
-                  <div class="role-info">
-                    <div class="role-header">
-                      <h4 class="role-name">{{ role.name }}</h4>
-                      <v-chip
-                        v-if="role.isSystemRole"
-                        size="x-small"
-                        color="orange"
-                        variant="tonal"
-                      >
-                        Sistem
-                      </v-chip>
-                    </div>
-                    <p v-if="role.description" class="role-description">
-                      {{ role.description }}
-                    </p>
-                    <div v-if="role.permissions && role.permissions.length" class="role-permissions">
-                      <v-chip
-                        v-for="permission in role.permissions.slice(0, 3)"
-                        :key="permission.id"
-                        size="x-small"
-                        variant="outlined"
-                        class="permission-chip"
-                      >
-                        {{ permission.name }}
-                      </v-chip>
-                      <v-chip
-                        v-if="role.permissions.length > 3"
-                        size="x-small"
-                        variant="outlined"
-                        class="permission-chip more-permissions"
-                      >
-                        +{{ role.permissions.length - 3 }} daha
-                      </v-chip>
-                    </div>
+                <div class="role-info">
+                  <div class="role-header">
+                    <h4 class="role-name">{{ role.name }}</h4>
+                    <v-chip
+                      v-if="role.isSystemRole"
+                      size="x-small"
+                      color="orange"
+                      variant="tonal"
+                    >
+                      Sistem
+                    </v-chip>
                   </div>
+                  <p v-if="role.description" class="role-description">
+                    {{ role.description }}
+                  </p>
                 </div>
               </div>
             </div>
+          </v-col>
+        </v-row>
 
-            <!-- Empty State -->
-            <div v-else class="empty-state">
-              <div class="empty-icon">
-                <v-icon size="64" color="grey-400">mdi-shield-off</v-icon>
-              </div>
+        <v-row v-else>
+          <v-col cols="12">
+            <div class="empty-state">
+              <v-icon size="64" color="grey-400">mdi-shield-off</v-icon>
               <h3 class="empty-title">Rol Bulunamadı</h3>
               <p class="empty-text">Atanabilir rol bulunmuyor</p>
             </div>
-          </v-card-text>
-        </v-card>
-      </div>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-window-item>
+  </v-window>
 
-      <!-- Actions -->
-      <div class="form-actions">
-        <v-btn
-          variant="outlined"
-          size="large"
-          @click="$emit('cancel')"
-          :disabled="loading"
-          class="btn-cancel"
-        >
-          İptal
-        </v-btn>
-        
-        <v-btn
-          color="primary"
-          size="large"
-          :loading="loading"
-          type="submit"
-          class="btn-submit"
-          prepend-icon="mdi-check"
-        >
-          {{ user ? 'Güncelle' : 'Oluştur' }}
-        </v-btn>
-      </div>
-    </v-form>
+  <!-- Modern Actions -->
+  <div class="form-actions">
+    <v-btn
+      variant="outlined"
+      size="large"
+      @click="$emit('cancel')"
+      :disabled="loading"
+      class="btn-gradient-dark"
+    >
+      İptal
+    </v-btn>
+    
+    <v-btn
+      size="large"
+      :loading="loading"
+      @click="handleSubmit"
+      class="btn-gradient-primary"
+    >
+      {{ user ? 'Güncelle' : 'Kaydet' }}
+    </v-btn>
   </div>
 </template>
 
 <script setup lang="ts">
 import type { User, Role, CreateUserRequest, UpdateUserRequest } from '~/types'
-import PageHeader from '~/components/UI/PageHeader.vue'
-import { useValidators } from '~/composables/useValidators';
-import { computed, reactive, ref, watch, watchEffect } from 'vue';
+import { computed, reactive, ref, watch, watchEffect } from 'vue'
 
-// Props
 const props = defineProps<{
   user?: User | null
   roles: Role[]
   loading?: boolean
 }>()
 
-// Emits
 const emit = defineEmits<{
   submit: [data: CreateUserRequest | UpdateUserRequest]
   cancel: []
   'update:selected-roles': [roleIds: string[]]
 }>()
 
-// Composables
-const { validationRules: rules } = useValidators()
-
-// Reactive data
-const form = ref()
-const isValid = ref(false)
+const currentTab = ref('personal')
 const searchQuery = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+
+const tabs = computed(() => {
+  const baseTabs = [
+    { value: 'personal', label: 'Kişisel Bilgiler', icon: 'mdi-account' }
+  ]
+  
+  if (!props.user) {
+    baseTabs.push({ value: 'password', label: 'Şifre', icon: 'mdi-lock' })
+  }
+  
+  baseTabs.push({ value: 'roles', label: 'Roller', icon: 'mdi-shield-account' })
+  
+  return baseTabs
+})
 
 const formData = reactive({
   firstName: '',
@@ -346,11 +317,10 @@ const formData = reactive({
   phoneNumber: '',
   password: '',
   confirmPassword: '',
-  status: 1, // Varsayılan olarak aktif
+  status: 1,
   roleIds: [] as string[]
 })
 
-// Computed
 const filteredRoles = computed(() => {
   if (!searchQuery.value) return props.roles
   
@@ -360,7 +330,6 @@ const filteredRoles = computed(() => {
   )
 })
 
-// Methods
 const selectAllRoles = () => {
   formData.roleIds = props.roles.map(r => String(r.id))
 }
@@ -370,10 +339,6 @@ const clearAllRoles = () => {
 }
 
 const handleSubmit = async () => {
-  const validation = await form.value.validate()
-  if (!validation.valid) return
-  
-  // API için sadece gerekli alanları gönder
   const submitData: any = {
     firstName: formData.firstName,
     lastName: formData.lastName,
@@ -381,31 +346,22 @@ const handleSubmit = async () => {
     phoneNumber: formData.phoneNumber,
     status: formData.status,
     profileImageUrl: props.user?.profileImageUrl || "",
-    // Submit sırasında number'a çevir
     roleIds: formData.roleIds.map(id => Number(id))
   }
   
-  // Edit modunda id ekle
   if (props.user) {
     submitData.id = Number(props.user.id)
   } else {
-    // Yeni kullanıcı oluştururken şifre ekle
     submitData.password = formData.password
   }
   
   emit('submit', submitData)
 }
 
-const submit = () => {
-  handleSubmit()
-}
-
-// Watch for role changes
 watch(() => formData.roleIds, (newIds) => {
   emit('update:selected-roles', newIds)
 }, { deep: true })
 
-// Initialize form with user data if editing
 watchEffect(() => {
   if (props.user) {
     Object.assign(formData, {
@@ -414,13 +370,11 @@ watchEffect(() => {
       email: props.user.email,
       phoneNumber: props.user.phoneNumber || '',
       status: props.user.status ?? 1,
-      // Role ID'leri string olarak tut (checkbox v-model için)
       roleIds: props.user.roles?.map(r => String(r.id)) || [],
       password: '',
       confirmPassword: ''
     })
   } else {
-    // Reset form when not editing
     Object.assign(formData, {
       firstName: '',
       lastName: '',
@@ -433,22 +387,11 @@ watchEffect(() => {
     })
   }
 })
-
-// Expose methods
-defineExpose({
-  submit
-})
 </script>
 
 <style scoped>
-
-/* Status Card */
 .status-switch {
-  margin-bottom: 12px;
-}
-
-.status-switch :deep(.v-switch__track) {
-  opacity: 1 !important;
+  margin-bottom: 8px;
 }
 
 .status-label {
@@ -469,33 +412,15 @@ defineExpose({
   line-height: 1.5;
 }
 
-/* Roles */
-.roles-content {
-  padding: 0 !important;
-}
-
-.roles-list {
-  padding: 24px;
-}
-
-.search-container {
-  margin-bottom: 20px;
-}
-
-.search-input :deep(.v-field) {
-  border-radius: 12px;
-  background: #f8fafc;
-}
-
 .quick-actions {
   display: flex;
   gap: 12px;
-  margin-bottom: 24px;
+  align-items: center;
 }
 
 .roles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
 }
 
@@ -552,52 +477,31 @@ defineExpose({
 .role-description {
   font-size: 0.875rem;
   color: #64748b;
-  margin: 0 0 12px 0;
+  margin: 0;
   line-height: 1.4;
 }
 
-.role-permissions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+.empty-state {
+  text-align: center;
+  padding: 48px 24px;
 }
 
-.permission-chip {
-  font-size: 0.75rem !important;
+.empty-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #374151;
+  margin-top: 16px;
 }
 
-.more-permissions {
-  color: #64748b !important;
+.empty-text {
+  font-size: 0.875rem;
+  color: #64748b;
+  margin-top: 8px;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
- 
-  .input-row {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  
   .roles-grid {
     grid-template-columns: 1fr;
-  }
-
-}
-
-@media (max-width: 640px) {
-  
-  .role-item {
-    padding: 12px;
-  }
-  
-  .role-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
-  }
-  
-  .permission-chip {
-    font-size: 0.7rem !important;
   }
 }
 </style>
