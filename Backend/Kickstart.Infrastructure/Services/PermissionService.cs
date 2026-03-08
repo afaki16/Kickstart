@@ -54,10 +54,11 @@ namespace Kickstart.Infrastructure.Services
         {
             var result = await GetUserPermissionsAsync(userId);
 
-            if (!result.IsSuccess)
-                return Result<bool>.Failure(result.Errors.ToArray());
-
-            return Result<bool>.Success(result.Value.Contains(permission, StringComparer.OrdinalIgnoreCase));
+            return result.Match(
+                onSuccess: permissions => Result<bool>.Success(
+                    permissions.Contains(permission, StringComparer.OrdinalIgnoreCase)),
+                onFailure: errors => Result<bool>.Failure(errors.ToArray())
+            );
         }
 
         public void ClearUserPermissionCache(int userId)
