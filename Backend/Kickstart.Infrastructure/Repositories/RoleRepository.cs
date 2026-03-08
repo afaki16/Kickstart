@@ -24,6 +24,12 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
         return await _context.Set<Role>().FirstOrDefaultAsync(r => r.Name == name);
     }
 
+    public async Task<int> GetByIdWithNameAsync(string name)
+    {
+        var role = await _context.Set<Role>().FirstOrDefaultAsync(r => r.Name == name);
+        return role?.Id ?? 0;
+    }
+
     public async Task<Role> GetRoleWithPermissionsAsync(int roleId)
     {
         return await _context.Set<Role>()
@@ -35,6 +41,15 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
     public async Task<IEnumerable<Role>> GetAllWithPermissionsAsync()
     {
         return await _context.Set<Role>()
+            .Include(r => r.RolePermissions)
+            .ThenInclude(rp => rp.Permission)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Role>> GetNonSystemRolesWithPermissionsAsync()
+    {
+        return await _context.Set<Role>()
+            .Where(r => !r.IsSystemRole)
             .Include(r => r.RolePermissions)
             .ThenInclude(rp => rp.Permission)
             .ToListAsync();
