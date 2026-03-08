@@ -1,8 +1,0 @@
-namespace {{PROJECT_NAME}}.Application.Features.Auth.Dtos
-{
-    public class RevokeSessionRequestDto
-    {
-        public string RefreshToken { get; set; } = string.Empty;
-        public string Reason { get; set; } = string.Empty;
-    }
-} 
