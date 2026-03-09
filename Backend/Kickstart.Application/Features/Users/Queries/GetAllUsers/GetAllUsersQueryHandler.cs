@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Kickstart.Application.Features.Users.Queries.GetAllUsers
 {
-    public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, Result<IEnumerable<UserListDto>>>
+    public class GetAllUsersQueryHandler : IRequestHandler<GetAllUsersQuery, PagedResult<UserListDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -26,11 +26,13 @@ namespace Kickstart.Application.Features.Users.Queries.GetAllUsers
             _mapper = mapper;
         }
 
-        public async Task<Result<IEnumerable<UserListDto>>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<UserListDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
             var users = await _unitOfWork.Users.GetUsersWithRolesAsync(request.Page, request.PageSize, request.SearchTerm);
-            var userDtos = _mapper.Map<IEnumerable<Application.Features.Users.Dtos.UserListDto>>(users);
-             return Result<IEnumerable<UserListDto>>.Success(userDtos);
-    }
+            var totalCount = await _unitOfWork.Users.GetUsersWithRolesCountAsync(request.SearchTerm);
+            var userDtos = _mapper.Map<IEnumerable<UserListDto>>(users);
+            var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
+            return PagedResult<UserListDto>.Success(userDtos, request.Page, totalPages, totalCount);
+        }
     }
 } 

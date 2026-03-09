@@ -8,7 +8,7 @@ using System.Collections.Generic;
 
 namespace Kickstart.Application.Features.Users.Queries.GetAllUsers
 {
-    public class GetAllUsersQuery : IRequest<Result<IEnumerable<UserListDto>>>
+    public class GetAllUsersQuery : IRequest<PagedResult<UserListDto>>
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;

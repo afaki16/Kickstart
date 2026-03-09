@@ -84,4 +84,20 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
             .Take(pageSize)
             .ToListAsync();
     }
+
+    public async Task<int> GetUsersWithRolesCountAsync(string searchTerm = null)
+    {
+        var query = _context.Set<User>().AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var searchTermLower = searchTerm.ToLower();
+            query = query.Where(u =>
+                u.FirstName.ToLower().Contains(searchTermLower) ||
+                u.LastName.ToLower().Contains(searchTermLower) ||
+                u.Email.ToLower().Contains(searchTermLower));
+        }
+
+        return await query.CountAsync();
+    }
 }

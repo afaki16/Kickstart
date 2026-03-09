@@ -24,13 +24,18 @@
       :show-edit-button="true"
       :show-delete-button="true"
       :show-pagination="true"
-      :items-per-page="10"
+      :items-per-page="pageSize"
+      :server-side-pagination="true"
+      :server-total-count="totalCount"
+      :server-current-page="currentPage"
       use-view-modal
       @add="openCreateDialog"
       @view="openViewDialog"
       @edit="openEditDialog"
       @delete="openDeleteDialog"
       @search="handleSearch"
+      @page-change="handlePageChange"
+      @page-size-change="handlePageSizeChange"
       @refresh="refreshData"
     >
     <!-- For FullName -->
@@ -129,32 +134,32 @@ useHead({
 
 //#region DataTable Columns
 const tableColumns = [
-  { 
-    label: 'Ad Soyad', 
+  {
+    label: 'Ad Soyad',
     key: 'fullName',
     sortable: true,
     filterable: true,
     filterType: 'text',
     width: '300px'
   },
-  { 
-    label: 'E-posta', 
+  {
+    label: 'E-posta',
     key: 'email',
     sortable: true,
     filterable: true,
     filterType: 'text',
     width: '300px'
   },
-  { 
-    label: 'Durum', 
+  {
+    label: 'Durum',
     key: 'status',
     sortable: true,
     filterable: true,
     filterType: 'select',
     width: '300px'
   },
-  { 
-    label: 'Son Giriş Tarihi', 
+  {
+    label: 'Son Giriş Tarihi',
     key: 'lastLoginDate',
     sortable: true,
     filterable: false,
@@ -168,6 +173,13 @@ const tableColumns = [
 const { getUsers, createUser, updateUser, deleteUser } = useUsers()
 const { getRoles } = useRoles()
 
+// SSR: İlk sayfa verisi sunucuda yüklenir
+const { data: usersData } = await useAsyncData(
+  'users-initial',
+  () => getUsers(1, 10, ''),
+  { server: true }
+)
+
 const {
   items,
   isLoading,
@@ -176,6 +188,9 @@ const {
   selectedItem,
   itemToDelete,
   isEditMode,
+  currentPage,
+  pageSize,
+  totalCount,
   openCreateDialog,
   openViewDialog,
   openEditDialog,
@@ -186,6 +201,8 @@ const {
   handleSubmit,
   confirmDelete,
   handleSearch,
+  handlePageChange,
+  handlePageSizeChange,
   refreshData,
   loadItemsData
 } = useCrudOperations({
@@ -193,7 +210,10 @@ const {
   createItem: createUser,
   updateItem: updateUser,
   deleteItem: deleteUser,
-  itemName: 'kullanıcı'
+  itemName: 'kullanıcı',
+  serverSidePagination: true,
+  initialPageSize: 10,
+  initialData: usersData
 })
 
 //#endregion
@@ -219,7 +239,11 @@ const handleEditFromDetail = (user) => {
 
 //#region Lifecycle
 onMounted(async () => {
-  await Promise.all([loadItemsData(), loadRoles()])
+  await loadRoles()
+  // SSR verisi yoksa (client-side navigation) ilk yükleme
+  if (!usersData.value) {
+    await loadItemsData(1, 10, '')
+  }
 })
 //#endregion
 </script>

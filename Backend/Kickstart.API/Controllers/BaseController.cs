@@ -29,6 +29,26 @@ public abstract class BaseController : ControllerBase
         return BadRequest(new { success = false, error = result.Error });
     }
 
+    protected IActionResult HandlePagedResult<T>(PagedResult<T> result)
+    {
+        if (result.IsSuccess)
+        {
+            return Ok(new
+            {
+                success = true,
+                data = new
+                {
+                    items = result.Items,
+                    totalCount = result.TotalItems,
+                    totalPages = result.TotalPages,
+                    pageNumber = result.PageNumber
+                }
+            });
+        }
+
+        return BadRequest(new { success = false, error = result.Error });
+    }
+
     protected string GetIpAddress()
     {
         return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";

@@ -72,7 +72,7 @@ export const getPaginatedEndpoint = (baseEndpoint: string, page: number = 1, pag
   })
   
   if (search) {
-    params.append('search', search)
+    params.append('searchTerm', search)
   }
   
   return `${baseEndpoint}?${params.toString()}`

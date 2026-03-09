@@ -8,8 +8,8 @@ export const useUsers = () => {
   const getUsers = async (page = 1, pageSize = 10, searchTerm = '') => {
     try {
       const endpoint = getPaginatedEndpoint(API_ENDPOINTS.USERS.LIST, page, pageSize, searchTerm)
-      const response = await api.get<User[]>(endpoint)
-      return response.data || []
+      const response = await api.get<{ items: User[]; totalCount: number; totalPages: number; pageNumber: number }>(endpoint)
+      return response
     } catch (error) {
       console.error('Get users error:', error)
       throw error

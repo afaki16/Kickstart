@@ -47,7 +47,7 @@ namespace Kickstart.API.Controllers
             };
 
             var result = await _mediator.Send(query);
-            return HandleResult(result);
+            return HandlePagedResult(result);
         }
 
         /// <summary>

@@ -198,7 +198,7 @@
       </div>
 
       <!-- Empty State -->
-      <div v-else-if="filteredItems.length === 0" class="empty-state">
+      <div v-else-if="(props.serverSidePagination ? props.items.length : filteredItems.length) === 0" class="empty-state">
         <div class="empty-icon">
           <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -354,13 +354,13 @@
                 <option :value="50">50</option>
                 <option :value="100">100</option>
               </select>
-              <span class="total-count">{{ (currentPage - 1) * itemsPerPageLocal + 1 }}-{{ Math.min(currentPage * itemsPerPageLocal, totalItems) }} / {{ totalItems }}</span>
+              <span class="total-count">{{ (effectiveCurrentPage - 1) * itemsPerPageLocal + 1 }}-{{ Math.min(effectiveCurrentPage * itemsPerPageLocal, totalItems) }} / {{ totalItems }}</span>
             </div>
           </div>
           <div class="pagination-controls">
             <button
               @click="goToPage(1)"
-              :disabled="currentPage === 1"
+              :disabled="effectiveCurrentPage === 1"
               class="pagination-button"
               title="İlk sayfa"
             >
@@ -370,8 +370,8 @@
             </button>
             
             <button
-              @click="goToPage(currentPage - 1)"
-              :disabled="currentPage === 1"
+              @click="goToPage(effectiveCurrentPage - 1)"
+              :disabled="effectiveCurrentPage === 1"
               class="pagination-button"
               title="Önceki sayfa"
             >
@@ -385,14 +385,14 @@
               :key="page"
               @click="goToPage(page)"
               class="pagination-button page-button"
-              :class="{ 'active': page === currentPage }"
+              :class="{ 'active': page === effectiveCurrentPage }"
             >
               {{ page }}
             </button>
             
             <button
-              @click="goToPage(currentPage + 1)"
-              :disabled="currentPage === totalPages"
+              @click="goToPage(effectiveCurrentPage + 1)"
+              :disabled="effectiveCurrentPage === totalPages"
               class="pagination-button"
               title="Sonraki sayfa"
             >
@@ -403,7 +403,7 @@
             
             <button
               @click="goToPage(totalPages)"
-              :disabled="currentPage === totalPages"
+              :disabled="effectiveCurrentPage === totalPages"
               class="pagination-button"
               title="Son sayfa"
             >
@@ -509,11 +509,23 @@ const props = defineProps({
   itemsPerPage: {
     type: Number,
     default: 10
+  },
+  serverSidePagination: {
+    type: Boolean,
+    default: false
+  },
+  serverTotalCount: {
+    type: Number,
+    default: 0
+  },
+  serverCurrentPage: {
+    type: Number,
+    default: 1
   }
 })
 
 const emit = defineEmits([
-  'add', 'view', 'edit', 'delete', 'export', 'search', 'sort', 'row-click', 'filter', 'refresh', 'table-refresh', 'load-more'
+  'add', 'view', 'edit', 'delete', 'export', 'search', 'sort', 'row-click', 'filter', 'refresh', 'table-refresh', 'load-more', 'page-change', 'page-size-change'
 ])
 
 onMounted(() => {
@@ -662,10 +674,19 @@ const filteredItems = computed(() => {
   return filtered
 })
 
-const totalItems = computed(() => filteredItems.value.length)
+const totalItems = computed(() =>
+  props.serverSidePagination ? props.serverTotalCount : filteredItems.value.length
+)
 const totalPages = computed(() => Math.ceil(totalItems.value / itemsPerPageLocal.value))
 
+const effectiveCurrentPage = computed(() =>
+  props.serverSidePagination ? props.serverCurrentPage : currentPage.value
+)
+
 const paginatedItems = computed(() => {
+  if (props.serverSidePagination) {
+    return props.items
+  }
   const start = (currentPage.value - 1) * itemsPerPageLocal.value
   const end = start + itemsPerPageLocal.value
   return filteredItems.value.slice(start, end)
@@ -674,17 +695,18 @@ const paginatedItems = computed(() => {
 const visiblePages = computed(() => {
   const pages = []
   const maxVisible = 5
-  let start = Math.max(1, currentPage.value - Math.floor(maxVisible / 2))
+  const page = effectiveCurrentPage.value
+  let start = Math.max(1, page - Math.floor(maxVisible / 2))
   let end = Math.min(totalPages.value, start + maxVisible - 1)
-  
+
   if (end - start + 1 < maxVisible) {
     start = Math.max(1, end - maxVisible + 1)
   }
-  
+
   for (let i = start; i <= end; i++) {
     pages.push(i)
   }
-  
+
   return pages
 })
 
@@ -733,13 +755,26 @@ const debouncedApplyFilters = () => {
   }, 500)
 }
 
+let searchDebounceTimeout = null
 const handleSearch = () => {
-  currentPage.value = 1
+  if (props.serverSidePagination) {
+    if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)
+    searchDebounceTimeout = setTimeout(() => {
+      emit('search', searchQuery.value)
+    }, 400)
+  } else {
+    currentPage.value = 1
+  }
 }
 
 const clearSearch = () => {
   searchQuery.value = ''
-  handleSearch()
+  if (props.serverSidePagination) {
+    if (searchDebounceTimeout) clearTimeout(searchDebounceTimeout)
+    emit('search', '')
+  } else {
+    currentPage.value = 1
+  }
 }
 
 const handleRefresh = async () => {
@@ -857,12 +892,20 @@ const clearAllFilters = () => {
 
 const goToPage = (page) => {
   if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
+    if (props.serverSidePagination) {
+      emit('page-change', page)
+    } else {
+      currentPage.value = page
+    }
   }
 }
 
 const changeItemsPerPage = () => {
-  currentPage.value = 1
+  if (props.serverSidePagination) {
+    emit('page-size-change', itemsPerPageLocal.value)
+  } else {
+    currentPage.value = 1
+  }
 }
 
 const handleViewClick = (item) => {
