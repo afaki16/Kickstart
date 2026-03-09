@@ -421,10 +421,4 @@ onMounted(() => {
   margin-top: 16px;
 }
 
-.btn-gradient-primary {
-  background: var(--theme-gradient) !important;
-  color: white !important;
-  text-transform: none;
-  font-weight: 600;
-}
 </style>

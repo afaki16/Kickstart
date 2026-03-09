@@ -141,15 +141,14 @@
 }
 
 /* ========================================
-   FORM ACTIONS
+   FORM ACTIONS (DoctorForm / Theetify style)
    ======================================== */
 .form-actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 12px;
   padding: 16px 24px;
   margin: 0;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
   border-top: 1px solid #e2e8f0;
   z-index: 10;
 }
