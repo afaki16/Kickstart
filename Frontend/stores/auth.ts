@@ -43,9 +43,7 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async setAuth(authData: LoginResponse) {
-      console.log('setAuth called with:', authData)
-      
+    async setAuth(authData: LoginResponse, rememberMe = false) {
       this.user = authData.user
       this.accessToken = authData.accessToken
       this.refreshToken = authData.refreshToken
@@ -53,24 +51,28 @@ export const useAuthStore = defineStore('auth', {
       this.permissions = authData.user.permissions.map(p => p.fullPermission)
       this.roles = authData.user.roles.map(r => r.name)
 
-      console.log('Auth state after setAuth:', {
-        isAuthenticated: this.isAuthenticated,
-        hasAccessToken: !!this.accessToken,
-        hasRefreshToken: !!this.refreshToken,
-        user: this.user
-      })
+      // Cookie süreleri: expiresAt varsa kullan (API'den), yoksa rememberMe'ye göre
+      const accessTokenMaxAge = 60 * 60 * 2 // 2 saat (JWT süresine yakın)
+      let refreshTokenMaxAge: number
+      if (authData.expiresAt) {
+        const expiresMs = new Date(authData.expiresAt).getTime() - Date.now()
+        refreshTokenMaxAge = Math.max(60, Math.floor(expiresMs / 1000))
+      } else {
+        refreshTokenMaxAge = rememberMe
+          ? 60 * 60 * 24 * 30  // 30 gün (Remember Me)
+          : 60 * 60 * 24 * 7   // 7 gün (standart)
+      }
 
-      // Store tokens in cookies
       const accessTokenCookie = useCookie('access_token', {
         default: () => null,
-        maxAge: 60 * 60 * 24 * 7, // 7 days
+        maxAge: accessTokenMaxAge,
         secure: true,
         sameSite: 'strict'
       })
       
       const refreshTokenCookie = useCookie('refresh_token', {
         default: () => null,
-        maxAge: 60 * 60 * 24 * 30, // 30 days
+        maxAge: refreshTokenMaxAge,
         secure: true,
         sameSite: 'strict'
       })
@@ -81,13 +83,14 @@ export const useAuthStore = defineStore('auth', {
       // Store user data in localStorage for persistence
       if (process.client) {
         localStorage.setItem('user', JSON.stringify(authData.user))
+        localStorage.setItem('rememberMe', String(rememberMe))
       }
     },
 
     setUser(user: User) {
       this.user = user
-      this.permissions = user.permissions.map(p => p.fullPermission)
-      this.roles = user.roles.map(r => r.name)
+      this.permissions = user.permissions?.map(p => p.fullPermission) ?? []
+      this.roles = user.roles?.map(r => r.name) ?? []
 
       if (process.client) {
         localStorage.setItem('user', JSON.stringify(user))
@@ -111,6 +114,7 @@ export const useAuthStore = defineStore('auth', {
       // Clear localStorage
       if (process.client) {
         localStorage.removeItem('user')
+        localStorage.removeItem('rememberMe')
       }
     },
 
@@ -137,14 +141,33 @@ export const useAuthStore = defineStore('auth', {
             this.setUser(user)
           } catch (error) {
             console.error('Error parsing stored user:', error)
-            this.clearAuth()
+            await this.fetchUserFromApi()
           }
+        } else {
+          // User yoksa API'den al (sidebar permissions için gerekli)
+          await this.fetchUserFromApi()
         }
       } else {
         // No tokens found, ensure we're logged out
         this.isAuthenticated = false
         this.accessToken = null
         this.refreshToken = null
+      }
+    },
+
+    async fetchUserFromApi() {
+      const { $api } = useNuxtApp()
+      try {
+        const response = await $api.get('/api/auth/me')
+        const user = response.data?.data || response.data?.value || response.data
+        if (user) {
+          this.setUser(user)
+        } else {
+          this.clearAuth()
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error)
+        this.clearAuth()
       }
     }
   }

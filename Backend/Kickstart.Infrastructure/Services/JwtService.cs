@@ -32,7 +32,7 @@ namespace Kickstart.Infrastructure.Services
             _passwordService = passwordService;
         }
 
-    public async Task<Result<LoginResponseDto>> LoginAsync(string email, string password, string ipAddress, string userAgent, string deviceId = null, string deviceName = null)
+    public async Task<Result<LoginResponseDto>> LoginAsync(string email, string password, string ipAddress, string userAgent, string deviceId = null, string deviceName = null, bool rememberMe = false)
     {
         try
         {
@@ -61,7 +61,7 @@ namespace Kickstart.Infrastructure.Services
                     ErrorCode.InternalError,
                     "Failed to generate access token"));
 
-            var refreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent);
+            var refreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent, deviceId, deviceName, rememberMe);
             if (!refreshTokenResult.IsSuccess)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,
@@ -168,7 +168,7 @@ namespace Kickstart.Infrastructure.Services
              }
     }
 
-        public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(User user, string ipAddress, string userAgent, string deviceId = null, string deviceName = null)
+        public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(User user, string ipAddress, string userAgent, string deviceId = null, string deviceName = null, bool rememberMe = false, DateTime? preserveExpiryDate = null)
         {
             try
             {
@@ -176,6 +176,19 @@ namespace Kickstart.Infrastructure.Services
                 if (!string.IsNullOrEmpty(deviceId))
                 {
                     await _unitOfWork.RefreshTokens.RevokeTokensByDeviceAsync(user.Id, deviceId, ipAddress, userAgent, "New login from same device");
+                }
+
+                DateTime expiryDate;
+                if (preserveExpiryDate.HasValue)
+                {
+                    expiryDate = preserveExpiryDate.Value;
+                }
+                else
+                {
+                    var expiryDays = rememberMe
+                        ? int.Parse(_configuration["JwtSettings:RefreshTokenExpiryInDaysRememberMe"] ?? "30")
+                        : int.Parse(_configuration["JwtSettings:RefreshTokenExpiryInDays"] ?? "7");
+                    expiryDate = DateTime.UtcNow.AddDays(expiryDays);
                 }
 
                 var randomBytes = new byte[64];
@@ -186,7 +199,7 @@ namespace Kickstart.Infrastructure.Services
                 {
                     UserId = user.Id,
                     Token = Convert.ToBase64String(randomBytes),
-                    ExpiryDate = DateTime.UtcNow.AddDays(int.Parse(_configuration["JwtSettings:RefreshTokenExpiryInDays"])),
+                    ExpiryDate = expiryDate,
                     IpAddress = ipAddress,
                     UserAgent = userAgent,
                     DeviceId = deviceId,
@@ -275,7 +288,7 @@ namespace Kickstart.Infrastructure.Services
                     ErrorCode.InternalError,
                     "Failed to generate access token"));
 
-            var newRefreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent);
+            var newRefreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent, preserveExpiryDate: storedRefreshToken.ExpiryDate);
             if (!newRefreshTokenResult.IsSuccess)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,

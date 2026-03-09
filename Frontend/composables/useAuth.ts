@@ -79,7 +79,7 @@ export const useAuth = () => {
       }
       
       if (loginData && loginData.accessToken) {
-        await authStore.setAuth(loginData)
+        await authStore.setAuth(loginData, credentials.rememberMe ?? false)
         await router.push('/dashboard')
         return loginData
       } else {
@@ -127,25 +127,35 @@ export const useAuth = () => {
   const refreshToken = async () => {
     try {
       const accessToken = authStore.accessToken
-      const refreshToken = authStore.refreshToken
+      const refreshTokenVal = authStore.refreshToken
       
-      if (!refreshToken || !accessToken) {
+      if (!refreshTokenVal || !accessToken) {
         throw new Error('No tokens available')
       }
 
       const response = await api.post<LoginResponse>(API_ENDPOINTS.AUTH.REFRESH_TOKEN, {
         accessToken,
-        refreshToken
+        refreshToken: refreshTokenVal
       })
 
-      if (response.success && response.data) {
-        await authStore.setAuth(response.data)
-        return response.data
+      // Farklı response formatlarını destekle (login ile aynı)
+      const loginData = response.success && response.data
+        ? response.data
+        : response.value
+        ? response.value
+        : response.data?.accessToken
+        ? response.data
+        : null
+
+      if (loginData?.accessToken) {
+        await authStore.setAuth(loginData)
+        return loginData
       }
+
+      throw new Error('Invalid refresh response')
     } catch (error) {
       console.error('Token refresh error:', error)
       authStore.clearAuth()
-      await router.push('/?expired=true')
       throw error
     }
   }
