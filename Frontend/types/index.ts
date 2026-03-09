@@ -44,6 +44,13 @@ export type {
   UpdateRoleRequest
 } from './role'
 
+// Tenant Types
+export type {
+  Tenant,
+  CreateTenantRequest,
+  UpdateTenantRequest
+} from './tenant'
+
 // Permission Types
 export type { Permission } from './permission'
 export { PermissionType } from './permission'

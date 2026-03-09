@@ -25,6 +25,15 @@ export const API_ENDPOINTS = {
     UPLOAD_AVATAR: '/api/users/avatar'
   },
 
+  // Tenant management endpoints
+  TENANTS: {
+    LIST: '/api/tenants',
+    CREATE: '/api/tenants',
+    GET_BY_ID: (id: string) => `/api/tenants/${id}`,
+    UPDATE: (id: string) => `/api/tenants/${id}`,
+    DELETE: (id: string) => `/api/tenants/${id}`,
+  },
+
   // Role management endpoints
   ROLES: {
     LIST: '/api/roles',

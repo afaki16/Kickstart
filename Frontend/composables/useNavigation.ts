@@ -25,6 +25,12 @@
           permission: 'Users.Read'
         },
         {
+          title: 'Tenants',
+          icon: 'mdi-domain',
+          to: '/tenants',
+          permission: 'Tenants.Read'
+        },
+        {
           title: 'Roles',
           icon: 'mdi-shield-account',
           to: '/roles',

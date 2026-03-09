@@ -96,7 +96,7 @@ export default defineNuxtConfig({
       '~/components/Auth',
       '~/components/Users',
       '~/components/Roles',
-      '~/components/Dashboard'
+      '~/components/Tenants'
     ]
   }
 })
