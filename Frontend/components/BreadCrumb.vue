@@ -53,6 +53,6 @@ defineProps<{
 }
 
 .breadcrumb-link:hover {
-  color: #3b82f6 !important;
+  color: var(--theme-primary, #2563eb) !important;
 }
 </style> 

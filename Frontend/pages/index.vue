@@ -1,7 +1,7 @@
 <template>
   <SplashScreen v-if="showSplash" @complete="onSplashComplete" />
 
-  <div class="login-container" :style="{ background: themeGradients?.login || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }">
+  <div class="login-container" :style="{ background: 'var(--theme-gradient-sidebar)' }">
     <!-- 3D Background with rotating images -->
     <div class="background-container">
       <div 
@@ -171,12 +171,11 @@ const showPassword = ref(false)
 const currentImageIndex = ref(0)
 
 // App data
-const { loadAppData, appData, getBackgroundImages, getLoginConfig, getThemeGradients } = useAppData()
+const { loadAppData, appData, getBackgroundImages, getLoginConfig } = useAppData()
 
 // Background images from data.json
 const backgroundImages = computed(() => getBackgroundImages.value || [])
 const loginConfig = computed(() => getLoginConfig.value)
-const themeGradients = computed(() => getThemeGradients.value)
 
 const form = reactive<LoginRequest>({
   email: '',

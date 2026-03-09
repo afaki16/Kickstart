@@ -422,7 +422,7 @@ onMounted(() => {
 }
 
 .btn-gradient-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: var(--theme-gradient) !important;
   color: white !important;
   text-transform: none;
   font-weight: 600;

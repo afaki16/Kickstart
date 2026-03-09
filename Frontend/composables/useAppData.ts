@@ -1,4 +1,21 @@
-import { ref, computed, readonly } from 'vue'
+import { ref, computed, readonly, watch } from 'vue'
+
+function hexToRgb(hex: string): string {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  if (!result) return '0, 0, 0'
+  return `${parseInt(result[1], 16)}, ${parseInt(result[2], 16)}, ${parseInt(result[3], 16)}`
+}
+
+function parseGradientColors(gradient: string): { dark: string; main: string; light: string } {
+  const hexMatches = gradient.match(/#[a-fA-F0-9]{6}/g)
+  if (!hexMatches || hexMatches.length < 2) {
+    return { dark: '#4338ca', main: '#2563eb', light: '#3b82f6' }
+  }
+  if (hexMatches.length === 2) {
+    return { dark: hexMatches[0], main: hexMatches[1], light: hexMatches[1] }
+  }
+  return { dark: hexMatches[0], main: hexMatches[1], light: hexMatches[2] }
+}
 
 interface AppData {
   app: {
@@ -18,44 +35,12 @@ interface AppData {
   }
   theme: {
     colors: {
-      primary: {
-        main: string
-        light: string
-        dark: string
-        gradient: string
-      }
-      secondary: {
-        main: string
-        light: string
-        dark: string
-      }
-      accent: {
-        main: string
-        light: string
-        dark: string
-      }
+      primary: string
+      accent?: string
       success: string
       warning: string
       error: string
       info: string
-      background: {
-        light: string
-        dark: string
-      }
-      surface: {
-        light: string
-        dark: string
-      }
-      text: {
-        primary: string
-        secondary: string
-        disabled: string
-      }
-    }
-    gradients: {
-      navbar: string
-      login: string
-      button: string
     }
   }
   login: {
@@ -178,6 +163,40 @@ export const useAppData = () => {
     }
   }
 
+  const injectThemeCSSVariables = () => {
+    if (typeof document === 'undefined' || !appData.value) return
+
+    const colors = appData.value.theme?.colors
+    if (!colors) return
+
+    const root = document.documentElement
+    const p = parseGradientColors(colors.primary)
+
+    root.style.setProperty('--theme-primary', p.main)
+    root.style.setProperty('--theme-primary-light', p.light)
+    root.style.setProperty('--theme-primary-dark', p.dark)
+    root.style.setProperty('--theme-primary-rgb', hexToRgb(p.main))
+    root.style.setProperty('--theme-primary-dark-rgb', hexToRgb(p.dark))
+
+    root.style.setProperty('--theme-secondary', p.dark)
+    root.style.setProperty('--theme-secondary-light', p.main)
+    root.style.setProperty('--theme-secondary-dark', p.dark)
+    root.style.setProperty('--theme-secondary-rgb', hexToRgb(p.dark))
+
+    root.style.setProperty('--theme-gradient', `linear-gradient(135deg, ${p.dark} 0%, ${p.main} 100%)`)
+    root.style.setProperty('--theme-gradient-hover', `linear-gradient(135deg, ${p.dark} 0%, ${p.light} 100%)`)
+    root.style.setProperty('--theme-gradient-sidebar', colors.primary)
+    root.style.setProperty('--theme-gradient-text', `linear-gradient(135deg, #1f2937 0%, ${p.dark} 100%)`)
+
+    if (colors.accent) {
+      root.style.setProperty('--theme-accent', colors.accent)
+    }
+    root.style.setProperty('--theme-success', colors.success)
+    root.style.setProperty('--theme-warning', colors.warning)
+    root.style.setProperty('--theme-error', colors.error)
+    root.style.setProperty('--theme-info', colors.info)
+  }
+
   const getAppInfo = computed(() => appData.value?.app || null)
   const getTheme = computed(() => appData.value?.theme || null)
   const getLoginConfig = computed(() => appData.value?.login || null)
@@ -189,7 +208,10 @@ export const useAppData = () => {
   const getBrandText = computed(() => appData.value?.app.brand.text || 'Kickstart')
   const getBackgroundImages = computed(() => appData.value?.login.backgroundImages || appData.value?.register.backgroundImages || [])
   const getThemeColors = computed(() => appData.value?.theme.colors || null)
-  const getThemeGradients = computed(() => appData.value?.theme.gradients || null)
+
+  watch(appData, () => {
+    injectThemeCSSVariables()
+  }, { immediate: true })
 
   return {
     appData: readonly(appData),
@@ -205,7 +227,6 @@ export const useAppData = () => {
     getLogo,
     getBrandText,
     getBackgroundImages,
-    getThemeColors,
-    getThemeGradients
+    getThemeColors
   }
 }

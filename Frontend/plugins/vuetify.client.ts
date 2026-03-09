@@ -3,13 +3,23 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 import { mdi } from 'vuetify/iconsets/mdi'
 
+function extractColorsFromGradient(gradient: string): { dark: string; main: string; light: string } {
+  const hexMatches = gradient.match(/#[a-fA-F0-9]{6}/g)
+  if (!hexMatches || hexMatches.length < 2) {
+    return { dark: '#4338ca', main: '#2563eb', light: '#3b82f6' }
+  }
+  if (hexMatches.length === 2) {
+    return { dark: hexMatches[0], main: hexMatches[1], light: hexMatches[1] }
+  }
+  return { dark: hexMatches[0], main: hexMatches[1], light: hexMatches[2] }
+}
+
 export default defineNuxtPlugin(async (nuxtApp) => {
-  // Load app data for theme colors
   let themeColors = {
     light: {
       colors: {
-        primary: '#1976D2',
-        secondary: '#424242',
+        primary: '#2563eb',
+        secondary: '#4338ca',
         accent: '#82B1FF',
         error: '#FF5252',
         info: '#2196F3',
@@ -21,9 +31,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     },
     dark: {
       colors: {
-        primary: '#2196F3',
-        secondary: '#616161',
-        accent: '#FF4081',
+        primary: '#3b82f6',
+        secondary: '#4338ca',
+        accent: '#82B1FF',
         error: '#FF5252',
         info: '#2196F3',
         success: '#4CAF50',
@@ -34,38 +44,41 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
   }
 
-  // Try to load theme colors from data.json
   try {
     const response = await fetch('/data.json')
     if (response.ok) {
       const appData = await response.json()
       const colors = appData.theme?.colors
       if (colors) {
+        const p = typeof colors.primary === 'string' && colors.primary.includes('gradient')
+          ? extractColorsFromGradient(colors.primary)
+          : { dark: '#4338ca', main: '#2563eb', light: '#3b82f6' }
+
         themeColors = {
           light: {
             colors: {
-              primary: colors.primary?.main || '#1976D2',
-              secondary: colors.secondary?.main || '#424242',
-              accent: colors.accent?.main || '#82B1FF',
+              primary: p.main,
+              secondary: p.dark,
+              accent: colors.accent || '#82B1FF',
               error: colors.error || '#FF5252',
               info: colors.info || '#2196F3',
               success: colors.success || '#4CAF50',
               warning: colors.warning || '#FB8C00',
-              background: colors.background?.light || '#FAFAFA',
-              surface: colors.surface?.light || '#FFFFFF'
+              background: '#FAFAFA',
+              surface: '#FFFFFF'
             }
           },
           dark: {
             colors: {
-              primary: colors.primary?.dark || '#2196F3',
-              secondary: colors.secondary?.dark || '#616161',
-              accent: colors.accent?.dark || '#FF4081',
+              primary: p.light,
+              secondary: p.dark,
+              accent: colors.accent || '#82B1FF',
               error: colors.error || '#FF5252',
               info: colors.info || '#2196F3',
               success: colors.success || '#4CAF50',
               warning: colors.warning || '#FB8C00',
-              background: colors.background?.dark || '#121212',
-              surface: colors.surface?.dark || '#1E1E1E'
+              background: '#121212',
+              surface: '#1E1E1E'
             }
           }
         }

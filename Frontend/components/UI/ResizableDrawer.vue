@@ -243,7 +243,7 @@ onUnmounted(() => {
 }
 
 .resize-handle:active .dot {
-  background: #667eea;
+  background: var(--theme-primary, #2563eb);
 }
 
 .drawer-header {

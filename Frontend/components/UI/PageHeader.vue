@@ -68,11 +68,11 @@ const iconClass = computed(() => {
 }
 
 .header-icon-default {
-  background: linear-gradient(135deg, #667eea 0%, #ffff 100%);
+  background: var(--theme-gradient, linear-gradient(135deg, #4338ca 0%, #2563eb 100%));
 }
 
 .header-icon-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: var(--theme-gradient, linear-gradient(135deg, #4338ca 0%, #2563eb 100%));
 }
 
 .header-icon-success {

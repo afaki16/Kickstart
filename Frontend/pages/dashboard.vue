@@ -359,8 +359,8 @@ const initRevenueChart = () => {
       datasets: [{
         label: 'Gelir (₺)',
         data: [12500, 19800, 15200, 21300, 18900, 25400, 22100],
-        borderColor: 'rgb(102, 126, 234)',
-        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#2563eb',
+        backgroundColor: `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--theme-primary-rgb').trim() || '37, 99, 235'}, 0.1)`,
         tension: 0.4,
         fill: true
       }]
@@ -462,7 +462,7 @@ useHead({
 }
 
 .stat-card-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
 }
 
 .stat-card-success {
@@ -566,7 +566,7 @@ useHead({
 .appointment-item:hover {
   background: #e9ecef;
   transform: translateX(4px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+  box-shadow: 0 4px 12px rgba(var(--theme-primary-rgb, 37, 99, 235), 0.15);
 }
 
 .appointment-actions {
@@ -580,7 +580,7 @@ useHead({
   gap: 8px;
   min-width: 80px;
   font-weight: 600;
-  color: #667eea;
+  color: var(--theme-primary, #2563eb);
 }
 
 .appointment-details {
@@ -616,12 +616,12 @@ useHead({
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(102, 126, 234, 0.3);
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), 0.3);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(102, 126, 234, 0.5);
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), 0.5);
 }
 
 @media (max-width: 960px) {
@@ -663,7 +663,7 @@ useHead({
   background: #f8f9fa;
   padding: 12px;
   border-radius: 8px;
-  border-left: 4px solid #667eea;
+  border-left: 4px solid var(--theme-primary, #2563eb);
 }
 
 .detail-status {
@@ -675,7 +675,7 @@ useHead({
 }
 
 :deep(.v-dialog .v-card-title) {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   color: white !important;
   font-weight: 600 !important;
 }

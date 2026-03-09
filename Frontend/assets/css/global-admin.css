@@ -36,15 +36,15 @@
 }
 
 .tab-item:hover:not(:disabled) {
-  color: #667eea;
-  border-bottom-color: #667eea;
+  color: var(--theme-primary, #2563eb);
+  border-bottom-color: var(--theme-primary, #2563eb);
   transform: translateY(-2px);
 }
 
 .tab-item.active {
   color: #f8f7f7;
-  border-bottom-color: #4f46e5;
-  background: #4f46e5;
+  border-bottom-color: var(--theme-primary-dark, #4338ca);
+  background: var(--theme-primary-dark, #4338ca);
   font-weight: 600;
 }
 
@@ -124,7 +124,7 @@
 }
 
 .form-card-title-icon {
-  color: #3b82f6;
+  color: var(--theme-primary, #2563eb);
 }
 
 .form-card-content {
@@ -237,9 +237,9 @@
 }
 
 .selection-item--selected {
-  border-color: #3b82f6;
+  border-color: var(--theme-primary, #2563eb);
   background: #f0f7ff;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 4px 12px rgba(var(--theme-primary-rgb, 37, 99, 235), 0.1);
 }
 
 .selection-item-checkbox {
@@ -444,7 +444,7 @@
 
 .btn-submit {
   min-width: 120px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  background: var(--theme-gradient) !important;
 }
 
 .btn-danger {

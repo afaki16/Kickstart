@@ -441,9 +441,9 @@ watchEffect(() => {
 }
 
 .role-item.selected {
-  border-color: #3b82f6;
+  border-color: var(--theme-primary, #2563eb);
   background: #f0f7ff;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 4px 12px rgba(var(--theme-primary-rgb, 37, 99, 235), 0.1);
 }
 
 .role-checkbox {

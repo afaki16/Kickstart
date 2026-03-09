@@ -1,5 +1,5 @@
 <template>
-  <div class="register-container" :style="{ background: themeGradients?.register || 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }">
+  <div class="register-container" :style="{ background: 'var(--theme-gradient-sidebar)' }">
     <!-- 3D Background with rotating images -->
     <div class="background-container">
       <div 
@@ -118,12 +118,11 @@ const acceptTerms = ref(false)
 const currentImageIndex = ref(0)
 
 // App data
-const { loadAppData, getBackgroundImages, getRegisterConfig, getThemeGradients } = useAppData()
+const { loadAppData, getBackgroundImages, getRegisterConfig } = useAppData()
 
 // Background images from data.json
 const backgroundImages = computed(() => getBackgroundImages.value || [])
 const registerConfig = computed(() => getRegisterConfig.value)
-const themeGradients = computed(() => getThemeGradients.value)
 
 // Methods
 const handleRegister = async (formData: RegisterRequest) => {

@@ -252,7 +252,7 @@ nav::-webkit-scrollbar-thumb:hover {
 .sidebar-avatar {
   width: 36px;
   height: 36px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -280,7 +280,7 @@ nav::-webkit-scrollbar-thumb:hover {
 /* Dropdown Header */
 .dropdown-header {
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--theme-gradient);
   color: white;
   border-radius: 16px 16px 0 0;
   display: flex;
@@ -358,7 +358,7 @@ nav::-webkit-scrollbar-thumb:hover {
 }
 
 .dropdown-item:hover {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+  background: linear-gradient(135deg, rgba(var(--theme-primary-dark-rgb), 0.05) 0%, rgba(var(--theme-primary-rgb), 0.05) 100%);
   transform: translateX(2px);
 }
 
@@ -373,12 +373,12 @@ nav::-webkit-scrollbar-thumb:hover {
 }
 
 .profile-icon {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: var(--theme-gradient);
   color: white;
 }
 
 .settings-icon {
-  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  background: linear-gradient(135deg, var(--theme-secondary-light) 0%, var(--theme-secondary) 100%);
   color: white;
 }
 

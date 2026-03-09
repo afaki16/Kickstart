@@ -131,7 +131,7 @@ const confirmColor = computed(() => {
 }
 
 .confirm-header--info::before {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: var(--theme-gradient);
 }
 
 .confirm-header--warning::before {
@@ -174,12 +174,12 @@ const confirmColor = computed(() => {
 }
 
 .icon-container--info {
-  background: rgba(59, 130, 246, 0.1);
-  border: 2px solid rgba(59, 130, 246, 0.2);
+  background: rgba(var(--theme-primary-rgb, 37, 99, 235), 0.1);
+  border: 2px solid rgba(var(--theme-primary-rgb, 37, 99, 235), 0.2);
 }
 
 .icon-container--info::before {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  background: var(--theme-gradient);
 }
 
 .icon-container--warning {
@@ -215,7 +215,7 @@ const confirmColor = computed(() => {
 }
 
 .icon-container--info .confirm-icon {
-  color: #3b82f6;
+  color: var(--theme-primary, #2563eb);
 }
 
 .icon-container--warning .confirm-icon {
@@ -291,7 +291,7 @@ const confirmColor = computed(() => {
 }
 
 .confirm-btn--info {
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%) !important;
+  background: var(--theme-gradient) !important;
 }
 
 .confirm-btn--warning {
