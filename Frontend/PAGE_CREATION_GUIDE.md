@@ -1,6 +1,6 @@
-# Theetify Frontend - Yeni Sayfa Oluşturma Rehberi
+# Kickstart Frontend - Yeni Sayfa Oluşturma Rehberi
 
-Bu rehber, Theetify Frontend projesinde yeni bir CRUD sayfa oluşturmak için izlenmesi gereken adımları detaylı şekilde açıklar. Doktorlar ve Hastalar sayfaları referans alınmıştır.
+Bu rehber, Kickstart Frontend projesinde yeni bir CRUD sayfa oluşturmak için izlenmesi gereken adımları detaylı şekilde açıklar. Users, Roles ve Tenants sayfaları referans alınmıştır.
 
 ---
 
@@ -16,8 +16,8 @@ Frontend/
 ├── types/              → TypeScript tip tanımları
 ├── utils/              → Yardımcı fonksiyonlar ve API endpoint tanımları
 ├── middleware/          → Auth ve permission middleware'leri
-├── layouts/            → Sayfa layout'ları (default, topbar)
-└── plugins/            → Axios, Vuetify, Toast gibi plugin'ler
+├── layouts/            → Sayfa layout'ları (default)
+└── plugins/            → Axios, Vuetify, VeeValidate gibi plugin'ler
 ```
 
 ---
@@ -104,8 +104,6 @@ import { useApi } from './useApi'
 
 export const useServices = () => {
   const api = useApi()
-  const { $api } = useNuxtApp()
-  const { success, errorShow, warning, info } = useToast()
 
   //#region GET - Listeleme
   const getServices = async (page = 1, pageSize = 1000, searchTerm = '') => {
@@ -184,7 +182,7 @@ export const useServices = () => {
 }
 ```
 
-> **Not:** Eğer FormData (resim yükleme vs.) gerekiyorsa, `createPatient` fonksiyonundaki gibi `$api.post()` ile `multipart/form-data` header'ı kullanın.
+> **Not:** Eğer FormData (resim yükleme vs.) gerekiyorsa, `useNuxtApp().$api.post()` ile `multipart/form-data` header'ı kullanın.
 
 ---
 
@@ -661,7 +659,6 @@ Sayfa template'ini aşağıdaki sırada yapılandırın:
 | `BreadCrumb` | Breadcrumb navigasyon | `~/components/BreadCrumb.vue` |
 | `ResizableDrawer` | Yan panel (form açma) | `~/components/UI/ResizableDrawer.vue` |
 | `ConfirmDialog` | Silme onay dialogu | `~/components/UI/ConfirmDialog.vue` |
-| `UiDatePicker` | Tarih seçici | `~/components/UI/DatePicker.vue` |
 
 ---
 
@@ -671,10 +668,8 @@ Sayfa template'ini aşağıdaki sırada yapılandırın:
 |-----------|----------|
 | `useCrudOperations()` | CRUD işlemleri + dialog yönetimi (en önemli) |
 | `useDialogManager()` | Dialog aç/kapa durumlarını yönetir (useCrudOperations içinde otomatik) |
-| `useApi()` | HTTP istekleri (get, post, put, delete, patch) |
-| `useToast()` | Bildirim mesajları (success, errorShow, warning, info) |
+| `useApi()` | HTTP istekleri (get, post, put, delete) |
 | `useValidators()` | Form doğrulama kuralları |
-| `useLocation()` | Ülke/Şehir/İlçe verileri (adres formu varsa) |
 
 ---
 
@@ -715,7 +710,7 @@ useCrudOperations({
 })
 ```
 
-**Server-Side Pagination:** Backend `page`, `pageSize`, `searchTerm` parametreleriyle `{ items, totalCount, totalPages, pageNumber }` formatında yanıt dönmeli. Users ve Roles sayfaları örnek alınabilir. Kullanımda:
+**Server-Side Pagination:** Backend `page`, `pageSize`, `searchTerm` parametreleriyle `{ items, totalCount, totalPages, pageNumber }` formatında yanıt dönmeli. `pages/users/index.vue` ve `pages/roles/index.vue` örnek alınabilir. Kullanımda:
 - `getPaginatedEndpoint()` ile URL oluştur (search parametresi `searchTerm` olarak gönderilir)
 - BaseDataTable'a `server-side-pagination`, `server-total-count`, `server-current-page` prop'ları ve `@page-change`, `@page-size-change` event'leri eklenmeli
 
@@ -793,10 +788,10 @@ definePageMeta({
 
 | İkon | Kullanım |
 |------|---------|
-| `mdi-doctor` | Doktor |
-| `mdi-account-heart` | Hasta |
-| `mdi-calendar-clock` | Randevu |
-| `mdi-hospital-building` | Klinik |
+| `mdi-account-multiple` | Kullanıcılar |
+| `mdi-shield-account` | Roller |
+| `mdi-domain` | Tenantlar |
+| `mdi-key` | İzinler |
 | `mdi-room-service` | Hizmet |
 | `mdi-medical-bag` | Tedavi |
 | `mdi-tooth-outline` | Diş |
@@ -826,6 +821,7 @@ const createServiceWithImage = async (serviceData: CreateServiceRequest) => {
       formData.append('ProfileImage', serviceData.image)
     }
 
+    const { $api } = useNuxtApp()
     const response = await $api.post(API_ENDPOINTS.SERVICES.CREATE, formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     })

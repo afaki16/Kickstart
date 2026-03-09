@@ -1,12 +1,12 @@
 # API Integration with Swagger API
 
-Bu proje artık `https://localhost:44346/swagger/index.html` adresindeki Swagger API ile entegre edilmiştir.
+Bu proje Swagger API ile entegre edilmiştir. Swagger UI adresi: `{API_BASE_URL}/swagger/index.html` (varsayılan: `https://localhost:44333/swagger/index.html`).
 
 ## Yapılan Değişiklikler
 
 ### 1. API Base URL Güncellendi
 - **Önceki**: `https://localhost:7001/api/v1`
-- **Yeni**: `https://localhost:44346`
+- **Varsayılan**: `https://localhost:44333` (`.env` ile `API_BASE_URL` üzerinden değiştirilebilir)
 
 ### 2. API Endpoints Yapılandırması
 Yeni `utils/apiEndpoints.ts` dosyası oluşturuldu ve tüm API endpoint'leri merkezi olarak yönetiliyor:
@@ -46,12 +46,12 @@ Aşağıdaki composable'lar yeni API endpoint'lerini kullanacak şekilde güncel
 
 ## Kullanım
 
-### 1. API Test Sayfası
-API entegrasyonunu test etmek için `/api-test` sayfasını kullanabilirsiniz:
+### 1. API Test
+API entegrasyonunu test etmek için Swagger UI kullanabilirsiniz:
 
 ```bash
-npm run dev
-# Tarayıcıda http://localhost:3000/api-test adresine gidin
+# Backend API'nin çalıştığından emin olun
+# Tarayıcıda https://localhost:44333/swagger/index.html adresine gidin
 ```
 
 ### 2. Environment Variables
@@ -178,10 +178,9 @@ app.UseCors(builder => builder
 
 API entegrasyonunu test etmek için:
 
-1. Swagger API'nizin çalıştığından emin olun
+1. Backend API'nizin çalıştığından emin olun
 2. Uygulamayı başlatın: `npm run dev`
-3. `/api-test` sayfasına gidin
-4. "Test Connection" butonuna tıklayın
-5. Test sonuçlarını kontrol edin
+3. Swagger UI üzerinden endpoint'leri test edin: `https://localhost:44333/swagger/index.html`
+4. Login sayfasından giriş yaparak uygulama akışını test edin
 
-Başarılı bir test sonucunda tüm endpoint'lerin erişilebilir olduğunu göreceksiniz. 
+API Base URL `nuxt.config.ts` içindeki `runtimeConfig.public.apiBase` veya `.env` dosyasındaki `API_BASE_URL` ile yapılandırılır (varsayılan: `https://localhost:44333`). 
