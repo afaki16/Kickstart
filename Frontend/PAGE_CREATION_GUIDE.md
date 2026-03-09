@@ -707,9 +707,17 @@ useCrudOperations({
   updateItem: updateService,     // Güncelleme fonksiyonu
   deleteItem: deleteService,     // Silme fonksiyonu
   loadByIdItem: getServiceById,  // ID ile getirme fonksiyonu
-  itemName: 'Hizmet'             // Toast mesajlarında kullanılacak isim
+  itemName: 'Hizmet',            // Toast mesajlarında kullanılacak isim
+  // Server-side pagination için:
+  serverSidePagination: true,    // Backend'den sayfalı veri çek
+  initialPageSize: 10,           // Varsayılan sayfa boyutu
+  initialData: asyncData         // SSR için useAsyncData sonucu
 })
 ```
+
+**Server-Side Pagination:** Backend `page`, `pageSize`, `searchTerm` parametreleriyle `{ items, totalCount, totalPages, pageNumber }` formatında yanıt dönmeli. Users ve Roles sayfaları örnek alınabilir. Kullanımda:
+- `getPaginatedEndpoint()` ile URL oluştur (search parametresi `searchTerm` olarak gönderilir)
+- BaseDataTable'a `server-side-pagination`, `server-total-count`, `server-current-page` prop'ları ve `@page-change`, `@page-size-change` event'leri eklenmeli
 
 **Döndürdüğü değerler:**
 
@@ -730,9 +738,12 @@ useCrudOperations({
 | `closeDeleteDialog()` | `Function` | Silme dialogu kapat |
 | `handleSubmit(data)` | `Function` | Create/Update işlemi |
 | `confirmDelete()` | `Function` | Silme onayı |
-| `handleSearch()` | `Function` | Arama tetikle |
+| `handleSearch(term)` | `Function` | Arama tetikle (server-side'da term parametresi) |
+| `handlePageChange(page)` | `Function` | Sayfa değiştir (server-side) |
+| `handlePageSizeChange(size)` | `Function` | Sayfa boyutu değiştir (server-side) |
 | `loadItemsData()` | `Function` | Verileri yükle |
 | `refreshData()` | `Function` | Verileri yenile |
+| `currentPage`, `pageSize`, `totalCount`, `totalPages` | `Ref` | Pagination state (server-side) |
 
 ---
 

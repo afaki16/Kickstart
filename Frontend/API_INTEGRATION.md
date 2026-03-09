@@ -77,8 +77,8 @@ const user = await api.get(API_ENDPOINTS.USERS.GET_BY_ID('user-id'))
 const newUser = await api.post(API_ENDPOINTS.USERS.CREATE, userData)
 ```
 
-### 4. Pagination Desteği
-Sayfalama için yardımcı fonksiyon:
+### 4. Pagination Desteği (Server-Side)
+Sayfalama için yardımcı fonksiyon. Backend `page`, `pageSize` ve `searchTerm` query parametrelerini bekler:
 
 ```typescript
 import { getPaginatedEndpoint } from '~/utils/apiEndpoints'
@@ -89,8 +89,11 @@ const endpoint = getPaginatedEndpoint(
   pageSize, 
   searchTerm
 )
-const users = await api.get(endpoint)
+const response = await api.get(endpoint)
+// Response: { success: true, data: { items, totalCount, totalPages, pageNumber } }
 ```
+
+**Önemli:** Backend `searchTerm` parametresini bekler (query string'de `searchTerm` olarak gönderilir).
 
 ## Swagger API Uyumluluğu
 
@@ -104,6 +107,19 @@ interface ApiResponse<T> {
   message?: string
   error?: string
   errors?: string[]
+}
+```
+
+**Paginated Listeler için (Users, Roles vb.):**
+```typescript
+interface PaginatedResponse<T> {
+  success: boolean
+  data: {
+    items: T[]
+    totalCount: number
+    totalPages: number
+    pageNumber: number
+  }
 }
 ```
 

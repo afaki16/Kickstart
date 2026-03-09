@@ -1,14 +1,15 @@
 import type { Role, CreateRoleRequest, UpdateRoleRequest } from '~/types'
-import { API_ENDPOINTS } from '~/utils/apiEndpoints'
+import { API_ENDPOINTS, getPaginatedEndpoint } from '~/utils/apiEndpoints'
 import { useApi } from './useApi'
 
 export const useRoles = () => {
   const api = useApi()
 
-  const getRoles = async () => {
+  const getRoles = async (page = 1, pageSize = 10, searchTerm = '') => {
     try {
-      const response = await api.get<Role[]>(API_ENDPOINTS.ROLES.LIST)
-      return response.data || []
+      const endpoint = getPaginatedEndpoint(API_ENDPOINTS.ROLES.LIST, page, pageSize, searchTerm)
+      const response = await api.get<{ items: Role[]; totalCount: number; totalPages: number; pageNumber: number }>(endpoint)
+      return response
     } catch (error) {
       console.error('Get roles error:', error)
       throw error

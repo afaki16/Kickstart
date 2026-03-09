@@ -46,6 +46,42 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Role>> GetRolesWithPermissionsPagedAsync(int page, int pageSize, string searchTerm = null)
+    {
+        var query = _context.Set<Role>()
+            .Include(r => r.RolePermissions)
+            .ThenInclude(rp => rp.Permission)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var searchTermLower = searchTerm.ToLower();
+            query = query.Where(r =>
+                (r.Name != null && r.Name.ToLower().Contains(searchTermLower)) ||
+                (r.Description != null && r.Description.ToLower().Contains(searchTermLower)));
+        }
+
+        return await query
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+    }
+
+    public async Task<int> GetRolesWithPermissionsCountAsync(string searchTerm = null)
+    {
+        var query = _context.Set<Role>().AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var searchTermLower = searchTerm.ToLower();
+            query = query.Where(r =>
+                (r.Name != null && r.Name.ToLower().Contains(searchTermLower)) ||
+                (r.Description != null && r.Description.ToLower().Contains(searchTermLower)));
+        }
+
+        return await query.CountAsync();
+    }
+
     public async Task<IEnumerable<Role>> GetNonSystemRolesWithPermissionsAsync()
     {
         return await _context.Set<Role>()

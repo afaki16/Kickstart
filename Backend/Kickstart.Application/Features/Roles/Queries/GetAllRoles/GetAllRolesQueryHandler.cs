@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Kickstart.Application.Features.Roles.Queries.GetAllRoles
 {
-    public class GetAllRolesQueryHandler : IRequestHandler<GetAllRolesQuery, Result<IEnumerable<RoleDto>>>
+    public class GetAllRolesQueryHandler : IRequestHandler<GetAllRolesQuery, PagedResult<RoleDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -29,23 +29,21 @@ namespace Kickstart.Application.Features.Roles.Queries.GetAllRoles
             _logger = logger;
         }
 
-        public async Task<Result<IEnumerable<RoleDto>>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<RoleDto>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
         {
             try
             {
-                _logger.LogInformation("Getting all roles with permissions...");
-                
-                // RoleRepository'deki özel metodu kullan
-                var roles = await _unitOfWork.Roles.GetAllWithPermissionsAsync();
-                
-                _logger.LogInformation($"Found {roles.Count()} roles");
-                
-                var roleDtos = _mapper.Map<IEnumerable<RoleDto>>(roles);
-                
-                _logger.LogInformation($"Mapped {roleDtos.Count()} role DTOs");
+                _logger.LogInformation("Getting roles with permissions (paged)...");
 
-                return Result<IEnumerable<RoleDto>>.Success(roleDtos);
-        }
+                var roles = await _unitOfWork.Roles.GetRolesWithPermissionsPagedAsync(request.Page, request.PageSize, request.SearchTerm);
+                var totalCount = await _unitOfWork.Roles.GetRolesWithPermissionsCountAsync(request.SearchTerm);
+                var roleDtos = _mapper.Map<IEnumerable<RoleDto>>(roles);
+                var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
+
+                _logger.LogInformation($"Found {roles.Count()} roles, total: {totalCount}");
+
+                return PagedResult<RoleDto>.Success(roleDtos, request.Page, totalPages, totalCount);
+            }
             catch (System.Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while getting all roles");

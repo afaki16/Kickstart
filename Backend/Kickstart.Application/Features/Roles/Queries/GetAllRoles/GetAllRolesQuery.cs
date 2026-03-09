@@ -8,7 +8,10 @@ using System.Collections.Generic;
 
 namespace Kickstart.Application.Features.Roles.Queries.GetAllRoles
 {
-    public class GetAllRolesQuery : IRequest<Result<IEnumerable<RoleDto>>>
+    public class GetAllRolesQuery : IRequest<PagedResult<RoleDto>>
     {
+        public int Page { get; set; } = 1;
+        public int PageSize { get; set; } = 10;
+        public string SearchTerm { get; set; }
     }
 } 

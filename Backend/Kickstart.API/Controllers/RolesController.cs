@@ -25,19 +25,27 @@ namespace Kickstart.API.Controllers
         }
 
         /// <summary>
-        /// Get all roles
+        /// Get all roles with pagination
         /// </summary>
-        /// <returns>List of roles</returns>
+        /// <param name="page">Page number (default: 1)</param>
+        /// <param name="pageSize">Page size (default: 10)</param>
+        /// <param name="searchTerm">Search term for filtering</param>
+        /// <returns>Paginated list of roles</returns>
         [HttpGet]
         [Authorize(Policy = "roles.read")]
         [ProducesResponseType(typeof(IEnumerable<RoleDto>), 200)]
         [ProducesResponseType(401)]
         [ProducesResponseType(403)]
-        public async Task<IActionResult> GetAllRoles()
+        public async Task<IActionResult> GetAllRoles([FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string searchTerm = null)
         {
-            var query = new GetAllRolesQuery();
+            var query = new GetAllRolesQuery
+            {
+                Page = page,
+                PageSize = pageSize,
+                SearchTerm = searchTerm
+            };
             var result = await _mediator.Send(query);
-            return HandleResult(result);
+            return HandlePagedResult(result);
         }
 
         /// <summary>

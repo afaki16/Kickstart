@@ -223,8 +223,8 @@ const roles = ref([])
 
 const loadRoles = async () => {
   try {
-    const response = await getRoles()
-    roles.value = response || []
+    const response = await getRoles(1, 1000, '')
+    roles.value = response?.data?.items || []
   } catch (error) {
     console.error('Error loading roles:', error)
     roles.value = []

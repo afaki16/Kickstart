@@ -25,13 +25,18 @@
       :show-edit-button="true"
       :show-delete-button="true"
       :show-pagination="true"
-      :items-per-page="10"
+      :items-per-page="pageSize"
+      :server-side-pagination="true"
+      :server-total-count="totalCount"
+      :server-current-page="currentPage"
       use-view-modal
       @add="openCreateDialog"
       @view="openViewDialog"
       @edit="openEditDialog"
       @delete="openDeleteDialog"
       @search="handleSearch"
+      @page-change="handlePageChange"
+      @page-size-change="handlePageSizeChange"
       @refresh="refreshData"
     >
        <!-- For RoleName -->
@@ -111,24 +116,24 @@ useHead({
 
 //#region DataTable Columns
 const tableColumns = [
-  { 
-    label: 'Rol Adı', 
-    key: 'name', 
+  {
+    label: 'Rol Adı',
+    key: 'name',
     sortable: true,
-    filterable: true, 
+    filterable: true,
     filterType: 'text',
     width: '300px',
   },
-  { 
-    label: 'Rol Tipi', 
+  {
+    label: 'Rol Tipi',
     key: 'isSystemRole',
     sortable: true,
     filterable: false,
     filterType: 'select',
     width: '300px'
   },
-   { 
-    label: 'Rol Açıklaması', 
+  {
+    label: 'Rol Açıklaması',
     key: 'description',
     sortable: true,
     filterable: false,
@@ -141,6 +146,13 @@ const tableColumns = [
 const { getRoles, createRole, updateRole, deleteRole } = useRoles()
 const { getPermissions } = usePermissions()
 
+// SSR: İlk sayfa verisi sunucuda yüklenir
+const { data: rolesData } = await useAsyncData(
+  'roles-initial',
+  () => getRoles(1, 10, ''),
+  { server: true }
+)
+
 const {
   items,
   isLoading,
@@ -149,6 +161,9 @@ const {
   selectedItem,
   itemToDelete,
   isEditMode,
+  currentPage,
+  pageSize,
+  totalCount,
   openCreateDialog,
   openViewDialog,
   openEditDialog,
@@ -158,6 +173,8 @@ const {
   handleSubmit,
   confirmDelete,
   handleSearch,
+  handlePageChange,
+  handlePageSizeChange,
   refreshData,
   loadItemsData
 } = useCrudOperations({
@@ -165,7 +182,10 @@ const {
   createItem: createRole,
   updateItem: updateRole,
   deleteItem: deleteRole,
-  itemName: 'rol'
+  itemName: 'rol',
+  serverSidePagination: true,
+  initialPageSize: 10,
+  initialData: rolesData
 })
 
 //#endregion
@@ -186,7 +206,10 @@ const loadPermissions = async () => {
 
 //#region Lifecycle
 onMounted(async () => {
-  await Promise.all([loadItemsData(), loadPermissions()])
+  await loadPermissions()
+  if (!rolesData.value) {
+    await loadItemsData(1, 10, '')
+  }
 })
 //#endregion
 </script>
