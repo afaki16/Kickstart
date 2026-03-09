@@ -1,11 +1,7 @@
-// Colors (synced with data.json theme.colors)
-$primary: #2563eb;
-$secondary: #4338ca;
-$accent: #82B1FF;
-$error: #FF5252;
-$info: #2196F3;
-$success: #4CAF50;
-$warning: #FB8C00;
+// Typography
+$font-family-base: 'Inter', sans-serif;
+$font-size-base: 1rem;
+$line-height-base: 1.5;
 
 // Spacing
 $spacer: 1rem;
@@ -17,26 +13,3 @@ $spacers: (
   4: $spacer * 1.5,
   5: $spacer * 3
 );
-
-// Typography
-$font-family-base: 'Inter', sans-serif;
-$font-size-base: 1rem;
-$line-height-base: 1.5;
-
-// Breakpoints
-$grid-breakpoints: (
-  xs: 0,
-  sm: 600px,
-  md: 960px,
-  lg: 1264px,
-  xl: 1904px
-);
-
-// Z-index
-$zindex-dropdown: 1000;
-$zindex-sticky: 1020;
-$zindex-fixed: 1030;
-$zindex-modal-backdrop: 1040;
-$zindex-modal: 1050;
-$zindex-popover: 1060;
-$zindex-tooltip: 1070; 

@@ -51,52 +51,30 @@ gibi öğeleri kolayca özelleştirebilirsiniz.
 {
   "theme": {
     "colors": {
-      "primary": {
-        "main": "#667eea",
-        "light": "#8b9df0",
-        "dark": "#4c63d2",
-        "gradient": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
-      },
-      "secondary": {
-        "main": "#764ba2",
-        "light": "#9b6bc4",
-        "dark": "#5a3b7a"
-      },
-      "accent": {
-        "main": "#82B1FF",
-        "light": "#a8c8ff",
-        "dark": "#5c8aff"
-      },
+      "primary": "linear-gradient(180deg, #4338ca 0%, #2563eb 50%, #3b82f6 100%)",
+      "accent": "#82B1FF",
       "success": "#4CAF50",
       "warning": "#FB8C00",
       "error": "#FF5252",
-      "info": "#2196F3",
-      "background": {
-        "light": "#FAFAFA",
-        "dark": "#121212"
-      },
-      "surface": {
-        "light": "#FFFFFF",
-        "dark": "#1E1E1E"
-      },
-      "text": {
-        "primary": "#333333",
-        "secondary": "#666666",
-        "disabled": "#999999"
-      }
-    },
-    "gradients": {
-      "navbar": "linear-gradient(135deg, #ffffff 0%, #2563eb 100%)",
-      "login": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
-      "button": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+      "info": "#2196F3"
     }
   }
 }
 ```
 
 **Açıklama:**
-- `colors`: Ana renk paleti (primary, secondary, accent, vb.)
-- `gradients`: Gradyan tanımları (navbar, login, button)
+- `primary`: Ana tema gradyanı — tek kaynak. Bu gradyandan otomatik olarak `dark`, `main`, `light` renkler türetilir ve tüm uygulamaya CSS değişkenleri olarak enjekte edilir.
+- Diğer renkler (`accent`, `success`, `warning`, `error`, `info`) doğrudan hex değerleridir.
+
+**Otomatik Türetilen CSS Değişkenleri:**
+- `--theme-primary`: Gradyandaki 2. renk (main)
+- `--theme-primary-light`: Gradyandaki 3. renk (light)
+- `--theme-primary-dark`: Gradyandaki 1. renk (dark)
+- `--theme-primary-rgb`: Main rengin RGB karşılığı
+- `--theme-gradient`: `linear-gradient(135deg, dark 0%, main 100%)`
+- `--theme-gradient-hover`: `linear-gradient(135deg, dark 0%, light 100%)`
+- `--theme-gradient-sidebar`: Orijinal primary gradyan string'i
+- `--theme-secondary`: Dark renkten türetilir (ayrıca tanımlamaya gerek yok)
 
 ### 3. Login Sayfası Konfigürasyonu
 
@@ -205,19 +183,19 @@ gibi öğeleri kolayca özelleştirebilirsiniz.
 
 ### 2. Tema Rengi Değiştirme
 
+Tek bir gradyan string'i ile tüm uygulama renklerini değiştirin:
+
 ```json
 {
   "theme": {
     "colors": {
-      "primary": {
-        "main": "#FF6B6B",
-        "light": "#FF8E8E",
-        "dark": "#E55555"
-      }
+      "primary": "linear-gradient(180deg, #E55555 0%, #FF6B6B 50%, #FF8E8E 100%)"
     }
   }
 }
 ```
+
+Gradyandaki renkler sırasıyla `dark`, `main`, `light` olarak kullanılır.
 
 ### 3. Login Arka Plan Fotoğrafları Ekleme
 
@@ -267,8 +245,20 @@ await loadAppData()
 
 // Verilere erişim
 const appName = getAppInfo.value?.name
-const primaryColor = getTheme.value?.colors.primary.main
+const primaryGradient = getTheme.value?.colors.primary  // gradient string
 const backgroundImages = getLoginConfig.value?.backgroundImages
+```
+
+### CSS Değişkenlerini Kullanma
+
+Tema renkleri otomatik olarak CSS değişkenleri olarak enjekte edilir. Herhangi bir CSS/SCSS dosyasında veya Vue bileşeninde doğrudan kullanabilirsiniz:
+
+```css
+.my-element {
+  color: var(--theme-primary);
+  background: var(--theme-gradient);
+  border: 1px solid rgba(var(--theme-primary-rgb), 0.2);
+}
 ```
 
 ### Otomatik Yükleme
