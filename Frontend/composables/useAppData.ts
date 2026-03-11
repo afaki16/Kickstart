@@ -1,4 +1,5 @@
 import { ref, computed, readonly, watch } from 'vue'
+import { useTenant } from './useTenant'
 
 function hexToRgb(hex: string): string {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -18,6 +19,11 @@ function parseGradientColors(gradient: string): { dark: string; main: string; li
 }
 
 interface AppData {
+  tenant?: {
+    layout?: string
+    loginPage?: string
+    registerPage?: string
+  }
   app: {
     name: string
     version: string
@@ -136,23 +142,44 @@ interface AppData {
   }
 }
 
-export const useAppData = () => {
-  const appData = ref<AppData | null>(null)
-  const isLoading = ref(false)
-  const error = ref<string | null>(null)
+const appData = ref<AppData | null>(null)
+const isLoading = ref(false)
+const error = ref<string | null>(null)
 
-  const loadAppData = async () => {
-    if (appData.value) return appData.value
+export const useAppData = () => {
+
+  /**
+   * Tenant'a göre app data yükler.
+   * ?tenant=acme veya acme.uygulama.com → /data/acme.json
+   * Tenant yoksa veya dosya bulunamazsa → /data.json
+   */
+  const loadAppData = async (forceReload = false) => {
+    const { resolveTenantId } = useTenant()
+    const tenantId = resolveTenantId()
+    const dataPath = tenantId ? `/data/${tenantId}.json` : '/data.json'
+
+    const cachedTenant = (appData.value as AppData & { _tenantId?: string })?._tenantId
+    if (appData.value && !forceReload && cachedTenant === tenantId) {
+      return appData.value
+    }
 
     isLoading.value = true
     error.value = null
 
     try {
-      const response = await fetch('/data.json')
+      let response = await fetch(dataPath)
+
+      if (!response.ok && tenantId) {
+        response = await fetch('/data.json')
+      }
+
       if (!response.ok) {
         throw new Error('Failed to load app data')
       }
-      appData.value = await response.json()
+
+      const data = (await response.json()) as AppData & { _tenantId?: string }
+      if (tenantId) data._tenantId = tenantId
+      appData.value = data
       return appData.value
     } catch (err) {
       error.value = err instanceof Error ? err.message : 'Unknown error'
