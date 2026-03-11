@@ -73,6 +73,7 @@ namespace Kickstart.API.Controllers
                 Password = request.Password,
                 ConfirmPassword = request.ConfirmPassword,
                 PhoneNumber = request.PhoneNumber,
+                TenantDomain = request.TenantDomain,
                 IpAddress = GetIpAddress(),
                 UserAgent = GetUserAgent()
             };

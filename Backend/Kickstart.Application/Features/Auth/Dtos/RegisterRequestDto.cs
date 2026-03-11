@@ -8,5 +8,6 @@ namespace Kickstart.Application.Features.Auth.Dtos
         public string Password { get; set; }
         public string ConfirmPassword { get; set; }
         public string PhoneNumber { get; set; }
+        public string TenantDomain { get; set; }
     }
 } 

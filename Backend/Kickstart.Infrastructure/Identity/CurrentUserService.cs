@@ -26,6 +26,15 @@ namespace Kickstart.Infrastructure.Identity
             }
         }
 
+        public int? TenantId
+        {
+            get
+            {
+                var tenantIdClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("tenant_id")?.Value;
+                return int.TryParse(tenantIdClaim, out var tenantId) ? tenantId : null;
+            }
+        }
+
         public string Email => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Email)?.Value;
 
         public string FullName => _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Name)?.Value;

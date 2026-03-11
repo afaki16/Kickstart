@@ -27,8 +27,10 @@ namespace Kickstart.Infrastructure.Repositories
 
     public async Task<Tenant> GetByDomainAsync(string domain)
     {
+        if (string.IsNullOrWhiteSpace(domain)) return null;
+        var domainLower = domain.Trim().ToLower();
         return await _context.Set<Tenant>()
-            .FirstOrDefaultAsync(t => t.Domain == domain);
+            .FirstOrDefaultAsync(t => t.Domain != null && t.Domain.ToLower() == domainLower);
     }
 
     public async Task<Tenant> GetTenantWithUsersAsync(int tenantId)

@@ -156,7 +156,7 @@ export const useAppData = () => {
   const loadAppData = async (forceReload = false) => {
     const { resolveTenantId } = useTenant()
     const tenantId = resolveTenantId()
-    const dataPath = tenantId ? `/data/${tenantId}.json` : '/data.json'
+    const dataPath = tenantId && tenantId !== 'default' ? `/data/${tenantId}.json` : '/data.json'
 
     const cachedTenant = (appData.value as AppData & { _tenantId?: string })?._tenantId
     if (appData.value && !forceReload && cachedTenant === tenantId) {

@@ -25,6 +25,7 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
     public async Task<User> GetUserWithRolesAsync(int userId)
     {
         return await _context.Set<User>()
+            .Include(u => u.Tenant)
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Id == userId);
@@ -33,6 +34,7 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
     public async Task<User> GetUserWithPermissionsAsync(int userId)
     {
         return await _context.Set<User>()
+            .Include(u => u.Tenant)
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
             .ThenInclude(r => r.RolePermissions)

@@ -13,6 +13,7 @@ export interface RegisterRequest {
   password: string
   confirmPassword: string
   phoneNumber?: string
+  tenantDomain?: string
 }
 
 export interface LoginResponse {

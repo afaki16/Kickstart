@@ -20,6 +20,8 @@ namespace Kickstart.Application.Features.Users.Dtos
         public bool PhoneConfirmed { get; set; }
         public string ProfileImageUrl { get; set; }
         public DateTime CreatedDate { get; set; }
+        public int? TenantId { get; set; }
+        public string TenantDomain { get; set; }
         public List<RoleDto> Roles { get; set; } = new List<RoleDto>();
         public List<PermissionDto> Permissions { get; set; } = new List<PermissionDto>();
     }

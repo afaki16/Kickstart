@@ -54,6 +54,14 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
             ErrorCode.AlreadyExists,
             $"{passwordResult.Error}"));
 
+            int? tenantId = null;
+            if (!string.IsNullOrWhiteSpace(request.TenantDomain))
+            {
+                var tenant = await _unitOfWork.Tenants.GetByDomainAsync(request.TenantDomain.Trim().ToLower());
+                if (tenant != null)
+                    tenantId = tenant.Id;
+            }
+
         // Create user
         var user = new User
             {
@@ -63,7 +71,8 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
                 PasswordHash = passwordResult.Value,
                 PhoneNumber = request.PhoneNumber,
                 Status = UserStatus.Active,
-                EmailConfirmed = false
+                EmailConfirmed = false,
+                TenantId = tenantId
             };
 
             // Assign default User role

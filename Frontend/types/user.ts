@@ -11,6 +11,8 @@ export interface User {
   phoneConfirmed: boolean
   profileImageUrl?: string
   createdDate: string
+  tenantId?: number
+  tenantDomain?: string
   roles: any[]
   permissions: any[]
 }

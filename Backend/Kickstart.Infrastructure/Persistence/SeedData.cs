@@ -220,7 +220,18 @@ namespace Kickstart.Infrastructure.Persistence
             CreatedDate = DateTime.UtcNow
         };
 
-        await context.Tenants.AddRangeAsync(defaultTenant, demoTenant);
+        var acmeTenant = new Tenant
+        {
+            Name = "Acme Corp",
+            Description = "Acme tenant - acme.uygulama.com",
+            Domain = "acme",
+            IsActive = true,
+            ContactEmail = "admin@acme.com",
+            ContactPhone = "+905551112233",
+            CreatedDate = DateTime.UtcNow
+        };
+
+        await context.Tenants.AddRangeAsync(defaultTenant, demoTenant, acmeTenant);
         await context.SaveChangesAsync();
     }
 

@@ -89,6 +89,8 @@ namespace Kickstart.Infrastructure.Services
                     PhoneConfirmed = user.PhoneConfirmed,
                     ProfileImageUrl = user.ProfileImageUrl,
                     CreatedDate = user.CreatedDate,
+                    TenantId = user.TenantId,
+                    TenantDomain = user.Tenant?.Domain,
                     Roles = user.UserRoles.Select(ur => new Application.Features.Roles.Dtos.RoleDto
                     {
                         Id = ur.Role.Id,
@@ -138,6 +140,11 @@ namespace Kickstart.Infrastructure.Services
                     new Claim("lastName", user.LastName),
                     new Claim("status", user.Status.ToString())
                 };
+
+                if (user.TenantId.HasValue)
+                {
+                    claims.Add(new Claim("tenant_id", user.TenantId.Value.ToString()));
+                }
 
                 // Add role claims
                 var roles = userWithPermissions.UserRoles.Select(ur => ur.Role).ToList();
@@ -311,7 +318,9 @@ namespace Kickstart.Infrastructure.Services
                     EmailConfirmed = user.EmailConfirmed,
                     PhoneConfirmed = user.PhoneConfirmed,
                     ProfileImageUrl = user.ProfileImageUrl,
-                    CreatedDate = user.CreatedDate
+                    CreatedDate = user.CreatedDate,
+                    TenantId = user.TenantId,
+                    TenantDomain = user.Tenant?.Domain
                 }
             };
 
