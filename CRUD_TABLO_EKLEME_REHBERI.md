@@ -2,6 +2,10 @@
 
 Bu rehber, projeye yeni bir CRUD işlemli tablo eklemek için izlenmesi gereken adımları detaylı olarak açıklar.
 
+## 📌 Kullanım Amacı
+
+**Bu dosyayı AI'ya verip "buna benzer oluştur" veya "Product gibi bir X sayfası ekle" dediğinde**, AI bu rehberdeki adımları takip ederek yeni sayfayı oluşturacaktır. Yeni bir CRUD sayfası eklemek istediğinde bu rehberi referans olarak kullan.
+
 ## Proje Yapısı
 
 Proje **Clean Architecture** ve **CQRS Pattern** (MediatR) kullanmaktadır. Katmanlar:
@@ -21,13 +25,13 @@ Proje **Clean Architecture** ve **CQRS Pattern** (MediatR) kullanmaktadır. Katm
 
 ## 1️⃣ DOMAIN KATMANI - Entity Oluşturma
 
-**Dosya:** `MemberShip.Domain/Entities/Product.cs`
+**Dosya:** `Kickstart.Domain/Entities/Product.cs` (veya proje adına göre)
 
 ```csharp
-using MemberShip.Domain.Common;
+using Kickstart.Domain.Common;
 using System;
 
-namespace MemberShip.Domain.Entities
+namespace Kickstart.Domain.Entities
 {
     public class Product : BaseAuditableEntity
     {
@@ -53,17 +57,21 @@ namespace MemberShip.Domain.Entities
 
 ## 2️⃣ DOMAIN KATMANI - Repository Interface
 
-**Dosya:** `MemberShip.Domain/Common/Interfaces/Repositories/IProductRepository.cs`
+**Dosya:** `Kickstart.Domain/Common/Interfaces/Repositories/IProductRepository.cs`
 
 ```csharp
-using MemberShip.Domain.Entities;
+using Kickstart.Domain.Entities;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace MemberShip.Application.Interfaces
+namespace Kickstart.Domain.Common.Interfaces.Repositories
 {
     public interface IProductRepository : IRepository<Product, int>
     {
-        // Özel metodlar buraya eklenir (opsiyonel)
+        // Paged list için gerekli metodlar
+        Task<IEnumerable<Product>> GetProductsPagedAsync(int page, int pageSize, string searchTerm = null);
+        Task<int> GetProductsCountAsync(string searchTerm = null);
+        // Özel metodlar (opsiyonel)
         Task<Product> GetByNameAsync(string name);
         Task<bool> NameExistsAsync(string name);
     }
@@ -72,16 +80,40 @@ namespace MemberShip.Application.Interfaces
 
 ---
 
-## 3️⃣ INFRASTRUCTURE KATMANI - Entity Configuration
+## 2️⃣b DOMAIN KATMANI - Permission Tanımlama
 
-**Dosya:** `MemberShip.Infrastructure/Persistence/EntityConfigurations/ProductConfiguration.cs`
+**ÖNEMLİ:** Yeni sayfa için yetkilendirme (authorization) çalışsın diye Permission sabitlerini eklemelisin.
+
+**Dosya:** `Kickstart.Domain/Constants/Permissions.cs`
 
 ```csharp
-using MemberShip.Domain.Entities;
+// Products permissions (yeni resource için ekle)
+public static class Products
+{
+    public const string Read = "Products.Read";
+    public const string Create = "Products.Create";
+    public const string Update = "Products.Update";
+    public const string Delete = "Products.Delete";
+}
+```
+
+**Notlar:**
+- `AddResourcePermissionPolicies` otomatik olarak `GetAllPermissions()` ile tüm permission'ları alır → `products.read`, `products.create` vb. policy'ler otomatik oluşur
+- `SeedData.SeedPermissionsAsync` uygulama başlarken çalışır → Yeni permission'lar veritabanına otomatik eklenir
+- **İsteğe bağlı:** `readwrite` veya `fullaccess` policy kullanacaksan, `Kickstart.API/Extensions/ServiceCollectionExtensions.cs` içindeki `AddCombinedPermissionPolicies` metodunda `readWriteResources` ve `fullAccessResources` dizilerine yeni resource adını ekle (örn: `"Products"`)
+
+---
+
+## 3️⃣ INFRASTRUCTURE KATMANI - Entity Configuration
+
+**Dosya:** `Kickstart.Infrastructure/Persistence/EntityConfigurations/ProductConfiguration.cs`
+
+```csharp
+using Kickstart.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace MemberShip.Infrastructure.Data.Configurations
+namespace Kickstart.Infrastructure.Persistence.EntityConfigurations
 {
     public class ProductConfiguration : IEntityTypeConfiguration<Product>
     {
@@ -121,7 +153,6 @@ namespace MemberShip.Infrastructure.Data.Configurations
                 .HasDefaultValue(false);
         }
     }
-    }
 }
 ```
 
@@ -131,16 +162,19 @@ namespace MemberShip.Infrastructure.Data.Configurations
 
 ## 4️⃣ INFRASTRUCTURE KATMANI - Repository Implementasyonu
 
-**Dosya:** `MemberShip.Infrastructure/Repositories/ProductRepository.cs`
+**Dosya:** `Kickstart.Infrastructure/Repositories/ProductRepository.cs`
 
 ```csharp
-using MemberShip.Application.Interfaces;
-using MemberShip.Domain.Entities;
-using MemberShip.Infrastructure.Data;
+using Kickstart.Domain.Common.Interfaces.Repositories;
+using Kickstart.Domain.Entities;
+using Kickstart.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
-namespace MemberShip.Infrastructure.Repositories
+namespace Kickstart.Infrastructure.Repositories
 {
     public class ProductRepository : RepositoryBase<Product, int>, IProductRepository
     {
@@ -149,6 +183,39 @@ namespace MemberShip.Infrastructure.Repositories
         public ProductRepository(ApplicationDbContext context) : base(context)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+        }
+
+        public async Task<IEnumerable<Product>> GetProductsPagedAsync(int page, int pageSize, string searchTerm = null)
+        {
+            var query = _context.Set<Product>().AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var searchTermLower = searchTerm.ToLower();
+                query = query.Where(p =>
+                    p.Name.ToLower().Contains(searchTermLower) ||
+                    (p.Description != null && p.Description.ToLower().Contains(searchTermLower)));
+            }
+
+            return await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+        }
+
+        public async Task<int> GetProductsCountAsync(string searchTerm = null)
+        {
+            var query = _context.Set<Product>().AsQueryable();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                var searchTermLower = searchTerm.ToLower();
+                query = query.Where(p =>
+                    p.Name.ToLower().Contains(searchTermLower) ||
+                    (p.Description != null && p.Description.ToLower().Contains(searchTermLower)));
+            }
+
+            return await query.CountAsync();
         }
 
         public async Task<Product> GetByNameAsync(string name)
@@ -170,7 +237,7 @@ namespace MemberShip.Infrastructure.Repositories
 
 ## 5️⃣ INFRASTRUCTURE KATMANI - DbContext'e Ekleme
 
-**Dosya:** `MemberShip.Infrastructure/Persistence/ApplicationDbContext.cs`
+**Dosya:** `Kickstart.Infrastructure/Persistence/ApplicationDbContext.cs`
 
 ```csharp
 // DbSet'leri ekleyin
@@ -181,14 +248,14 @@ public DbSet<Product> Products { get; set; }
 
 ## 6️⃣ INFRASTRUCTURE KATMANI - UnitOfWork'e Ekleme
 
-**Dosya:** `MemberShip.Domain/Common/Interfaces/IUnitOfWork.cs`
+**Dosya:** `Kickstart.Domain/Common/Interfaces/IUnitOfWork.cs`
 
 ```csharp
 // Property ekleyin
 IProductRepository Products { get; }
 ```
 
-**Dosya:** `MemberShip.Infrastructure/Persistence/UnitOfWork.cs`
+**Dosya:** `Kickstart.Infrastructure/Persistence/UnitOfWork.cs`
 
 ```csharp
 // Lazy field ekleyin
@@ -206,12 +273,12 @@ public IProductRepository Products => _products.Value;
 ## 7️⃣ APPLICATION KATMANI - DTOs
 
 ### ProductDto.cs
-**Dosya:** `MemberShip.Application/Features/Products/Dtos/ProductDto.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Dtos/ProductDto.cs`
 
 ```csharp
 using System;
 
-namespace MemberShip.Application.Features.Products.Dtos
+namespace Kickstart.Application.Features.Products.Dtos
 {
     public class ProductDto
     {
@@ -227,10 +294,10 @@ namespace MemberShip.Application.Features.Products.Dtos
 ```
 
 ### ProductListDto.cs
-**Dosya:** `MemberShip.Application/Features/Products/Dtos/ProductListDto.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Dtos/ProductListDto.cs`
 
 ```csharp
-namespace MemberShip.Application.Features.Products.Dtos
+namespace Kickstart.Application.Features.Products.Dtos
 {
     public class ProductListDto
     {
@@ -244,10 +311,10 @@ namespace MemberShip.Application.Features.Products.Dtos
 ```
 
 ### CreateProductDto.cs
-**Dosya:** `MemberShip.Application/Features/Products/Dtos/CreateProductDto.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Dtos/CreateProductDto.cs`
 
 ```csharp
-namespace MemberShip.Application.Features.Products.Dtos
+namespace Kickstart.Application.Features.Products.Dtos
 {
     public class CreateProductDto
     {
@@ -261,10 +328,10 @@ namespace MemberShip.Application.Features.Products.Dtos
 ```
 
 ### UpdateProductDto.cs
-**Dosya:** `MemberShip.Application/Features/Products/Dtos/UpdateProductDto.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Dtos/UpdateProductDto.cs`
 
 ```csharp
-namespace MemberShip.Application.Features.Products.Dtos
+namespace Kickstart.Application.Features.Products.Dtos
 {
     public class UpdateProductDto
     {
@@ -282,14 +349,14 @@ namespace MemberShip.Application.Features.Products.Dtos
 ## 8️⃣ APPLICATION KATMANI - Commands
 
 ### CreateProductCommand
-**Dosya:** `MemberShip.Application/Features/Products/Commands/CreateProduct/CreateProductCommand.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Commands/CreateProduct/CreateProductCommand.cs`
 
 ```csharp
-using MemberShip.Application.Common.Results;
-using MemberShip.Application.Features.Products.Dtos;
+using Kickstart.Application.Common.Results;
+using Kickstart.Application.Features.Products.Dtos;
 using MediatR;
 
-namespace MemberShip.Application.Features.Products.Commands
+namespace Kickstart.Application.Features.Products.Commands
 {
     public class CreateProductCommand : IRequest<Result<ProductListDto>>
     {
@@ -302,21 +369,21 @@ namespace MemberShip.Application.Features.Products.Commands
 }
 ```
 
-**Dosya:** `MemberShip.Application/Features/Products/Commands/CreateProduct/CreateProductCommandHandler.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Commands/CreateProduct/CreateProductCommandHandler.cs`
 
 ```csharp
 using AutoMapper;
-using MemberShip.Application.Features.Products.Commands;
-using MemberShip.Application.Features.Products.Dtos;
-using MemberShip.Application.Interfaces;
-using MemberShip.Application.Common.Results;
-using MemberShip.Domain.Entities;
-using MemberShip.Domain.Models;
+using Kickstart.Application.Features.Products.Commands;
+using Kickstart.Application.Features.Products.Dtos;
+using Kickstart.Domain.Common.Interfaces;
+using Kickstart.Application.Common.Results;
+using Kickstart.Domain.Entities;
+using Kickstart.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MemberShip.Application.Features.Products.Handlers
+namespace Kickstart.Application.Features.Products.Handlers
 {
     public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Result<ProductListDto>>
     {
@@ -359,13 +426,13 @@ namespace MemberShip.Application.Features.Products.Handlers
 }
 ```
 
-**Dosya:** `MemberShip.Application/Features/Products/Commands/CreateProduct/CreateProductCommandValidator.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Commands/CreateProduct/CreateProductCommandValidator.cs`
 
 ```csharp
 using FluentValidation;
-using MemberShip.Application.Features.Products.Commands;
+using Kickstart.Application.Features.Products.Commands;
 
-namespace MemberShip.Application.Features.Products.Validators
+namespace Kickstart.Application.Features.Products.Validators
 {
     public class CreateProductCommandValidator : AbstractValidator<CreateProductCommand>
     {
@@ -389,14 +456,14 @@ namespace MemberShip.Application.Features.Products.Validators
 ```
 
 ### UpdateProductCommand
-**Dosya:** `MemberShip.Application/Features/Products/Commands/UpdateProduct/UpdateProductCommand.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Commands/UpdateProduct/UpdateProductCommand.cs`
 
 ```csharp
-using MemberShip.Application.Common.Results;
-using MemberShip.Application.Features.Products.Dtos;
+using Kickstart.Application.Common.Results;
+using Kickstart.Application.Features.Products.Dtos;
 using MediatR;
 
-namespace MemberShip.Application.Features.Products.Commands
+namespace Kickstart.Application.Features.Products.Commands
 {
     public class UpdateProductCommand : IRequest<Result<ProductListDto>>
     {
@@ -410,20 +477,20 @@ namespace MemberShip.Application.Features.Products.Commands
 }
 ```
 
-**Dosya:** `MemberShip.Application/Features/Products/Commands/UpdateProduct/UpdateProductCommandHandler.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Commands/UpdateProduct/UpdateProductCommandHandler.cs`
 
 ```csharp
 using AutoMapper;
-using MemberShip.Application.Features.Products.Commands;
-using MemberShip.Application.Features.Products.Dtos;
-using MemberShip.Application.Interfaces;
-using MemberShip.Application.Common.Results;
-using MemberShip.Domain.Models;
+using Kickstart.Application.Features.Products.Commands;
+using Kickstart.Application.Features.Products.Dtos;
+using Kickstart.Domain.Common.Interfaces;
+using Kickstart.Application.Common.Results;
+using Kickstart.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MemberShip.Application.Features.Products.Handlers
+namespace Kickstart.Application.Features.Products.Handlers
 {
     public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand, Result<ProductListDto>>
     {
@@ -471,13 +538,13 @@ namespace MemberShip.Application.Features.Products.Handlers
 }
 ```
 
-**Dosya:** `MemberShip.Application/Features/Products/Commands/UpdateProduct/UpdateProductCommandValidator.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Commands/UpdateProduct/UpdateProductCommandValidator.cs`
 
 ```csharp
 using FluentValidation;
-using MemberShip.Application.Features.Products.Commands;
+using Kickstart.Application.Features.Products.Commands;
 
-namespace MemberShip.Application.Features.Products.Validators
+namespace Kickstart.Application.Features.Products.Validators
 {
     public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
     {
@@ -504,13 +571,13 @@ namespace MemberShip.Application.Features.Products.Validators
 ```
 
 ### DeleteProductCommand
-**Dosya:** `MemberShip.Application/Features/Products/Commands/DeleteProduct/DeleteProductCommand.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Commands/DeleteProduct/DeleteProductCommand.cs`
 
 ```csharp
-using MemberShip.Application.Common.Results;
+using Kickstart.Application.Common.Results;
 using MediatR;
 
-namespace MemberShip.Application.Features.Products.Commands
+namespace Kickstart.Application.Features.Products.Commands
 {
     public class DeleteProductCommand : IRequest<Result<bool>>
     {
@@ -519,18 +586,18 @@ namespace MemberShip.Application.Features.Products.Commands
 }
 ```
 
-**Dosya:** `MemberShip.Application/Features/Products/Commands/DeleteProduct/DeleteProductCommandHandler.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Commands/DeleteProduct/DeleteProductCommandHandler.cs`
 
 ```csharp
-using MemberShip.Application.Features.Products.Commands;
-using MemberShip.Application.Interfaces;
-using MemberShip.Application.Common.Results;
-using MemberShip.Domain.Models;
+using Kickstart.Application.Features.Products.Commands;
+using Kickstart.Domain.Common.Interfaces;
+using Kickstart.Application.Common.Results;
+using Kickstart.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MemberShip.Application.Features.Products.Handlers
+namespace Kickstart.Application.Features.Products.Handlers
 {
     public class DeleteProductCommandHandler : IRequestHandler<DeleteProductCommand, Result<bool>>
     {
@@ -567,17 +634,16 @@ namespace MemberShip.Application.Features.Products.Handlers
 ## 9️⃣ APPLICATION KATMANI - Queries
 
 ### GetAllProductsQuery
-**Dosya:** `MemberShip.Application/Features/Products/Queries/GetAllProducts/GetAllProductsQuery.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Queries/GetAllProducts/GetAllProductsQuery.cs`
 
 ```csharp
-using MemberShip.Application.Common.Results;
-using MemberShip.Application.Features.Products.Dtos;
+using Kickstart.Application.Common.Results;
+using Kickstart.Application.Features.Products.Dtos;
 using MediatR;
-using System.Collections.Generic;
 
-namespace MemberShip.Application.Features.Products.Queries
+namespace Kickstart.Application.Features.Products.Queries.GetAllProducts
 {
-    public class GetAllProductsQuery : IRequest<Result<IEnumerable<ProductListDto>>>
+    public class GetAllProductsQuery : IRequest<PagedResult<ProductListDto>>
     {
         public int Page { get; set; } = 1;
         public int PageSize { get; set; } = 10;
@@ -586,23 +652,22 @@ namespace MemberShip.Application.Features.Products.Queries
 }
 ```
 
-**Dosya:** `MemberShip.Application/Features/Products/Queries/GetAllProducts/GetAllProductsQueryHandler.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Queries/GetAllProducts/GetAllProductsQueryHandler.cs`
 
 ```csharp
 using AutoMapper;
-using MemberShip.Application.Features.Products.Dtos;
-using MemberShip.Application.Features.Products.Queries;
-using MemberShip.Application.Interfaces;
-using MemberShip.Application.Common.Results;
+using Kickstart.Application.Features.Products.Dtos;
+using Kickstart.Application.Features.Products.Queries.GetAllProducts;
+using Kickstart.Domain.Common.Interfaces;
+using Kickstart.Application.Common.Results;
 using MediatR;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MemberShip.Application.Features.Products.Handlers
+namespace Kickstart.Application.Features.Products.Queries.GetAllProducts
 {
-    public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, Result<IEnumerable<ProductListDto>>>
+    public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, PagedResult<ProductListDto>>
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
@@ -613,41 +678,27 @@ namespace MemberShip.Application.Features.Products.Handlers
             _mapper = mapper;
         }
 
-        public async Task<Result<IEnumerable<ProductListDto>>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
+        public async Task<PagedResult<ProductListDto>> Handle(GetAllProductsQuery request, CancellationToken cancellationToken)
         {
-            var query = _unitOfWork.Products.GetQueryable();
-
-            // Arama filtresi
-            if (!string.IsNullOrEmpty(request.SearchTerm))
-            {
-                var searchTerm = request.SearchTerm.ToLower();
-                query = query.Where(p => 
-                    p.Name.ToLower().Contains(searchTerm) ||
-                    (p.Description != null && p.Description.ToLower().Contains(searchTerm)));
-            }
-
-            // Sayfalama
-            var products = await query
-                .Skip((request.Page - 1) * request.PageSize)
-                .Take(request.PageSize)
-                .ToListAsync(cancellationToken);
-
+            var products = await _unitOfWork.Products.GetProductsPagedAsync(request.Page, request.PageSize, request.SearchTerm);
+            var totalCount = await _unitOfWork.Products.GetProductsCountAsync(request.SearchTerm);
             var productDtos = _mapper.Map<IEnumerable<ProductListDto>>(products);
-            return Result<IEnumerable<ProductListDto>>.Success(productDtos);
+            var totalPages = (int)System.Math.Ceiling(totalCount / (double)request.PageSize);
+            return PagedResult<ProductListDto>.Success(productDtos, request.Page, totalPages, totalCount);
         }
     }
 }
 ```
 
 ### GetProductByIdQuery
-**Dosya:** `MemberShip.Application/Features/Products/Queries/GetProductById/GetProductByIdQuery.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Queries/GetProductById/GetProductByIdQuery.cs`
 
 ```csharp
-using MemberShip.Application.Common.Results;
-using MemberShip.Application.Features.Products.Dtos;
+using Kickstart.Application.Common.Results;
+using Kickstart.Application.Features.Products.Dtos;
 using MediatR;
 
-namespace MemberShip.Application.Features.Products.Queries
+namespace Kickstart.Application.Features.Products.Queries
 {
     public class GetProductByIdQuery : IRequest<Result<ProductDto>>
     {
@@ -656,20 +707,20 @@ namespace MemberShip.Application.Features.Products.Queries
 }
 ```
 
-**Dosya:** `MemberShip.Application/Features/Products/Queries/GetProductById/GetProductByIdQueryHandler.cs`
+**Dosya:** `Kickstart.Application/Features/Products/Queries/GetProductById/GetProductByIdQueryHandler.cs`
 
 ```csharp
 using AutoMapper;
-using MemberShip.Application.Features.Products.Dtos;
-using MemberShip.Application.Features.Products.Queries;
-using MemberShip.Application.Interfaces;
-using MemberShip.Application.Common.Results;
-using MemberShip.Domain.Models;
+using Kickstart.Application.Features.Products.Dtos;
+using Kickstart.Application.Features.Products.Queries;
+using Kickstart.Domain.Common.Interfaces;
+using Kickstart.Application.Common.Results;
+using Kickstart.Domain.Models;
 using MediatR;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace MemberShip.Application.Features.Products.Handlers
+namespace Kickstart.Application.Features.Products.Handlers
 {
     public class GetProductByIdQueryHandler : IRequestHandler<GetProductByIdQuery, Result<ProductDto>>
     {
@@ -704,7 +755,7 @@ namespace MemberShip.Application.Features.Products.Handlers
 
 ## 🔟 APPLICATION KATMANI - AutoMapper Mapping
 
-**Dosya:** `MemberShip.Application/Features/Mappings/MappingProfile.cs`
+**Dosya:** `Kickstart.Application/Features/Mappings/MappingProfile.cs`
 
 ```csharp
 // MappingProfile constructor'ına ekleyin:
@@ -730,20 +781,21 @@ CreateMap<UpdateProductDto, Product>();
 
 ## 1️⃣1️⃣ API KATMANI - Controller
 
-**Dosya:** `MemberShip.API/Controllers/ProductsController.cs`
+**Dosya:** `Kickstart.API/Controllers/ProductsController.cs`
 
 ```csharp
-using MemberShip.API.Controllers;
-using MemberShip.Application.Features.Products.Commands;
-using MemberShip.Application.Features.Products.Dtos;
-using MemberShip.Application.Features.Products.Queries;
+using Kickstart.API.Controllers;
+using Kickstart.Application.Common.Results;
+using Kickstart.Application.Features.Products.Commands;
+using Kickstart.Application.Features.Products.Dtos;
+using Kickstart.Application.Features.Products.Queries.GetAllProducts;
+using Kickstart.Application.Features.Products.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace MemberShip.API.Controllers
+namespace Kickstart.API.Controllers
 {
     [Authorize]
     [ApiController]
@@ -762,7 +814,7 @@ namespace MemberShip.API.Controllers
         /// </summary>
         [HttpGet]
         [Authorize(Policy = "products.read")]
-        [ProducesResponseType(typeof(IEnumerable<ProductListDto>), 200)]
+        [ProducesResponseType(typeof(PagedResult<ProductListDto>), 200)]
         public async Task<IActionResult> GetAllProducts(
             [FromQuery] int page = 1, 
             [FromQuery] int pageSize = 10, 
@@ -776,7 +828,7 @@ namespace MemberShip.API.Controllers
             };
 
             var result = await _mediator.Send(query);
-            return HandleResult(result);
+            return HandlePagedResult(result);
         }
 
         /// <summary>
@@ -864,10 +916,10 @@ Terminal'de şu komutları çalıştırın:
 
 ```bash
 # Migration oluştur
-dotnet ef migrations add AddProductTable --project MemberShip.Infrastructure --startup-project MemberShip.API
+dotnet ef migrations add AddProductTable --project Kickstart.Infrastructure --startup-project Kickstart.API
 
 # Database'e uygula
-dotnet ef database update --project MemberShip.Infrastructure --startup-project MemberShip.API
+dotnet ef database update --project Kickstart.Infrastructure --startup-project Kickstart.API
 ```
 
 ---
@@ -876,6 +928,7 @@ dotnet ef database update --project MemberShip.Infrastructure --startup-project 
 
 - [ ] Domain: Entity oluşturuldu
 - [ ] Domain: Repository interface oluşturuldu
+- [ ] Domain: Permission sabitleri eklendi (Permissions.cs)
 - [ ] Infrastructure: Entity configuration oluşturuldu
 - [ ] Infrastructure: Repository implementasyonu yapıldı
 - [ ] Infrastructure: DbContext'e DbSet eklendi
@@ -898,8 +951,85 @@ dotnet ef database update --project MemberShip.Infrastructure --startup-project 
 2. **MediatR otomatik kayıt edilir** - `Application/DependencyInjection.cs` içinde
 3. **AutoMapper otomatik kayıt edilir** - `Application/DependencyInjection.cs` içinde
 4. **FluentValidation otomatik kayıt edilir** - Validator'lar otomatik bulunur
-5. **Soft Delete** - `BaseEntity` içindeki `IsDeleted` property'si kullanılır
+5. **Soft Delete** - `BaseEntity` içindeki `IsDeleted` property'si kullanılır. `ApplicationDbContext` tüm `BaseEntity` türevleri için otomatik `HasQueryFilter(e => !e.IsDeleted)` uygular. Yani repository'de `Where(p => !p.IsDeleted)` yazmana gerek yok—silinmiş kayıtlar zaten tüm sorgulardan otomatik filtrelenir
 6. **Audit Fields** - `BaseAuditableEntity` kullanırsanız `CreatedBy` ve `UpdatedBy` otomatik takip edilir
+7. **Permission** - Yeni resource eklerken `Permissions.cs`'e mutlaka Read, Create, Update, Delete sabitlerini ekle; aksi halde `[Authorize(Policy = "products.read")]` gibi attribute'lar çalışmaz
+
+---
+
+## 📎 Ek: Entity Başka Tabloya Bağlıysa (İlişki)
+
+Yeni entity başka bir entity ile ilişkiliyse (örn. Product → Category):
+
+### 1. Entity'de Foreign Key ve Navigation Property
+
+**Product.cs** (çok taraf - Category'ye bağlı):
+```csharp
+public int CategoryId { get; set; }  // Foreign key
+public Category Category { get; set; }  // Navigation property
+```
+
+**Category.cs** (bir taraf - opsiyonel, ters yön için):
+```csharp
+public ICollection<Product> Products { get; set; } = new HashSet<Product>();
+```
+
+### 2. Entity Configuration'da İlişki Tanımı
+
+**ProductConfiguration.cs** veya **CategoryConfiguration.cs** içinde (birinde tanımlamak yeterli):
+
+```csharp
+// ProductConfiguration'da (çok taraf):
+builder.HasOne(x => x.Category)
+    .WithMany(x => x.Products)
+    .HasForeignKey(x => x.CategoryId)
+    .OnDelete(DeleteBehavior.Restrict);  // veya Cascade, SetNull
+
+builder.Property(x => x.CategoryId).IsRequired();
+```
+
+### 3. Repository'de Include ile İlişkili Veriyi Çekme
+
+GetById veya liste için ilişkili veri gerekiyorsa:
+
+```csharp
+public async Task<Product> GetProductWithCategoryAsync(int id)
+{
+    return await _context.Set<Product>()
+        .Include(p => p.Category)
+        .FirstOrDefaultAsync(p => p.Id == id);
+}
+```
+
+Liste için (GetProductsPagedAsync):
+```csharp
+var query = _context.Set<Product>()
+    .Include(p => p.Category)  // Gerekirse ekle
+    .AsQueryable();
+```
+
+### 4. DTO'da İlişkili Veri
+
+**ProductDto.cs** - Category bilgisi dönecekse:
+```csharp
+public int CategoryId { get; set; }
+public string CategoryName { get; set; }  // veya CategoryDto Category { get; set; }
+```
+
+**MappingProfile.cs**:
+```csharp
+CreateMap<Product, ProductDto>()
+    .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category.Name));
+```
+
+### 5. Create/Update DTO'da Foreign Key
+
+**CreateProductDto.cs**:
+```csharp
+public int CategoryId { get; set; }
+```
+
+**Validator'da** - CategoryId'nin geçerli olup olmadığını kontrol et (opsiyonel).
 
 ---
 
