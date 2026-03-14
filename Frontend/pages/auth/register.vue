@@ -2,13 +2,13 @@
   <div class="register-container" :style="{ background: 'var(--theme-gradient-sidebar)' }">
     <!-- 3D Background with rotating images -->
     <div class="background-container">
-      <div 
-        v-for="(image, index) in backgroundImages" 
+      <div
+        v-for="(image, index) in backgroundImages"
         :key="index"
         :class="['background-image', { active: currentImageIndex === index }]"
         :style="{ backgroundImage: `url(${image})` }"
       />
-      <div 
+      <div
         class="background-overlay"
         :style="{ background: registerConfig?.overlay?.color || 'rgba(0, 0, 0, 0.4)' }"
       ></div>
@@ -16,7 +16,7 @@
 
     <!-- 3D Register Card -->
     <div class="register-card-container">
-      <div 
+      <div
         class="register-card"
         :style="{
           background: registerConfig?.card?.background || 'rgba(255, 255, 255, 0.1)',
@@ -141,7 +141,7 @@ const getParticleStyle = (index: number) => {
   const x = Math.random() * 100
   const y = Math.random() * 100
   const duration = Math.random() * 3 + 2
-  
+
   return {
     left: `${x}%`,
     top: `${y}%`,
@@ -394,7 +394,7 @@ useHead({
     max-width: 400px;
     padding: 30px 20px;
   }
-  
+
   .welcome-text {
     font-size: 2rem;
   }
@@ -417,4 +417,4 @@ useHead({
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
 }
-</style> 
+</style>

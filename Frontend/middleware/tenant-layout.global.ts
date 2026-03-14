@@ -1,7 +1,7 @@
 /**
  * Layout seçimi (tek yerden yönetim):
  * 1. data.json'daki tenant.layout varsa → onu kullan (tenant öncelikli)
- * 2. Yoksa → .env'deki NUXT_PUBLIC_DEFAULT_LAYOUT (default | gradient | tenant-acme)
+ * 2. Yoksa → .env'deki NUXT_PUBLIC_DEFAULT_LAYOUT (default | gradient)
  *
  * layout: false olan sayfalar (login, register) etkilenmez.
  */

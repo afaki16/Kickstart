@@ -1,5 +1,4 @@
 import { ref, computed, readonly, watch } from 'vue'
-import { useTenant } from './useTenant'
 
 function hexToRgb(hex: string): string {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -149,17 +148,10 @@ const error = ref<string | null>(null)
 export const useAppData = () => {
 
   /**
-   * Tenant'a göre app data yükler.
-   * ?tenant=acme veya acme.uygulama.com → /data/acme.json
-   * Tenant yoksa veya dosya bulunamazsa → /data.json
+   * App data y�kler (public/data.json).
    */
   const loadAppData = async (forceReload = false) => {
-    const { resolveTenantId } = useTenant()
-    const tenantId = resolveTenantId()
-    const dataPath = tenantId && tenantId !== 'default' ? `/data/${tenantId}.json` : '/data.json'
-
-    const cachedTenant = (appData.value as AppData & { _tenantId?: string })?._tenantId
-    if (appData.value && !forceReload && cachedTenant === tenantId) {
+    if (appData.value && !forceReload) {
       return appData.value
     }
 
@@ -167,18 +159,12 @@ export const useAppData = () => {
     error.value = null
 
     try {
-      let response = await fetch(dataPath)
-
-      if (!response.ok && tenantId) {
-        response = await fetch('/data.json')
-      }
-
+      const response = await fetch('/data.json')
       if (!response.ok) {
         throw new Error('Failed to load app data')
       }
 
-      const data = (await response.json()) as AppData & { _tenantId?: string }
-      if (tenantId) data._tenantId = tenantId
+      const data = (await response.json()) as AppData
       appData.value = data
       return appData.value
     } catch (err) {

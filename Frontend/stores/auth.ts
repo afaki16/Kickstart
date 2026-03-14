@@ -96,9 +96,6 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('user', JSON.stringify(authData.user))
         if (rememberMe !== undefined) localStorage.setItem('rememberMe', String(rememberMe))
         if (deviceId) localStorage.setItem('deviceId', deviceId)
-        if ((authData.user as { tenantDomain?: string })?.tenantDomain) {
-          useTenant().setTenantId((authData.user as { tenantDomain: string }).tenantDomain)
-        }
       }
     },
 
@@ -110,10 +107,6 @@ export const useAuthStore = defineStore('auth', {
 
       if (process.client) {
         localStorage.setItem('user', JSON.stringify(user))
-        const tenantDomain = (user as { tenantDomain?: string }).tenantDomain
-        if (tenantDomain) {
-          useTenant().setTenantId(tenantDomain)
-        }
       }
     },
 
