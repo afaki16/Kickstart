@@ -79,7 +79,8 @@ export const useAuth = () => {
       }
       
       if (loginData && loginData.accessToken) {
-        await authStore.setAuth(loginData, credentials.rememberMe ?? false)
+        const deviceId = credentials.deviceId || generateDeviceId()
+        await authStore.setAuth(loginData, credentials.rememberMe ?? false, deviceId)
         await router.push('/dashboard')
         return loginData
       } else {

@@ -11,6 +11,7 @@ using Kickstart.Application.Features.Auth.Commands.ChangePassword;
 using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
 using Kickstart.Application.Features.Auth.Commands.ResetPassword;
 using Kickstart.Application.Features.Auth.Queries.GetUserSessions;
+using Kickstart.Application.Features.Users.Queries.GetCurrentUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -180,12 +181,12 @@ namespace Kickstart.API.Controllers
         }
 
         /// <summary>
-        /// Get current user information
+        /// Get current user information (with permissions for auth restoration)
         /// </summary>
-        /// <returns>Current user details</returns>
+        /// <returns>Current user details including roles and permissions</returns>
         [HttpGet("me")]
         [Authorize]
-        [ProducesResponseType(typeof(Application.Features.Users.Dtos.UserListDto), 200)]
+        [ProducesResponseType(typeof(Application.Features.Users.Dtos.UserDto), 200)]
         [ProducesResponseType(401)]
         public async Task<IActionResult> GetCurrentUser()
         {
@@ -194,7 +195,7 @@ namespace Kickstart.API.Controllers
             if (!int.TryParse(userId, out var userIdInt))
                 return Unauthorized();
 
-            var query = new Application.Features.Users.Queries.GetUserById.GetUserByIdQuery { Id = userIdInt };
+            var query = new GetCurrentUserQuery { UserId = userIdInt };
             var result = await _mediator.Send(query);
             
             return HandleResult(result);

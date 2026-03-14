@@ -43,13 +43,13 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async setAuth(authData: LoginResponse, rememberMe = false) {
+    async setAuth(authData: LoginResponse, rememberMe?: boolean, deviceId?: string) {
       this.user = authData.user
       this.accessToken = authData.accessToken
       this.refreshToken = authData.refreshToken
       this.isAuthenticated = true
-      this.permissions = authData.user.permissions.map(p => p.fullPermission)
-      this.roles = authData.user.roles.map(r => r.name)
+      this.permissions = (authData.user.permissions ?? []).map((p: { fullPermission?: string; name?: string }) => p?.fullPermission ?? p?.name).filter(Boolean)
+      this.roles = authData.user.roles?.map(r => r.name) ?? []
 
       // Cookie süreleri: expiresAt varsa kullan (API'den), yoksa rememberMe'ye göre
       const accessTokenMaxAge = 60 * 60 * 2 // 2 saat (JWT süresine yakın)
@@ -58,7 +58,7 @@ export const useAuthStore = defineStore('auth', {
         const expiresMs = new Date(authData.expiresAt).getTime() - Date.now()
         refreshTokenMaxAge = Math.max(60, Math.floor(expiresMs / 1000))
       } else {
-        refreshTokenMaxAge = rememberMe
+        refreshTokenMaxAge = (rememberMe ?? false)
           ? 60 * 60 * 24 * 30  // 30 gün (Remember Me)
           : 60 * 60 * 24 * 7   // 7 gün (standart)
       }
@@ -80,10 +80,22 @@ export const useAuthStore = defineStore('auth', {
       accessTokenCookie.value = authData.accessToken
       refreshTokenCookie.value = authData.refreshToken
 
+      // deviceId ve rememberMe cookie'de sakla (localStorage clear'dan etkilenmesin)
+      const cookieMaxAge = 60 * 60 * 24 * 30 // 30 gün
+      if (deviceId !== undefined) {
+        const deviceIdCookie = useCookie('device_id', { maxAge: cookieMaxAge, secure: true, sameSite: 'strict' })
+        deviceIdCookie.value = deviceId
+      }
+      if (rememberMe !== undefined) {
+        const rememberMeCookie = useCookie('remember_me', { maxAge: cookieMaxAge, secure: true, sameSite: 'strict' })
+        rememberMeCookie.value = String(rememberMe)
+      }
+
       // Store user data in localStorage for persistence
       if (process.client) {
         localStorage.setItem('user', JSON.stringify(authData.user))
-        localStorage.setItem('rememberMe', String(rememberMe))
+        if (rememberMe !== undefined) localStorage.setItem('rememberMe', String(rememberMe))
+        if (deviceId) localStorage.setItem('deviceId', deviceId)
         if ((authData.user as { tenantDomain?: string })?.tenantDomain) {
           useTenant().setTenantId((authData.user as { tenantDomain: string }).tenantDomain)
         }
@@ -92,7 +104,8 @@ export const useAuthStore = defineStore('auth', {
 
     setUser(user: User) {
       this.user = user
-      this.permissions = user.permissions?.map(p => p.fullPermission) ?? []
+      // fullPermission veya name kullan (API formatlarına uyum için)
+      this.permissions = (user.permissions ?? []).map((p: { fullPermission?: string; name?: string }) => p?.fullPermission ?? p?.name).filter(Boolean)
       this.roles = user.roles?.map(r => r.name) ?? []
 
       if (process.client) {
@@ -115,13 +128,18 @@ export const useAuthStore = defineStore('auth', {
       // Clear cookies
       const accessTokenCookie = useCookie('access_token')
       const refreshTokenCookie = useCookie('refresh_token')
+      const deviceIdCookie = useCookie('device_id')
+      const rememberMeCookie = useCookie('remember_me')
       accessTokenCookie.value = null
       refreshTokenCookie.value = null
+      deviceIdCookie.value = null
+      rememberMeCookie.value = null
 
       // Clear localStorage
       if (process.client) {
         localStorage.removeItem('user')
         localStorage.removeItem('rememberMe')
+        localStorage.removeItem('deviceId')
       }
     },
 
@@ -139,6 +157,16 @@ export const useAuthStore = defineStore('auth', {
         this.accessToken = accessTokenCookie.value
         this.refreshToken = refreshTokenCookie.value
         this.isAuthenticated = true
+
+        // Cookie'den deviceId ve rememberMe'yi localStorage'a restore et (clear sonrası)
+        const deviceIdCookie = useCookie('device_id')
+        const rememberMeCookie = useCookie('remember_me')
+        if (deviceIdCookie.value) {
+          localStorage.setItem('deviceId', deviceIdCookie.value)
+        }
+        if (rememberMeCookie.value !== undefined && rememberMeCookie.value !== null) {
+          localStorage.setItem('rememberMe', rememberMeCookie.value)
+        }
 
         // Restore user from localStorage
         const storedUser = localStorage.getItem('user')

@@ -320,7 +320,27 @@ namespace Kickstart.Infrastructure.Services
                     ProfileImageUrl = user.ProfileImageUrl,
                     CreatedDate = user.CreatedDate,
                     TenantId = user.TenantId,
-                    TenantDomain = user.Tenant?.Domain
+                    TenantDomain = user.Tenant?.Domain,
+                    Roles = user.UserRoles.Select(ur => new Application.Features.Roles.Dtos.RoleDto
+                    {
+                        Id = ur.Role.Id,
+                        Name = ur.Role.Name,
+                        Description = ur.Role.Description,
+                        IsSystemRole = ur.Role.IsSystemRole,
+                        CreatedDate = ur.Role.CreatedDate
+                    }).ToList(),
+                    Permissions = user.UserRoles
+                        .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission))
+                        .Distinct()
+                        .Select(p => new Application.Features.Permissions.Dtos.PermissionDto
+                        {
+                            Id = p.Id,
+                            Name = p.Name,
+                            Description = p.Description,
+                            Resource = p.Resource,
+                            Type = p.Type,
+                            FullPermission = p.FullPermission
+                        }).ToList()
                 }
             };
 
