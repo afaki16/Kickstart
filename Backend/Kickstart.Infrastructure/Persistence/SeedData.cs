@@ -175,7 +175,14 @@ namespace Kickstart.Infrastructure.Persistence
                 IsSystemRole = true
             };
 
-            await context.Roles.AddAsync(adminRole);
+            var userRole = new Role
+            {
+                Name = "User",
+                Description = "Standard user with user management permissions only",
+                IsSystemRole = true
+            };
+
+            await context.Roles.AddRangeAsync(adminRole, userRole);
             await context.SaveChangesAsync();
 
             // Get all permissions and assign to admin role
@@ -187,6 +194,17 @@ namespace Kickstart.Infrastructure.Persistence
             });
 
             await context.RolePermissions.AddRangeAsync(adminRolePermissions);
+
+            // Get only Users permissions and assign to user role
+            var userPermissionNames = Permissions.Helper.GetPermissionsByResource("Users");
+            var userPermissions = allPermissions.Where(p => userPermissionNames.Contains(p.Name)).ToList();
+            var userRolePermissions = userPermissions.Select(p => new RolePermission
+            {
+                RoleId = userRole.Id,
+                PermissionId = p.Id
+            });
+
+            await context.RolePermissions.AddRangeAsync(userRolePermissions);
             await context.SaveChangesAsync();
         }
 
@@ -220,29 +238,16 @@ namespace Kickstart.Infrastructure.Persistence
             CreatedDate = DateTime.UtcNow
         };
 
-        var acmeTenant = new Tenant
-        {
-            Name = "Acme Corp",
-            Description = "Acme tenant - acme.uygulama.com",
-            Domain = "acme",
-            IsActive = true,
-            ContactEmail = "admin@acme.com",
-            ContactPhone = "+905551112233",
-            CreatedDate = DateTime.UtcNow
-        };
-
-        await context.Tenants.AddRangeAsync(defaultTenant, demoTenant, acmeTenant);
+        await context.Tenants.AddRangeAsync(defaultTenant, demoTenant);
         await context.SaveChangesAsync();
     }
 
         private static async Task SeedAdminUserAsync(ApplicationDbContext context)
         {
+            // Get default tenant
+            var defaultTenant = await context.Tenants.FirstOrDefaultAsync(t => t.Domain == "default");
 
-        // Get default tenant
-        var defaultTenant = await context.Tenants.FirstOrDefaultAsync(t => t.Domain == "default");
-
-
-        var adminUser = new User
+            var adminUser = new User
             {
                 FirstName = "System",
                 LastName = "Administrator",
@@ -252,26 +257,50 @@ namespace Kickstart.Infrastructure.Persistence
                 Status = UserStatus.Active,
                 EmailConfirmed = true,
                 PhoneConfirmed = true,
-            TenantId = defaultTenant?.Id, 
-            CreatedDate = DateTime.UtcNow
+                TenantId = defaultTenant?.Id,
+                CreatedDate = DateTime.UtcNow
             };
 
-            await context.Users.AddAsync(adminUser);
+            var standardUser = new User
+            {
+                FirstName = "Standard",
+                LastName = "User",
+                Email = "user@kickstart.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("User123!"), // Default password
+                PhoneNumber = "+905559998877",
+                Status = UserStatus.Active,
+                EmailConfirmed = true,
+                PhoneConfirmed = true,
+                TenantId = defaultTenant?.Id,
+                CreatedDate = DateTime.UtcNow
+            };
+
+            await context.Users.AddRangeAsync(adminUser, standardUser);
             await context.SaveChangesAsync();
 
             // Assign admin role to admin user
             var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
             if (adminRole != null)
             {
-                var userRole = new UserRole
+                await context.UserRoles.AddAsync(new UserRole
                 {
                     UserId = adminUser.Id,
                     RoleId = adminRole.Id
-                };
-
-                await context.UserRoles.AddAsync(userRole);
-                await context.SaveChangesAsync();
+                });
             }
+
+            // Assign user role to standard user
+            var userRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+            if (userRole != null)
+            {
+                await context.UserRoles.AddAsync(new UserRole
+                {
+                    UserId = standardUser.Id,
+                    RoleId = userRole.Id
+                });
+            }
+
+            await context.SaveChangesAsync();
         }
     }
 } 
