@@ -26,15 +26,14 @@ const { loadAppData, isLoading, appData } = useAppData()
 
 const loginPage = computed(() => appData?.value?.tenant?.loginPage ?? 'default')
 
+const loginComponents: Record<string, ReturnType<typeof defineAsyncComponent>> = {
+  default: defineAsyncComponent(() => import('~/components/Auth/LoginDefault.vue')),
+  acme: defineAsyncComponent(() => import('~/components/Auth/LoginAcme.vue'))
+}
+
 const loginComponent = computed(() => {
-  const page = loginPage.value
-  if (page === 'default') return resolveComponent('AuthLoginDefault')
-  const name = 'AuthLogin' + page.charAt(0).toUpperCase() + page.slice(1)
-  try {
-    return resolveComponent(name)
-  } catch {
-    return resolveComponent('AuthLoginDefault')
-  }
+  const page = loginPage.value || 'default'
+  return loginComponents[page] ?? loginComponents.default
 })
 
 onMounted(async () => {
