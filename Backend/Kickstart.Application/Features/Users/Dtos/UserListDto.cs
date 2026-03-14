@@ -19,7 +19,6 @@ namespace Kickstart.Application.Features.Users.Dtos
         public string ProfileImageUrl { get; set; }
         public DateTime CreatedDate { get; set; }
         public int? TenantId { get; set; }
-        public string TenantDomain { get; set; }
         public List<RoleDto> Roles { get; set; } = new List<RoleDto>();
         // Permissions property'si yok - sadece temel bilgiler
     }

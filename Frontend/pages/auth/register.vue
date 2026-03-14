@@ -128,12 +128,8 @@ const registerConfig = computed(() => getRegisterConfig.value)
 const handleRegister = async (formData: RegisterRequest) => {
   if (!acceptTerms.value) return
 
-  const tenantDomain = useTenant().resolveTenantId()
-  const payload: RegisterRequest = { ...formData }
-  if (tenantDomain) payload.tenantDomain = tenantDomain
-
   try {
-    await auth.register(payload)
+    await auth.register(formData)
   } catch (error) {
     console.error('Registration failed:', error)
   }

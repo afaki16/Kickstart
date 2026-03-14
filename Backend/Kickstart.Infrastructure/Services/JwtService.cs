@@ -90,7 +90,6 @@ namespace Kickstart.Infrastructure.Services
                     ProfileImageUrl = user.ProfileImageUrl,
                     CreatedDate = user.CreatedDate,
                     TenantId = user.TenantId,
-                    TenantDomain = user.Tenant?.Domain,
                     Roles = user.UserRoles.Select(ur => new Application.Features.Roles.Dtos.RoleDto
                     {
                         Id = ur.Role.Id,
@@ -320,7 +319,6 @@ namespace Kickstart.Infrastructure.Services
                     ProfileImageUrl = user.ProfileImageUrl,
                     CreatedDate = user.CreatedDate,
                     TenantId = user.TenantId,
-                    TenantDomain = user.Tenant?.Domain,
                     Roles = user.UserRoles.Select(ur => new Application.Features.Roles.Dtos.RoleDto
                     {
                         Id = ur.Role.Id,

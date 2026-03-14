@@ -39,8 +39,7 @@ namespace Kickstart.Application.Features.Mappings;
 
             // User list mapping (without permissions for performance)
             CreateMap<User, UserListDto>()
-                .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Select(ur => ur.Role)))
-                .ForMember(dest => dest.TenantDomain, opt => opt.MapFrom(src => src.Tenant != null ? src.Tenant.Domain : null));
+                .ForMember(dest => dest.Roles, opt => opt.MapFrom(src => src.UserRoles.Select(ur => ur.Role)));
 
             CreateMap<CreateUserCommand, User>()
                 .ForMember(dest => dest.UserRoles, opt => opt.Ignore());

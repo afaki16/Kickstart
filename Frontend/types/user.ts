@@ -12,7 +12,6 @@ export interface User {
   profileImageUrl?: string
   createdDate: string
   tenantId?: number
-  tenantDomain?: string
   roles: any[]
   permissions: any[]
 }

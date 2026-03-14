@@ -17,6 +17,5 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
         public string PhoneNumber { get; set; } = string.Empty;
         public string IpAddress { get; set; } = string.Empty;
         public string UserAgent { get; set; } = string.Empty;
-        public string TenantDomain { get; set; } = string.Empty;
     }
 } 
