@@ -183,19 +183,19 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
-    async fetchUserFromApi() {
+    async fetchUserFromApi(clearOnError = true) {
       const { $api } = useNuxtApp()
       try {
         const response = await $api.get('/api/auth/me')
         const user = response.data?.data || response.data?.value || response.data
         if (user) {
           this.setUser(user)
-        } else {
+        } else if (clearOnError) {
           this.clearAuth()
         }
       } catch (error) {
         console.error('Error fetching user:', error)
-        this.clearAuth()
+        if (clearOnError) this.clearAuth()
       }
     }
   }

@@ -65,8 +65,8 @@
         </button>
       </div>
       
-      <!-- Navigation Menu -->
-      <nav class="flex-1 overflow-y-auto px-3 py-0 space-y-[2px] scrollbar-hide relative overflow-x-hidden">
+      <!-- Navigation Menu (key: kullanıcı değişiminde menüyü yeniden oluştur) -->
+      <nav :key="authStore.user?.id || 'guest'" class="flex-1 overflow-y-auto px-3 py-0 space-y-[2px] scrollbar-hide relative overflow-x-hidden">
         <!-- Dinamik Navigation Items -->
         <template v-for="item in visibleMenus" :key="item.title">
           
@@ -207,6 +207,7 @@
 </template>
 
 <script setup>
+import { storeToRefs } from 'pinia'
 import { navigationItems, filterNavigationByPermissions } from '~/composables/useNavigation'
 import { useAuth } from '~/composables/useAuth'
 import { useAppData } from '~/composables/useAppData'
@@ -220,6 +221,7 @@ const isMobile = computed(() => display.smAndDown.value)
 const isSidebarOpen = ref(true)
 const showUserMenu = ref(false)
 const authStore = useAuthStore()
+const { permissions, roles } = storeToRefs(authStore)
 const authUtils = useAuth()
 const router = useRouter()
 
@@ -232,12 +234,12 @@ const userInfo = computed(() => ({
   email: authStore.user?.email || ''
 }))
 
-// Yetkiye göre menüleri filtrele
+// Yetkiye göre menüleri filtrele (storeToRefs ile explicit reactivity - kullanıcı değişiminde güncellenir)
 const visibleMenus = computed(() => {
   return filterNavigationByPermissions(
     navigationItems,
-    authUtils.hasPermission,
-    authUtils.hasRole
+    (p) => permissions.value.includes(p),
+    (r) => roles.value.includes(r)
   )
 })
 

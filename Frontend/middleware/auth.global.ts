@@ -1,12 +1,12 @@
-export default defineNuxtRouteMiddleware((to) => {
+export default defineNuxtRouteMiddleware(async (to) => {
   // Skip middleware on server-side rendering
   if (process.server) return
 
   const authStore = useAuthStore()
   
-  // Initialize auth state from cookies/localStorage
+  // Initialize auth state from cookies/localStorage (await - kritik: yeni kullanıcı girişinde menü için)
   if (!authStore.isAuthenticated) {
-    authStore.initializeAuth()
+    await authStore.initializeAuth()
   }
 
   // Public routes that don't require authentication

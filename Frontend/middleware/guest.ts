@@ -1,9 +1,9 @@
-export default defineNuxtRouteMiddleware(() => {
+export default defineNuxtRouteMiddleware(async () => {
   const authStore = useAuthStore()
   
-  // Initialize auth state
+  // Initialize auth state (await - cookie/localStorage senkronizasyonu için)
   if (!authStore.isAuthenticated) {
-    authStore.initializeAuth()
+    await authStore.initializeAuth()
   }
 
   // If user is authenticated, redirect to dashboard

@@ -81,6 +81,12 @@ export const useAuth = () => {
       if (loginData && loginData.accessToken) {
         const deviceId = credentials.deviceId || generateDeviceId()
         await authStore.setAuth(loginData, credentials.rememberMe ?? false, deviceId)
+        // Login response'da permissions/roles eksik olabilir - /me ile tam kullanıcı bilgisi al (sidebar menü için)
+        try {
+          await authStore.fetchUserFromApi(false)
+        } catch (e) {
+          console.warn('Could not fetch full user after login, using login response:', e)
+        }
         await router.push('/dashboard')
         return loginData
       } else {

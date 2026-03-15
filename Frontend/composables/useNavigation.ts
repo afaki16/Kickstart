@@ -58,24 +58,19 @@
     hasPermission: (permission: string) => boolean,
     hasRole: (role: string) => boolean
   ): NavigationItem[] => {
-    return items.filter(item => {
-      // Check permission requirement
-      if (item.permission && !hasPermission(item.permission)) {
-        return false
-      }
-
-      // Check role requirement
-      if (item.roles && !item.roles.some(role => hasRole(role))) {
-        return false
-      }
-
-      // If item has children, filter them recursively
-      if (item.children) {
-        item.children = filterNavigationByPermissions(item.children, hasPermission, hasRole)
-        // Keep parent if it has at least one visible child
-        return item.children.length > 0
-      }
-
-      return true
-    })
+    return items
+      .map((item): NavigationItem | null => {
+        // Check permission requirement
+        if (item.permission && !hasPermission(item.permission)) return null
+        // Check role requirement
+        if (item.roles && !item.roles.some(role => hasRole(role))) return null
+        // If item has children, filter recursively and return new object (do not mutate original)
+        if (item.children) {
+          const filteredChildren = filterNavigationByPermissions(item.children, hasPermission, hasRole)
+          if (filteredChildren.length === 0) return null
+          return { ...item, children: filteredChildren }
+        }
+        return { ...item }
+      })
+      .filter((item): item is NavigationItem => item !== null)
   } 

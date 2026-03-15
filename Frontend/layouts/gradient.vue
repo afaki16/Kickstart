@@ -15,7 +15,7 @@
             :style="{ height: '34px', width: 'auto' }"
             :alt="appData?.app?.logo?.alt || 'Logo'" 
           />
-          <span class="brand-text truncate">{{ appData?.app?.brand?.text || 'MemberShip' }}</span>
+          <span class="brand-text truncate">{{ appData?.app?.brand?.text || 'Kickstart' }}</span>
         </div>
         <button 
           @click="toggleSidebar" 
@@ -27,7 +27,7 @@
 
       <div class="sidebar-divider"></div>
       
-      <nav class="flex-1 mt-3 px-2 space-y-1 overflow-y-auto overflow-x-hidden">
+      <nav :key="authStore.user?.id || 'guest'" class="flex-1 mt-3 px-2 space-y-1 overflow-y-auto overflow-x-hidden">
         <template v-for="item in visibleMenus" :key="item.title">
           <NuxtLink 
             v-if="!item.children && item.to" 
@@ -160,6 +160,7 @@
 </template>
 
 <script setup>
+import { storeToRefs } from 'pinia'
 import { navigationItems, filterNavigationByPermissions } from '~/composables/useNavigation'
 import { useAuth } from '~/composables/useAuth'
 import { useAppData } from '~/composables/useAppData'
@@ -168,6 +169,7 @@ import { useAuthStore } from '~/stores/auth'
 const isSidebarOpen = ref(true)
 const showUserMenu = ref(false)
 const authStore = useAuthStore()
+const { permissions, roles } = storeToRefs(authStore)
 const authUtils = useAuth()
 const router = useRouter()
 
@@ -182,11 +184,12 @@ const userInfo = computed(() => ({
   email: authStore.user?.email || ''
 }))
 
+// Yetkiye göre menüleri filtrele (storeToRefs ile explicit reactivity - kullanıcı değişiminde güncellenir)
 const visibleMenus = computed(() => {
   return filterNavigationByPermissions(
     navigationItems,
-    authUtils.hasPermission,
-    authUtils.hasRole
+    (p) => permissions.value.includes(p),
+    (r) => roles.value.includes(r)
   )
 })
 
