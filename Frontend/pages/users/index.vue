@@ -133,40 +133,54 @@ useHead({
 //#endregion
 
 //#region DataTable Columns
-const tableColumns = [
-  {
-    label: 'Ad Soyad',
-    key: 'fullName',
-    sortable: true,
-    filterable: true,
-    filterType: 'text',
-    width: '300px'
-  },
-  {
-    label: 'E-posta',
-    key: 'email',
-    sortable: true,
-    filterable: true,
-    filterType: 'text',
-    width: '300px'
-  },
-  {
-    label: 'Durum',
-    key: 'status',
-    sortable: true,
-    filterable: true,
-    filterType: 'select',
-    width: '300px'
-  },
-  {
-    label: 'Son Giriş Tarihi',
-    key: 'lastLoginDate',
-    sortable: true,
-    filterable: false,
-    width: '300px',
-    formatter: dateTimeFormatLong
-  },
-]
+const authStore = useAuthStore()
+const tableColumns = computed(() => {
+  const base = [
+    {
+      label: 'Ad Soyad',
+      key: 'fullName',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '300px'
+    },
+    {
+      label: 'E-posta',
+      key: 'email',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '300px'
+    },
+    {
+      label: 'Durum',
+      key: 'status',
+      sortable: true,
+      filterable: true,
+      filterType: 'select',
+      width: '300px'
+    },
+    {
+      label: 'Son Giriş Tarihi',
+      key: 'lastLoginDate',
+      sortable: true,
+      filterable: false,
+      width: '300px',
+      formatter: dateTimeFormatLong
+    }
+  ]
+  if (authStore.hasRole('SuperAdmin')) {
+    base.splice(2, 0, {
+      label: 'Tenant ID',
+      key: 'tenantId',
+      sortable: true,
+      filterable: true,
+      filterType: 'text',
+      width: '100px'
+    })
+  }
+  return base
+})
 //#endregion
 
 //#region Composables

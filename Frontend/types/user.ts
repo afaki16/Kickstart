@@ -24,6 +24,8 @@ export interface CreateUserRequest {
   phoneNumber?: string
   status: UserStatus
   roleIds: string[]
+  /** Sadece SuperAdmin belirtebilir. Belirtilmezse mevcut kullanıcının tenant'ı kullanılır. */
+  tenantId?: number
 }
 
 export interface UpdateUserRequest {

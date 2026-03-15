@@ -28,7 +28,7 @@
           title: 'Tenants',
           icon: 'mdi-domain',
           to: '/tenants',
-          permission: 'Tenants.Read'
+          roles: ['SuperAdmin']
         },
         {
           title: 'Roles',

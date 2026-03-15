@@ -77,6 +77,24 @@
               class="modern-input"
             />
           </v-col>
+          <!-- Tenant seçici: Sadece SuperAdmin yeni kullanıcı oluştururken -->
+          <v-col v-if="!user && canAccessAllTenants" cols="12" sm="6">
+            <v-select
+              v-model="formData.tenantId"
+              :items="tenants"
+              item-title="name"
+              item-value="id"
+              label="Tenant"
+              placeholder="Tenant seçin (opsiyonel)"
+              variant="outlined"
+              :disabled="loading"
+              prepend-inner-icon="mdi-domain"
+              density="comfortable"
+              hide-details="auto"
+              clearable
+              class="modern-input"
+            />
+          </v-col>
         </v-row>
 
         <!-- Status (Sadece edit modunda) -->
@@ -277,13 +295,18 @@
 
 <script setup lang="ts">
 import type { User, Role, CreateUserRequest, UpdateUserRequest } from '~/types'
-import { computed, reactive, ref, watch, watchEffect } from 'vue'
+import { computed, reactive, ref, watch, watchEffect, onMounted } from 'vue'
 
 const props = defineProps<{
   user?: User | null
   roles: Role[]
   loading?: boolean
 }>()
+
+const authStore = useAuthStore()
+const { getTenants } = useTenants()
+const tenants = ref<{ id: number; name: string }[]>([])
+const canAccessAllTenants = computed(() => authStore.hasRole('SuperAdmin'))
 
 const emit = defineEmits<{
   submit: [data: CreateUserRequest | UpdateUserRequest]
@@ -318,7 +341,19 @@ const formData = reactive({
   password: '',
   confirmPassword: '',
   status: 1,
-  roleIds: [] as string[]
+  roleIds: [] as string[],
+  tenantId: null as number | null
+})
+
+onMounted(async () => {
+  if (canAccessAllTenants.value && !props.user) {
+    try {
+      const res = await getTenants(1, 100, '')
+      tenants.value = (res?.data?.items ?? res?.data ?? []) as { id: number; name: string }[]
+    } catch {
+      tenants.value = []
+    }
+  }
 })
 
 const filteredRoles = computed(() => {
@@ -353,6 +388,9 @@ const handleSubmit = async () => {
     submitData.id = Number(props.user.id)
   } else {
     submitData.password = formData.password
+    if (formData.tenantId != null) {
+      submitData.tenantId = formData.tenantId
+    }
   }
   
   emit('submit', submitData)
@@ -382,6 +420,7 @@ watchEffect(() => {
       phoneNumber: '',
       status: 1,
       roleIds: [],
+      tenantId: null,
       password: '',
       confirmPassword: ''
     })

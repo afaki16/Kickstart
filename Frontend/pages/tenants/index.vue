@@ -100,7 +100,8 @@ import ConfirmDialog from '~/components/UI/ConfirmDialog.vue'
 definePageMeta({
   title: 'Tenant\'lar',
   requiresAuth: true,
-  permissions: ['Tenants.Read']
+  middleware: ['auth', 'permission'],
+  roles: ['SuperAdmin']
 })
 
 useHead({
