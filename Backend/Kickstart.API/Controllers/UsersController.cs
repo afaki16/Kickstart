@@ -90,7 +90,8 @@ namespace Kickstart.API.Controllers
                 Password = dto.Password,
                 PhoneNumber = dto.PhoneNumber,
                 Status = dto.Status,
-                RoleIds = dto.RoleIds
+                RoleIds = dto.RoleIds,
+                TenantId = dto.TenantId
             };
 
             var result = await _mediator.Send(command);

@@ -1,4 +1,4 @@
-﻿
+
 namespace Kickstart.Domain.Common.Enums;
 public enum ErrorCode
 {
@@ -13,4 +13,5 @@ public enum ErrorCode
     UpdateError = 1008,
     InternalError = 1009,
     InvalidOperation = 1010,
+    Forbidden = 1011,
 }

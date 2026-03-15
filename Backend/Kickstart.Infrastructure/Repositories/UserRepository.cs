@@ -68,9 +68,14 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
         _context.UserRoles.Remove(userRole);
     }
 
-    public async Task<IEnumerable<User>> GetUsersWithRolesAsync(int page, int pageSize, string searchTerm = null)
+    public async Task<IEnumerable<User>> GetUsersWithRolesAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null)
     {
         var query = _context.Set<User>().Include(u => u.UserRoles).ThenInclude(ur => ur.Role).AsQueryable();
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(u => u.TenantId == tenantId.Value);
+        }
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
@@ -87,9 +92,14 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
             .ToListAsync();
     }
 
-    public async Task<int> GetUsersWithRolesCountAsync(string searchTerm = null)
+    public async Task<int> GetUsersWithRolesCountAsync(string searchTerm = null, int? tenantId = null)
     {
         var query = _context.Set<User>().AsQueryable();
+
+        if (tenantId.HasValue)
+        {
+            query = query.Where(u => u.TenantId == tenantId.Value);
+        }
 
         if (!string.IsNullOrEmpty(searchTerm))
         {

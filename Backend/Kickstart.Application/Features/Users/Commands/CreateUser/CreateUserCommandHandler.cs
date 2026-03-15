@@ -25,28 +25,43 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
 
-        public CreateUserCommandHandler(IUnitOfWork unitOfWork, IPasswordService passwordService, IMapper mapper)
+        public CreateUserCommandHandler(IUnitOfWork unitOfWork, IPasswordService passwordService, IMapper mapper, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
             _mapper = mapper;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<UserListDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
             // Check if email already exists
             if (await _unitOfWork.Users.EmailExistsAsync(request.Email))
-            return Result<UserListDto>.Failure(Error.Failure(
+                return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.AlreadyExists,
                     "Email already exists"));
 
-        // Hash password
-        var passwordResult = _passwordService.HashPassword(request.Password);
+            // Hash password
+            var passwordResult = _passwordService.HashPassword(request.Password);
             if (!passwordResult.IsSuccess)
-            return Result<UserListDto>.Failure(Error.Failure(
-                       ErrorCode.AlreadyExists,
-                       $"{passwordResult.Error}"));
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.AlreadyExists,
+                    $"{passwordResult.Error}"));
+
+            // New user is created in current user's tenant. Only SuperAdmin can specify TenantId to create in another tenant.
+            int? tenantId;
+            if (request.TenantId.HasValue)
+            {
+                if (!_currentUserService.CanAccessAllTenants)
+                    return Result<UserListDto>.Failure(Error.Failure(ErrorCode.Forbidden, "Only SuperAdmin can create users in a specific tenant"));
+                tenantId = request.TenantId;
+            }
+            else
+            {
+                tenantId = _currentUserService.TenantId;
+            }
 
             // Create user
             var user = new User
@@ -57,7 +72,8 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
                 PasswordHash = passwordResult.Value,
                 PhoneNumber = request.PhoneNumber,
                 Status = request.Status,
-                EmailConfirmed = false
+                EmailConfirmed = false,
+                TenantId = tenantId
             };
 
             await _unitOfWork.Users.AddAsync(user);

@@ -13,5 +13,9 @@ namespace Kickstart.Application.Features.Users.Dtos
         public string PhoneNumber { get; set; }
         public UserStatus Status { get; set; } = UserStatus.Active;
         public List<int> RoleIds { get; set; } = new List<int>();
+        /// <summary>
+        /// Optional. Only SuperAdmin can specify. If null, user is created in current user's tenant.
+        /// </summary>
+        public int? TenantId { get; set; }
     }
 } 

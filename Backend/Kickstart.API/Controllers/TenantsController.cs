@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Kickstart.API.Controllers;
 
-[Authorize]
+[Authorize(Policy = "RequireSuperAdminRole")]
 [ApiController]
 [Route("api/[controller]")]
 public class TenantsController : BaseController
@@ -33,7 +33,6 @@ public class TenantsController : BaseController
     /// <param name="searchTerm">Search term for filtering</param>
     /// <returns>List of tenants</returns>
     [HttpGet]
-    [Authorize(Policy = "tenants.read")]
     [ProducesResponseType(typeof(IEnumerable<TenantListDto>), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(401)]
@@ -60,7 +59,6 @@ public class TenantsController : BaseController
     /// <param name="id">Tenant ID</param>
     /// <returns>Tenant details</returns>
     [HttpGet("{id:int}")]
-    [Authorize(Policy = "tenants.read")]
     [ProducesResponseType(typeof(TenantDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(401)]
@@ -79,7 +77,6 @@ public class TenantsController : BaseController
     /// <param name="dto">Tenant creation data</param>
     /// <returns>Created tenant</returns>
     [HttpPost]
-    [Authorize(Policy = "tenants.create")]
     [ProducesResponseType(typeof(TenantListDto), 201)]
     [ProducesResponseType(400)]
     [ProducesResponseType(401)]
@@ -104,7 +101,6 @@ public class TenantsController : BaseController
     /// <param name="dto">Tenant update data</param>
     /// <returns>Updated tenant</returns>
     [HttpPut("{id:int}")]
-    [Authorize(Policy = "tenants.update")]
     [ProducesResponseType(typeof(TenantListDto), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(401)]
@@ -125,7 +121,6 @@ public class TenantsController : BaseController
     /// <param name="id">Tenant ID</param>
     /// <returns>Success message</returns>
     [HttpDelete("{id:int}")]
-    [Authorize(Policy = "tenants.delete")]
     [ProducesResponseType(200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(401)]

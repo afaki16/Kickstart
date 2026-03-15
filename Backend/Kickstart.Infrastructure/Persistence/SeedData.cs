@@ -168,31 +168,44 @@ namespace Kickstart.Infrastructure.Persistence
 
         private static async Task SeedRolesAsync(ApplicationDbContext context)
         {
+            var superAdminRole = new Role
+            {
+                Name = RoleNames.SuperAdmin,
+                Description = "System super administrator with full access including sensitive operations",
+                IsSystemRole = true
+            };
+
             var adminRole = new Role
             {
-                Name = "Admin",
+                Name = RoleNames.Admin,
                 Description = "System administrator with full access",
                 IsSystemRole = true
             };
 
             var userRole = new Role
             {
-                Name = "User",
+                Name = RoleNames.User,
                 Description = "Standard user with user management permissions only",
                 IsSystemRole = true
             };
 
-            await context.Roles.AddRangeAsync(adminRole, userRole);
+            await context.Roles.AddRangeAsync(superAdminRole, adminRole, userRole);
             await context.SaveChangesAsync();
 
-            // Get all permissions and assign to admin role
+            // Get all permissions and assign to super admin and admin roles
             var allPermissions = await context.Permissions.ToListAsync();
+            var superAdminRolePermissions = allPermissions.Select(p => new RolePermission
+            {
+                RoleId = superAdminRole.Id,
+                PermissionId = p.Id
+            });
             var adminRolePermissions = allPermissions.Select(p => new RolePermission
             {
                 RoleId = adminRole.Id,
                 PermissionId = p.Id
             });
 
+            await context.RolePermissions.AddRangeAsync(superAdminRolePermissions);
             await context.RolePermissions.AddRangeAsync(adminRolePermissions);
 
             // Get only Users permissions and assign to user role
@@ -247,6 +260,20 @@ namespace Kickstart.Infrastructure.Persistence
             // Get default tenant
             var defaultTenant = await context.Tenants.FirstOrDefaultAsync(t => t.Domain == "default");
 
+            var superAdminUser = new User
+            {
+                FirstName = "Super",
+                LastName = "Administrator",
+                Email = "superadmin@kickstart.com",
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("SuperAdmin123!"), // Default password
+                PhoneNumber = "+905550000001",
+                Status = UserStatus.Active,
+                EmailConfirmed = true,
+                PhoneConfirmed = true,
+                TenantId = defaultTenant?.Id,
+                CreatedDate = DateTime.UtcNow
+            };
+
             var adminUser = new User
             {
                 FirstName = "System",
@@ -275,11 +302,22 @@ namespace Kickstart.Infrastructure.Persistence
                 CreatedDate = DateTime.UtcNow
             };
 
-            await context.Users.AddRangeAsync(adminUser, standardUser);
+            await context.Users.AddRangeAsync(superAdminUser, adminUser, standardUser);
             await context.SaveChangesAsync();
 
+            // Assign super admin role to super admin user
+            var superAdminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == RoleNames.SuperAdmin);
+            if (superAdminRole != null)
+            {
+                await context.UserRoles.AddAsync(new UserRole
+                {
+                    UserId = superAdminUser.Id,
+                    RoleId = superAdminRole.Id
+                });
+            }
+
             // Assign admin role to admin user
-            var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
+            var adminRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == RoleNames.Admin);
             if (adminRole != null)
             {
                 await context.UserRoles.AddAsync(new UserRole
@@ -290,7 +328,7 @@ namespace Kickstart.Infrastructure.Persistence
             }
 
             // Assign user role to standard user
-            var userRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == "User");
+            var userRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == RoleNames.User);
             if (userRole != null)
             {
                 await context.UserRoles.AddAsync(new UserRole

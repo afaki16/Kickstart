@@ -1,6 +1,7 @@
 using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
+using Kickstart.Domain.Constants;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
@@ -51,5 +52,7 @@ namespace Kickstart.Infrastructure.Identity
             var permissions = _httpContextAccessor.HttpContext?.User?.FindAll("permission")?.Select(c => c.Value);
             return permissions?.Contains(permission) ?? false;
         }
+
+        public bool CanAccessAllTenants => IsInRole(RoleNames.SuperAdmin);
     }
 } 

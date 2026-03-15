@@ -11,6 +11,7 @@ using Kickstart.Application.Features.Auth.Commands.ChangePassword;
 using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
 using Kickstart.Application.Features.Auth.Commands.ResetPassword;
 using Kickstart.Domain.Common.Interfaces;
+using Kickstart.Domain.Constants;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
 using Kickstart.Domain.Entities;
@@ -67,7 +68,7 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
             };
 
             // Assign default User role
-            var userRole = await _unitOfWork.Roles.GetByNameAsync("User");
+            var userRole = await _unitOfWork.Roles.GetByNameAsync(RoleNames.User);
             if (userRole != null)
             {
                 user.UserRoles.Add(new UserRole { RoleId = userRole.Id });

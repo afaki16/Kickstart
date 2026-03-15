@@ -1,3 +1,4 @@
+using Kickstart.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
@@ -152,16 +153,16 @@ namespace Kickstart.API.Extensions
         {
             // Admin role requirement
             options.AddPolicy("RequireAdminRole", policy =>
-                policy.RequireRole("Admin", "SuperAdmin"));
+                policy.RequireRole(RoleNames.Admin, RoleNames.SuperAdmin));
             
             options.AddPolicy("RequireSuperAdminRole", policy =>
-                policy.RequireRole("SuperAdmin"));
+                policy.RequireRole(RoleNames.SuperAdmin));
             
             options.AddPolicy("RequireManagerRole", policy =>
-                policy.RequireRole("Manager", "Admin", "SuperAdmin"));
+                policy.RequireRole(RoleNames.Manager, RoleNames.Admin, RoleNames.SuperAdmin));
             
             options.AddPolicy("RequireUserRole", policy =>
-                policy.RequireRole("User", "Manager", "Admin", "SuperAdmin"));
+                policy.RequireRole(RoleNames.User, RoleNames.Manager, RoleNames.Admin, RoleNames.SuperAdmin));
         }
 
         private static void AddCustomPolicies(AuthorizationOptions options)

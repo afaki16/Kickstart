@@ -6,6 +6,7 @@ using Kickstart.Application.Features.Permissions.Dtos;
 using Kickstart.Application.Features.Users.Commands.CreateUser;
 using Kickstart.Application.Features.Users.Commands.UpdateUser;
 using Kickstart.Application.Features.Users.Commands.DeleteUser;
+using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -23,11 +24,13 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
 
-        public UpdateUserCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public UpdateUserCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<UserListDto>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -35,11 +38,17 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
             var user = await _unitOfWork.Users.GetUserWithRolesAsync(request.Id);
 
             if (user == null)
-            return Result<UserListDto>.Failure(Error.Failure(
-                             ErrorCode.NotFound,
-                             "User not found"));
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.NotFound,
+                    "User not found"));
 
-        // Check if email already exists for another user
+            // Admin/User can only update users from their own tenant; SuperAdmin can update any user
+            if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.Forbidden,
+                    "You do not have access to update this user"));
+
+            // Check if email already exists for another user
         var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email);
             if (existingUser != null && existingUser.Id != request.Id)
             return Result<UserListDto>.Failure(Error.Failure(

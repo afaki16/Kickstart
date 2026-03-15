@@ -11,5 +11,9 @@ namespace Kickstart.Application.Interfaces
         bool IsAuthenticated { get; }
         bool IsInRole(string role);
         bool HasPermission(string permission);
+        /// <summary>
+        /// True when user can access all tenants (e.g. SuperAdmin). When false, user is scoped to their own tenant.
+        /// </summary>
+        bool CanAccessAllTenants { get; }
     }
 } 
