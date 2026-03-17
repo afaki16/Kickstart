@@ -38,6 +38,7 @@ namespace Kickstart.Infrastructure
         // Add Services
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<IAuthService, JwtService>();
+        services.AddScoped<IRevokedSessionService, RevokedSessionService>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IPermissionService, PermissionService>();
@@ -91,6 +92,26 @@ namespace Kickstart.Infrastructure
 
                 options.Events = new JwtBearerEvents
                 {
+                    OnTokenValidated = async context =>
+                    {
+                        var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                        var iatClaim = context.Principal?.FindFirst("iat")?.Value
+                            ?? context.Principal?.FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Iat)?.Value;
+
+                        if (string.IsNullOrEmpty(userIdClaim) || string.IsNullOrEmpty(iatClaim)
+                            || !int.TryParse(userIdClaim, out var userId)
+                            || !long.TryParse(iatClaim, out var iatUnix))
+                        {
+                            return;
+                        }
+
+                        var tokenIssuedAt = DateTimeOffset.FromUnixTimeSeconds(iatUnix).UtcDateTime;
+                        var revokedSessionService = context.HttpContext.RequestServices.GetService<IRevokedSessionService>();
+                        if (revokedSessionService != null && await revokedSessionService.WasSessionRevokedAfterAsync(userId, tokenIssuedAt))
+                        {
+                            context.Fail("Session has been revoked");
+                        }
+                    },
                     OnChallenge = context =>
                     {
                         context.HandleResponse();

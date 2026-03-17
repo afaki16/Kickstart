@@ -13,6 +13,16 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
         Task<IEnumerable<RefreshToken>> GetTokensByDeviceAsync(int userId, string deviceId);
         Task<IEnumerable<RefreshToken>> GetActiveTokensByIpAsync(string ipAddress);
         Task<int> GetActiveTokenCountAsync(int userId);
+        /// <summary>
+        /// Count distinct users with at least one active refresh token.
+        /// When tenantId is null, counts across all tenants (SuperAdmin). Otherwise scoped to tenant.
+        /// </summary>
+        Task<int> GetActiveUserCountAsync(int? tenantId = null);
+
+        /// <summary>
+        /// Get user IDs that have at least one active refresh token.
+        /// </summary>
+        Task<IEnumerable<int>> GetActiveUserIdsAsync(int? tenantId = null);
         Task RevokeAllUserTokensAsync(int userId, string ipAddress = null, string userAgent = null, string reason = "User logout");
         Task RevokeTokenAsync(string token, string ipAddress = null, string userAgent = null, string reason = "Token revoked");
         Task RevokeTokensByDeviceAsync(int userId, string deviceId, string ipAddress = null, string userAgent = null, string reason = "Device logout");

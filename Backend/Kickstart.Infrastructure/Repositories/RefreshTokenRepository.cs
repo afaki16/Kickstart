@@ -69,6 +69,39 @@ namespace Kickstart.Infrastructure.Repositories
                 .CountAsync(rt => rt.UserId == userId && !rt.IsRevoked && rt.ExpiryDate > DateTime.UtcNow);
         }
 
+        public async Task<int> GetActiveUserCountAsync(int? tenantId = null)
+        {
+            // Users with at least one active (non-revoked, non-expired) refresh token
+            var activeUserIds = GetQueryable()
+                .Where(rt => !rt.IsRevoked && rt.ExpiryDate > DateTime.UtcNow)
+                .Select(rt => rt.UserId)
+                .Distinct();
+
+            var userQuery = _context.Set<User>()
+                .Where(u => activeUserIds.Contains(u.Id));
+
+            if (tenantId.HasValue)
+                userQuery = userQuery.Where(u => u.TenantId == tenantId.Value);
+
+            return await userQuery.CountAsync();
+        }
+
+        public async Task<IEnumerable<int>> GetActiveUserIdsAsync(int? tenantId = null)
+        {
+            var activeUserIds = GetQueryable()
+                .Where(rt => !rt.IsRevoked && rt.ExpiryDate > DateTime.UtcNow)
+                .Select(rt => rt.UserId)
+                .Distinct();
+
+            var userQuery = _context.Set<User>()
+                .Where(u => activeUserIds.Contains(u.Id));
+
+            if (tenantId.HasValue)
+                userQuery = userQuery.Where(u => u.TenantId == tenantId.Value);
+
+            return await userQuery.Select(u => u.Id).ToListAsync();
+        }
+
         public async Task RevokeAllUserTokensAsync(int userId, string ipAddress = null, string userAgent = null, string reason = "User logout")
         {
             var tokens = await GetQueryable()

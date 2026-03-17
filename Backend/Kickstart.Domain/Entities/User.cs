@@ -14,6 +14,10 @@ namespace Kickstart.Domain.Entities
         public string PhoneNumber { get; set; }
         public UserStatus Status { get; set; }
         public DateTime? LastLoginDate { get; set; }
+        /// <summary>
+        /// When admin revokes all sessions, this is set. Access tokens issued before this time are invalid.
+        /// </summary>
+        public DateTime? LastSessionsRevokedAt { get; set; }
         public bool EmailConfirmed { get; set; }
         public bool PhoneConfirmed { get; set; }
         public string ProfileImageUrl { get; set; } = string.Empty;

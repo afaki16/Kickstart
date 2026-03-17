@@ -53,6 +53,13 @@ export const API_ENDPOINTS = {
     DELETE: (id: string) => `/api/permissions/${id}`
   },
 
+  // Admin endpoints (Admin/SuperAdmin only)
+  ADMIN: {
+    ACTIVE_USERS_COUNT: '/api/admin/active-users-count',
+    REVOKABLE_USERS: '/api/admin/revokable-users',
+    REVOKE_USER_SESSIONS: (userId: number) => `/api/admin/users/${userId}/revoke-sessions`
+  },
+
   // Dashboard endpoints
   DASHBOARD: {
     STATS: '/api/dashboard/stats',

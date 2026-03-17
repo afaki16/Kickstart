@@ -157,11 +157,15 @@ namespace Kickstart.Infrastructure.Services
                 var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));
                 var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
+                var issuedAt = DateTime.UtcNow;
+                claims.Add(new Claim(JwtRegisteredClaimNames.Iat, new DateTimeOffset(issuedAt).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64));
+
                 var token = new JwtSecurityToken(
                     issuer: jwtSettings["Issuer"],
                     audience: jwtSettings["Audience"],
                     claims: claims,
-                    expires: DateTime.UtcNow.AddMinutes(int.Parse(jwtSettings["ExpiryInMinutes"])),
+                    notBefore: issuedAt,
+                    expires: issuedAt.AddMinutes(int.Parse(jwtSettings["ExpiryInMinutes"])),
                     signingCredentials: credentials
                 );
 

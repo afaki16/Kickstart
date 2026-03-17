@@ -59,6 +59,9 @@ namespace Kickstart.Infrastructure.Persistence.EntityConfigurations
             builder.Property(x => x.CreatedDate)
                 .IsRequired();
 
+            builder.Property(x => x.LastSessionsRevokedAt)
+                .IsRequired(false);
+
             builder.Property(x => x.IsDeleted)
                 .IsRequired()
                 .HasDefaultValue(false);
