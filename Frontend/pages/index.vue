@@ -27,7 +27,7 @@ const { loadAppData, isLoading, appData } = useAppData()
 const loginPage = computed(() => appData?.value?.tenant?.loginPage ?? 'default')
 
 const loginComponents: Record<string, ReturnType<typeof defineAsyncComponent>> = {
-  default: defineAsyncComponent(() => import('~/components/Auth/LoginDefault.vue'))
+  default: defineAsyncComponent(() => import('~/components/Auth/LoginPage.vue'))
 }
 
 const loginComponent = computed(() => {
