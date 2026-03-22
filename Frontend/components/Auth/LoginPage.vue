@@ -1,41 +1,4 @@
-Bunun mantığına uygun bir login sayfası yap sol tarafta fotolar 3 saniyede 1 değişsin sağ tarafta login olsun ama register kısmı şimdilik olmasın false şekilde kalsın true deyince açabilelim
-19:43
 
-I'll create a login page based on your component's logic — photos rotating on the left, login form on the right, with a toggleable register section.
-Viewed a file, created a file, read a file
-
-İşte login sayfan hazır. Öne çıkan noktalar:
-
-Sol panel: 4 Unsplash fotoğraf 3 saniyede bir geçiş yapıyor, dot navigation ile manuel geçiş de var. Hover'da carousel duruyor.
-
-Sağ panel: Email/password formu, remember me, forgot password, validation, password toggle, loading spinner — senin mevcut Vue component'indeki tüm mantık korundu.
-
-Register bölümü: Şu anda kapalı. Açmak için script içindeki CONFIG objesinde showRegister: false → true yapman yeterli. CSS transition'la smooth şekilde açılıyor.
-
-Ekstra: URL'de ?expired=true varsa session expired uyarısı gösteriyor, ?email=test@mail.com varsa email alanını pre-fill ediyor — aynen senin component'indeki gibi. Device ID ve device name logic de aynı şekilde mevcut.
-Login page
-Code · HTML 
-
-html değil ama nuxt.js de components altına koyucam bunu
-19:47
-
-Tamam, bunu Nuxt.js + Vuetify component'i olarak yazayım — senin mevcut yapına uygun şekilde.
-Created a file, read a file
-
-Senin mevcut yapına tam uyumlu bir Nuxt.js component'i olarak yazdım. Kullanımı:
-vue
-
-<LoginPage :show-register="false" />
-
-Register'ı açmak istediğinde sadece true yap, hepsi bu.
-
-Mevcut composable'ların (useAuthStore, useValidators, useAppData, useAuth) ve LoginRequest type'ın aynen korundu. Sol panelde fotoğraflar getBackgroundImages composable'ından geliyor ve 3 saniyede bir geçiş yapıyor, dot'lara tıklayarak da manuel geçiş var. Sağ panelde form, validation, device info logic — hepsi senin orijinal component'inden birebir taşındı.
-Loginpage
-VUE 
-
-
-Claude is AI and can make mistakes. Please double-check responses.
-Loginpage · VUE
 <template>
   <div class="login-page">
     <!-- LEFT: Image Carousel -->
