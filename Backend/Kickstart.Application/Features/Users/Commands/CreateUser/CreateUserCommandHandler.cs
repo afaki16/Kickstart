@@ -37,19 +37,6 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
 
         public async Task<Result<UserListDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            // Check if email already exists
-            if (await _unitOfWork.Users.EmailExistsAsync(request.Email))
-                return Result<UserListDto>.Failure(Error.Failure(
-                    ErrorCode.AlreadyExists,
-                    "Email already exists"));
-
-            // Hash password
-            var passwordResult = _passwordService.HashPassword(request.Password);
-            if (!passwordResult.IsSuccess)
-                return Result<UserListDto>.Failure(Error.Failure(
-                    ErrorCode.AlreadyExists,
-                    $"{passwordResult.Error}"));
-
             // New user is created in current user's tenant. Only SuperAdmin can specify TenantId to create in another tenant.
             int? tenantId;
             if (request.TenantId.HasValue)
@@ -62,6 +49,25 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
             {
                 tenantId = _currentUserService.TenantId;
             }
+
+            // Check if email already exists within this tenant scope
+            if (await _unitOfWork.Users.EmailExistsAsync(request.Email, tenantId))
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.AlreadyExists,
+                    "Email already exists"));
+
+            if (!string.IsNullOrWhiteSpace(request.PhoneNumber) &&
+                await _unitOfWork.Users.PhoneExistsAsync(request.PhoneNumber, tenantId))
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.AlreadyExists,
+                    "Phone number already exists"));
+
+            // Hash password
+            var passwordResult = _passwordService.HashPassword(request.Password);
+            if (!passwordResult.IsSuccess)
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.AlreadyExists,
+                    $"{passwordResult.Error}"));
 
             // Create user
             var user = new User

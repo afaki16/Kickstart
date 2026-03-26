@@ -1,5 +1,7 @@
 using FluentValidation;
 using Kickstart.Application.Common.Results;
+using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Models;
 using MediatR;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,29 +37,25 @@ namespace Kickstart.Application.Common.Behaviors
 
                 if (failures.Any())
                 {
-                    var errors = failures.Select(x => x.ErrorMessage).ToList();
-                    
-                    // Create Result.Failure with errors
+                    var errorModels = failures
+                        .Select(x => Error.Failure(ErrorCode.ValidationFailed, x.ErrorMessage))
+                        .ToList();
+
                     var resultType = typeof(TResponse);
-                    
+
                     if (resultType.IsGenericType && resultType.GetGenericTypeDefinition() == typeof(Result<>))
                     {
                         var dataType = resultType.GetGenericArguments()[0];
-                        var method = typeof(Result)
-                            .GetMethods()
-                            .First(m => m.Name == "Failure" && m.IsGenericMethodDefinition && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(List<string>))
-                            .MakeGenericMethod(dataType);
-                        
-                        return (TResponse)method.Invoke(null, new object[] { errors });
+                        var method = typeof(Result<>)
+                            .MakeGenericType(dataType)
+                            .GetMethod(nameof(Result.Failure), new[] { typeof(IEnumerable<Error>) });
+
+                        return (TResponse)method!.Invoke(null, [errorModels])!;
                     }
-                    else
-                    {
-                        var method = typeof(Result)
-                            .GetMethods()
-                            .First(m => m.Name == "Failure" && !m.IsGenericMethodDefinition && m.GetParameters().Length == 1 && m.GetParameters()[0].ParameterType == typeof(List<string>));
-                        
-                        return (TResponse)method.Invoke(null, new object[] { errors });
-                    }
+
+                    return (TResponse)typeof(Result)
+                        .GetMethod(nameof(Result.Failure), new[] { typeof(IEnumerable<Error>) })!
+                        .Invoke(null, [errorModels])!;
                 }
             }
 

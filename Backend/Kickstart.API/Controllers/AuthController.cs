@@ -45,6 +45,7 @@ namespace Kickstart.API.Controllers
                 Email = request.Email,
                 Password = request.Password,
                 RememberMe = request.RememberMe,
+                TenantId = request.TenantId,
                 DeviceId = request.DeviceId,
                 DeviceName = request.DeviceName,
                 IpAddress = GetIpAddress(),

@@ -3,6 +3,7 @@ using System;
 using Kickstart.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Kickstart.Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260326185552_TenantScopedUserUniqueness")]
+    partial class TenantScopedUserUniqueness
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -382,21 +385,19 @@ namespace Kickstart.Infrastructure.Migrations
 
                     b.HasIndex("Email")
                         .IsUnique()
-                        .HasFilter("\"TenantId\" IS NULL AND NOT \"IsDeleted\"");
+                        .HasFilter("\"TenantId\" IS NULL");
 
                     b.HasIndex("PhoneNumber")
                         .IsUnique()
-                        .HasFilter("\"TenantId\" IS NULL AND \"PhoneNumber\" IS NOT NULL AND NOT \"IsDeleted\"");
-
-                    b.HasIndex("TenantId");
+                        .HasFilter("\"TenantId\" IS NULL AND \"PhoneNumber\" IS NOT NULL");
 
                     b.HasIndex("TenantId", "Email")
                         .IsUnique()
-                        .HasFilter("\"TenantId\" IS NOT NULL AND NOT \"IsDeleted\"");
+                        .HasFilter("\"TenantId\" IS NOT NULL");
 
                     b.HasIndex("TenantId", "PhoneNumber")
                         .IsUnique()
-                        .HasFilter("\"TenantId\" IS NOT NULL AND \"PhoneNumber\" IS NOT NULL AND NOT \"IsDeleted\"");
+                        .HasFilter("\"TenantId\" IS NOT NULL AND \"PhoneNumber\" IS NOT NULL");
 
                     b.ToTable("Users", (string)null);
                 });

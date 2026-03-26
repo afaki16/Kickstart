@@ -16,7 +16,7 @@ namespace Kickstart.Application.Features.Auth.Commands.Login
 
         public async Task<Result<LoginResponseDto>> Handle(LoginCommand request, CancellationToken cancellationToken)
         {
-            return await _authService.LoginAsync(request.Email, request.Password, request.IpAddress, request.UserAgent, request.DeviceId, request.DeviceName, request.RememberMe);
+            return await _authService.LoginAsync(request.Email, request.Password, request.IpAddress, request.UserAgent, request.DeviceId, request.DeviceName, request.RememberMe, request.TenantId);
         }
     }
 } 

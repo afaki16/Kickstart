@@ -11,6 +11,8 @@ namespace Kickstart.Application.Features.Auth.Commands.Login
         public bool RememberMe { get; set; }
         public string DeviceId { get; set; }
         public string DeviceName { get; set; }
+        /// <summary>Required when the same email exists in more than one tenant.</summary>
+        public int? TenantId { get; set; }
         public string IpAddress { get; set; }
         public string UserAgent { get; set; }
     }

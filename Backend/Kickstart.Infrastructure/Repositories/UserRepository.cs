@@ -4,6 +4,8 @@ using Kickstart.Domain.Entities;
 using Kickstart.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Kickstart.Infrastructure.Repositories;
@@ -17,9 +19,15 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
         _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
-    public async Task<User> GetByEmailAsync(string email)
+    public async Task<User> GetByEmailAsync(string email, int? tenantId)
     {
-        return await _context.Set<User>().FirstOrDefaultAsync(u => u.Email == email);
+        return await _context.Set<User>()
+            .FirstOrDefaultAsync(u => u.Email == email && u.TenantId == tenantId);
+    }
+
+    public async Task<IReadOnlyList<User>> GetUsersByEmailAsync(string email)
+    {
+        return await _context.Set<User>().Where(u => u.Email == email).ToListAsync();
     }
 
     public async Task<User> GetUserWithRolesAsync(int userId)
@@ -42,14 +50,17 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
 
-    public async Task<bool> EmailExistsAsync(string email)
+    public async Task<bool> EmailExistsAsync(string email, int? tenantId)
     {
-        return await _context.Set<User>().AnyAsync(u => u.Email == email);
+        return await _context.Set<User>().AnyAsync(u => u.Email == email && u.TenantId == tenantId);
     }
 
-    public async Task<bool> PhoneExistsAsync(string phoneNumber)
+    public async Task<bool> PhoneExistsAsync(string phoneNumber, int? tenantId, int? excludeUserId = null)
     {
-        return await _context.Set<User>().AnyAsync(u => u.PhoneNumber == phoneNumber);
+        var query = _context.Set<User>().Where(u => u.PhoneNumber == phoneNumber && u.TenantId == tenantId);
+        if (excludeUserId.HasValue)
+            query = query.Where(u => u.Id != excludeUserId.Value);
+        return await query.AnyAsync();
     }
 
     public async Task<UserRole> GetUserRoleAsync(int userId, int roleId)

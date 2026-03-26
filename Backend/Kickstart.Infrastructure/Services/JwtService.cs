@@ -32,12 +32,36 @@ namespace Kickstart.Infrastructure.Services
             _passwordService = passwordService;
         }
 
-    public async Task<Result<LoginResponseDto>> LoginAsync(string email, string password, string ipAddress, string userAgent, string deviceId = null, string deviceName = null, bool rememberMe = false)
+    public async Task<Result<LoginResponseDto>> LoginAsync(string email, string password, string ipAddress, string userAgent, string deviceId = null, string deviceName = null, bool rememberMe = false, int? tenantId = null)
     {
         try
         {
-            var user = await _unitOfWork.Users.GetUserWithPermissionsAsync(
-                (await _unitOfWork.Users.FindFirstAsync(u => u.Email == email))?.Id ?? 0);
+            var candidates = await _unitOfWork.Users.GetUsersByEmailAsync(email);
+            if (candidates.Count == 0)
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Invalid email or password"));
+
+            User resolved;
+            if (candidates.Count == 1)
+            {
+                resolved = candidates[0];
+            }
+            else
+            {
+                if (!tenantId.HasValue)
+                    return Result<LoginResponseDto>.Failure(Error.Failure(
+                        ErrorCode.InvalidRequest,
+                        "Multiple accounts with this email. Specify tenant id."));
+
+                resolved = candidates.FirstOrDefault(u => u.TenantId == tenantId);
+                if (resolved == null)
+                    return Result<LoginResponseDto>.Failure(Error.Failure(
+                        ErrorCode.InvalidRequest,
+                        "Invalid email or password"));
+            }
+
+            var user = await _unitOfWork.Users.GetUserWithPermissionsAsync(resolved.Id);
 
             if (user == null)
                 return Result<LoginResponseDto>.Failure(Error.Failure(

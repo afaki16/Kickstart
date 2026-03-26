@@ -42,11 +42,17 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
 
         public async Task<Result<UserDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
-            // Check if email already exists
-            if (await _unitOfWork.Users.EmailExistsAsync(request.Email))
+            // Public register: users without a tenant share one uniqueness scope (TenantId null)
+            if (await _unitOfWork.Users.EmailExistsAsync(request.Email, tenantId: null))
              return Result<UserDto>.Failure(Error.Failure(
                   ErrorCode.AlreadyExists,
                   "Email already exists"));
+
+            if (!string.IsNullOrWhiteSpace(request.PhoneNumber) &&
+                await _unitOfWork.Users.PhoneExistsAsync(request.PhoneNumber, tenantId: null))
+                return Result<UserDto>.Failure(Error.Failure(
+                    ErrorCode.AlreadyExists,
+                    "Phone number already exists"));
 
         // Hash password
         var passwordResult = _passwordService.HashPassword(request.Password);
