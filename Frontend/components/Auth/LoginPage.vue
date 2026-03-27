@@ -103,7 +103,10 @@
             />
           </div>
  
-          <div class="options-row">
+          <div
+            class="options-row"
+            :class="{ 'options-row--no-forgot': !showForgotPassword }"
+          >
             <v-checkbox
               v-model="form.rememberMe"
               :label="loginConfig?.texts?.rememberMe || 'Remember me'"
@@ -112,6 +115,7 @@
               class="remember-checkbox"
             />
             <a
+              v-if="showForgotPassword"
               class="forgot-link"
               @click.prevent="$router.push('/auth/forgot-password')"
             >
@@ -160,8 +164,10 @@ import { parseApiErrorMessages } from '~/utils/apiError'
  
 const props = withDefaults(defineProps<{
   showRegister?: boolean
+  showForgotPassword?: boolean
 }>(), {
-  showRegister: false // false: register gizli, true yapınca açılır
+  showRegister: false, // false: register gizli, true yapınca açılır
+  showForgotPassword: false // false: forgot password linki gizli, true: gösterilir
 })
  
 const route = useRoute()
@@ -278,19 +284,19 @@ onUnmounted(() => {
 .carousel-slide {
   position: absolute;
   inset: 0;
+  z-index: 0;
   background-size: cover;
   background-position: center;
   opacity: 0;
-  transition: opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1);
-  transform: scale(1.05);
+  /* Sadece crossfade — zoom/scale yok (önceki “geri küçülme” hissi kalkar) */
+  transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
- 
+
 .carousel-slide.active {
+  z-index: 1;
   opacity: 1;
-  transform: scale(1);
-  transition:
-    opacity 1.2s cubic-bezier(0.4, 0, 0.2, 1),
-    transform 6s cubic-bezier(0.4, 0, 0.2, 1);
 }
  
 .left-overlay {
@@ -488,6 +494,10 @@ onUnmounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 28px;
+}
+
+.options-row--no-forgot {
+  justify-content: flex-start;
 }
  
 .remember-checkbox :deep(.v-label) {
