@@ -1,5 +1,6 @@
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
+using Kickstart.Domain.Constants;
 using Kickstart.Domain.Entities;
 using Kickstart.Infrastructure.Persistence;
 using Kickstart.Infrastructure.Security;
@@ -74,7 +75,7 @@ namespace Kickstart.Infrastructure.Repositories
                 .CountAsync(rt => rt.UserId == userId && !rt.IsRevoked && rt.ExpiryDate > DateTime.UtcNow);
         }
 
-        public async Task<int> GetActiveUserCountAsync(int? tenantId = null)
+        public async Task<int> GetActiveUserCountAsync(int? tenantId = null, bool excludeUsersWithSuperAdminRole = false)
         {
             // Users with at least one active (non-revoked, non-expired) refresh token
             var activeUserIds = GetQueryable()
@@ -88,10 +89,13 @@ namespace Kickstart.Infrastructure.Repositories
             if (tenantId.HasValue)
                 userQuery = userQuery.Where(u => u.TenantId == tenantId.Value);
 
+            if (excludeUsersWithSuperAdminRole)
+                userQuery = userQuery.Where(u => !u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
+
             return await userQuery.CountAsync();
         }
 
-        public async Task<IEnumerable<int>> GetActiveUserIdsAsync(int? tenantId = null)
+        public async Task<IEnumerable<int>> GetActiveUserIdsAsync(int? tenantId = null, bool excludeUsersWithSuperAdminRole = false)
         {
             var activeUserIds = GetQueryable()
                 .Where(rt => !rt.IsRevoked && rt.ExpiryDate > DateTime.UtcNow)
@@ -103,6 +107,9 @@ namespace Kickstart.Infrastructure.Repositories
 
             if (tenantId.HasValue)
                 userQuery = userQuery.Where(u => u.TenantId == tenantId.Value);
+
+            if (excludeUsersWithSuperAdminRole)
+                userQuery = userQuery.Where(u => !u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
 
             return await userQuery.Select(u => u.Id).ToListAsync();
         }

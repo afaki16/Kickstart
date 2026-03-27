@@ -3,6 +3,7 @@ using Kickstart.Application.Features.Admin.Dtos;
 using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Enums;
 using Kickstart.Domain.Common.Interfaces;
+using Kickstart.Domain.Constants;
 using Kickstart.Domain.Models;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
@@ -38,10 +39,14 @@ namespace Kickstart.Application.Features.Admin.Queries.GetActiveUsersSnapshot
 
             var now = DateTime.UtcNow;
 
+            var usersQuery = _unitOfWork.Users.GetQueryable().Where(x => !x.IsDeleted);
+            if (!_currentUserService.CanAccessAllTenants)
+                usersQuery = usersQuery.Where(u => !u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
+
             var query =
                 from rt in _unitOfWork.RefreshTokens.GetQueryable()
                 where !rt.IsRevoked && rt.ExpiryDate > now
-                join u in _unitOfWork.Users.GetQueryable().Where(x => !x.IsDeleted) on rt.UserId equals u.Id
+                join u in usersQuery on rt.UserId equals u.Id
                 join tenant in _unitOfWork.Tenants.GetQueryable() on u.TenantId equals tenant.Id into tj
                 from tenant in tj.DefaultIfEmpty()
                 select new { rt, u, tenant };

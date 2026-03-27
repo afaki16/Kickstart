@@ -6,6 +6,7 @@ using Kickstart.Application.Features.Permissions.Dtos;
 using Kickstart.Application.Features.Users.Commands.CreateUser;
 using Kickstart.Application.Features.Users.Commands.UpdateUser;
 using Kickstart.Application.Features.Users.Commands.DeleteUser;
+using Kickstart.Application.Common.Authorization;
 using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
@@ -13,6 +14,7 @@ using Kickstart.Application.Common.Results;
 using Kickstart.Domain.Entities;
 using Kickstart.Domain.Models;
 using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Constants;
 using MediatR;
 using System.Linq;
 using System.Threading;
@@ -44,6 +46,11 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
 
             // Admin/User can only update users from their own tenant; SuperAdmin can update any user
             if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.Forbidden,
+                    "You do not have access to update this user"));
+
+            if (TenantAdminVisibility.IsHiddenFromTenantAdmin(_currentUserService, user))
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.Forbidden,
                     "You do not have access to update this user"));
@@ -86,6 +93,18 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
             // Add new roles if provided
             if (request.RoleIds?.Any() == true)
             {
+                if (!_currentUserService.CanAccessAllTenants)
+                {
+                    foreach (var roleId in request.RoleIds)
+                    {
+                        var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
+                        if (role != null && role.Name == RoleNames.SuperAdmin)
+                            return Result<UserListDto>.Failure(Error.Failure(
+                                ErrorCode.Forbidden,
+                                "You cannot assign the SuperAdmin role"));
+                    }
+                }
+
                 foreach (var roleId in request.RoleIds)
                 {
                     var userRole = new UserRole

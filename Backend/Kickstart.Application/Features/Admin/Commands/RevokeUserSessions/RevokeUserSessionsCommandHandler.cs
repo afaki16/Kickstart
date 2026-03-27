@@ -1,3 +1,4 @@
+using Kickstart.Application.Common.Authorization;
 using Kickstart.Application.Interfaces;
 using Kickstart.Application.Common.Results;
 using Kickstart.Domain.Common.Enums;
@@ -23,13 +24,16 @@ namespace Kickstart.Application.Features.Admin.Commands.RevokeUserSessions
 
         public async Task<Result> Handle(RevokeUserSessionsCommand request, CancellationToken cancellationToken)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(request.UserId);
+            var user = await _unitOfWork.Users.GetUserWithRolesAsync(request.UserId);
             if (user == null)
                 return Result.Failure(Error.Failure(ErrorCode.NotFound, "User not found"));
 
             // Admin can only revoke users in their own tenant. SuperAdmin can revoke any user.
             if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
                 return Result.Failure(Error.Failure(ErrorCode.Forbidden, "You can only revoke sessions for users in your own tenant"));
+
+            if (TenantAdminVisibility.IsHiddenFromTenantAdmin(_currentUserService, user))
+                return Result.Failure(Error.Failure(ErrorCode.Forbidden, "You cannot revoke sessions for this user"));
 
             var reason = request.Reason ?? "Session revoked by admin";
             await _unitOfWork.RefreshTokens.RevokeAllUserTokensAsync(

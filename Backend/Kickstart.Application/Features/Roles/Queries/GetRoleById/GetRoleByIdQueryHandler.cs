@@ -1,6 +1,7 @@
 using AutoMapper;
 using Kickstart.Application.Features.Roles.Queries.GetAllRoles;
 using Kickstart.Application.Features.Roles.Queries.GetRoleById;
+using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -13,6 +14,7 @@ using Kickstart.Application.Features.Roles.Dtos;
 using Kickstart.Application.Features.Tenants.Dtos;
 using Kickstart.Application.Features.Permissions.Dtos;
 using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Constants;
 
 namespace Kickstart.Application.Features.Roles.Queries.GetRoleById
 {
@@ -20,11 +22,13 @@ namespace Kickstart.Application.Features.Roles.Queries.GetRoleById
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetRoleByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper)
+        public GetRoleByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<RoleDto>> Handle(GetRoleByIdQuery request, CancellationToken cancellationToken)
@@ -35,6 +39,9 @@ namespace Kickstart.Application.Features.Roles.Queries.GetRoleById
             return Result<RoleDto>.Failure(Error.Failure(
                        ErrorCode.NotFound,
                        "Role not found"));
+
+            if (!_currentUserService.CanAccessAllTenants && role.Name == RoleNames.SuperAdmin)
+                return Result<RoleDto>.Failure(Error.Failure(ErrorCode.Forbidden, "You do not have access to this role"));
 
         var roleDto = _mapper.Map<RoleDto>(role);
             return Result<RoleDto>.Success(roleDto);

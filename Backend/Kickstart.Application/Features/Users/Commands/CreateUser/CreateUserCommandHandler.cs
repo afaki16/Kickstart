@@ -17,6 +17,7 @@ using Kickstart.Application.Features.Roles.Dtos;
 using Kickstart.Application.Features.Tenants.Dtos;
 using Kickstart.Application.Features.Permissions.Dtos;
 using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Constants;
 
 namespace Kickstart.Application.Features.Users.Commands.CreateUser
 {
@@ -61,6 +62,18 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.AlreadyExists,
                     "Phone number already exists"));
+
+            if (!_currentUserService.CanAccessAllTenants && request.RoleIds?.Any() == true)
+            {
+                foreach (var roleId in request.RoleIds)
+                {
+                    var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
+                    if (role != null && role.Name == RoleNames.SuperAdmin)
+                        return Result<UserListDto>.Failure(Error.Failure(
+                            ErrorCode.Forbidden,
+                            "You cannot assign the SuperAdmin role"));
+                }
+            }
 
             // Hash password
             var passwordResult = _passwordService.HashPassword(request.Password);

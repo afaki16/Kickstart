@@ -5,6 +5,7 @@ using Kickstart.Application.Features.Tenants.Dtos;
 using Kickstart.Application.Features.Permissions.Dtos;
 using Kickstart.Application.Features.Users.Queries.GetAllUsers;
 using Kickstart.Application.Features.Users.Queries.GetUserById;
+using Kickstart.Application.Common.Authorization;
 using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
@@ -41,6 +42,11 @@ namespace Kickstart.Application.Features.Users.Queries.GetUserById
 
             // Admin/User can only view users from their own tenant; SuperAdmin can view any user
             if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.Forbidden,
+                    "You do not have access to this user"));
+
+            if (TenantAdminVisibility.IsHiddenFromTenantAdmin(_currentUserService, user))
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.Forbidden,
                     "You do not have access to this user"));

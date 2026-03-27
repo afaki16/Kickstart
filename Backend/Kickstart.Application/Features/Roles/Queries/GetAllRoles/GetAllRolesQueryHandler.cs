@@ -1,6 +1,7 @@
 using AutoMapper;
 using Kickstart.Application.Features.Roles.Queries.GetAllRoles;
 using Kickstart.Application.Features.Roles.Queries.GetRoleById;
+using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -21,12 +22,14 @@ namespace Kickstart.Application.Features.Roles.Queries.GetAllRoles
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<GetAllRolesQueryHandler> _logger;
+        private readonly ICurrentUserService _currentUserService;
 
-        public GetAllRolesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<GetAllRolesQueryHandler> logger)
+        public GetAllRolesQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<GetAllRolesQueryHandler> logger, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _currentUserService = currentUserService;
         }
 
         public async Task<PagedResult<RoleDto>> Handle(GetAllRolesQuery request, CancellationToken cancellationToken)
@@ -35,8 +38,9 @@ namespace Kickstart.Application.Features.Roles.Queries.GetAllRoles
             {
                 _logger.LogInformation("Getting roles with permissions (paged)...");
 
-                var roles = await _unitOfWork.Roles.GetRolesWithPermissionsPagedAsync(request.Page, request.PageSize, request.SearchTerm);
-                var totalCount = await _unitOfWork.Roles.GetRolesWithPermissionsCountAsync(request.SearchTerm);
+                var hideSuperAdmin = !_currentUserService.CanAccessAllTenants;
+                var roles = await _unitOfWork.Roles.GetRolesWithPermissionsPagedAsync(request.Page, request.PageSize, request.SearchTerm, hideSuperAdmin);
+                var totalCount = await _unitOfWork.Roles.GetRolesWithPermissionsCountAsync(request.SearchTerm, hideSuperAdmin);
                 var roleDtos = _mapper.Map<IEnumerable<RoleDto>>(roles);
                 var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
 

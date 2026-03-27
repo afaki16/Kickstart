@@ -32,7 +32,8 @@ namespace Kickstart.Application.Features.Admin.Queries.GetActiveUserCount
                 tenantId = _currentUserService.TenantId;
             }
 
-            var count = await _unitOfWork.RefreshTokens.GetActiveUserCountAsync(tenantId);
+            var excludeSuperAdmins = !_currentUserService.CanAccessAllTenants;
+            var count = await _unitOfWork.RefreshTokens.GetActiveUserCountAsync(tenantId, excludeSuperAdmins);
             return Result<int>.Success(count);
         }
     }

@@ -33,9 +33,10 @@ namespace Kickstart.Application.Features.Users.Queries.GetAllUsers
         {
             // SuperAdmin sees all tenants' users, Admin/User see only their tenant's users
             int? tenantId = _currentUserService.CanAccessAllTenants ? null : _currentUserService.TenantId;
+            var excludeSuperAdmins = !_currentUserService.CanAccessAllTenants;
 
-            var users = await _unitOfWork.Users.GetUsersWithRolesAsync(request.Page, request.PageSize, request.SearchTerm, tenantId);
-            var totalCount = await _unitOfWork.Users.GetUsersWithRolesCountAsync(request.SearchTerm, tenantId);
+            var users = await _unitOfWork.Users.GetUsersWithRolesAsync(request.Page, request.PageSize, request.SearchTerm, tenantId, excludeSuperAdmins);
+            var totalCount = await _unitOfWork.Users.GetUsersWithRolesCountAsync(request.SearchTerm, tenantId, excludeSuperAdmins);
             var userDtos = _mapper.Map<IEnumerable<UserListDto>>(users);
             var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
             return PagedResult<UserListDto>.Success(userDtos, request.Page, totalPages, totalCount);

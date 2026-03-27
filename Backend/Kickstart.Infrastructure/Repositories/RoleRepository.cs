@@ -1,5 +1,6 @@
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
+using Kickstart.Domain.Constants;
 using Kickstart.Domain.Entities;
 using Kickstart.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -46,12 +47,15 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Role>> GetRolesWithPermissionsPagedAsync(int page, int pageSize, string searchTerm = null)
+    public async Task<IEnumerable<Role>> GetRolesWithPermissionsPagedAsync(int page, int pageSize, string searchTerm = null, bool excludeSuperAdminRole = false)
     {
         var query = _context.Set<Role>()
             .Include(r => r.RolePermissions)
             .ThenInclude(rp => rp.Permission)
             .AsQueryable();
+
+        if (excludeSuperAdminRole)
+            query = query.Where(r => r.Name != RoleNames.SuperAdmin);
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
@@ -67,9 +71,12 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
             .ToListAsync();
     }
 
-    public async Task<int> GetRolesWithPermissionsCountAsync(string searchTerm = null)
+    public async Task<int> GetRolesWithPermissionsCountAsync(string searchTerm = null, bool excludeSuperAdminRole = false)
     {
         var query = _context.Set<Role>().AsQueryable();
+
+        if (excludeSuperAdminRole)
+            query = query.Where(r => r.Name != RoleNames.SuperAdmin);
 
         if (!string.IsNullOrEmpty(searchTerm))
         {

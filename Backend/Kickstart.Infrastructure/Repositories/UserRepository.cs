@@ -1,5 +1,6 @@
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
+using Kickstart.Domain.Constants;
 using Kickstart.Domain.Entities;
 using Kickstart.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -79,7 +80,7 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
         _context.UserRoles.Remove(userRole);
     }
 
-    public async Task<IEnumerable<User>> GetUsersWithRolesAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null)
+    public async Task<IEnumerable<User>> GetUsersWithRolesAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false)
     {
         var query = _context.Set<User>().Include(u => u.UserRoles).ThenInclude(ur => ur.Role).AsQueryable();
 
@@ -87,6 +88,9 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
         {
             query = query.Where(u => u.TenantId == tenantId.Value);
         }
+
+        if (excludeUsersWithSuperAdminRole)
+            query = query.Where(u => !u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
@@ -103,7 +107,7 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
             .ToListAsync();
     }
 
-    public async Task<int> GetUsersWithRolesCountAsync(string searchTerm = null, int? tenantId = null)
+    public async Task<int> GetUsersWithRolesCountAsync(string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false)
     {
         var query = _context.Set<User>().AsQueryable();
 
@@ -111,6 +115,9 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
         {
             query = query.Where(u => u.TenantId == tenantId.Value);
         }
+
+        if (excludeUsersWithSuperAdminRole)
+            query = query.Where(u => !u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
 
         if (!string.IsNullOrEmpty(searchTerm))
         {

@@ -1,6 +1,7 @@
 using Kickstart.Application.Features.Users.Commands.CreateUser;
 using Kickstart.Application.Features.Users.Commands.UpdateUser;
 using Kickstart.Application.Features.Users.Commands.DeleteUser;
+using Kickstart.Application.Common.Authorization;
 using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
@@ -30,7 +31,7 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
 
         public async Task<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
         {
-            var user = await _unitOfWork.Users.GetByIdAsync(request.Id);
+            var user = await _unitOfWork.Users.GetUserWithRolesAsync(request.Id);
 
             if (user == null)
                 return Result.Failure(Error.Failure(
@@ -39,6 +40,11 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
 
             // Admin/User can only delete users from their own tenant; SuperAdmin can delete any user
             if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
+                return Result.Failure(Error.Failure(
+                    ErrorCode.Forbidden,
+                    "You do not have access to delete this user"));
+
+            if (TenantAdminVisibility.IsHiddenFromTenantAdmin(_currentUserService, user))
                 return Result.Failure(Error.Failure(
                     ErrorCode.Forbidden,
                     "You do not have access to delete this user"));

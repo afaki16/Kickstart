@@ -34,7 +34,8 @@ namespace Kickstart.Application.Features.Admin.Queries.GetRevokableUsers
                 tenantId = _currentUserService.TenantId;
             }
 
-            var activeUserIds = (await _unitOfWork.RefreshTokens.GetActiveUserIdsAsync(tenantId)).ToList();
+            var excludeSuperAdmins = !_currentUserService.CanAccessAllTenants;
+            var activeUserIds = (await _unitOfWork.RefreshTokens.GetActiveUserIdsAsync(tenantId, excludeSuperAdmins)).ToList();
             if (activeUserIds.Count == 0)
                 return Result<IEnumerable<RevokableUserDto>>.Success(new List<RevokableUserDto>());
 
