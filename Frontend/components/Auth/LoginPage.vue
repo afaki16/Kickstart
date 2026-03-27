@@ -32,8 +32,12 @@
     <div class="right-panel">
       <div class="right-inner">
         <div class="form-header">
-          <div class="shield-icon">
-            <v-icon size="28" color="white">mdi-shield-account</v-icon>
+          <div class="form-header-logo">
+            <img
+              :src="logoSrc"
+              :alt="logoAlt"
+              class="form-header-logo-img"
+            />
           </div>
           <h1>{{ loginConfig?.texts?.welcome || 'Welcome back' }}</h1>
           <p>{{ loginConfig?.texts?.subtitle || 'Sign in to your account to continue' }}</p>
@@ -173,7 +177,10 @@ const props = withDefaults(defineProps<{
 const route = useRoute()
 const authStore = useAuthStore()
 const { validationRules } = useValidators()
-const { getBackgroundImages, getLoginConfig } = useAppData()
+const { getBackgroundImages, getLoginConfig, getLogo } = useAppData()
+
+const logoSrc = computed(() => getLogo.value?.src || '/favicon.ico')
+const logoAlt = computed(() => getLogo.value?.alt || 'Logo')
  
 const loginForm = ref()
 const isFormValid = ref(false)
@@ -404,29 +411,39 @@ onUnmounted(() => {
 /* Form Header */
 .form-header {
   margin-bottom: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
- 
-.shield-icon {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  background: var(--lp-gradient);
+
+.form-header-logo {
+  margin-bottom: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 24px;
-  box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3);
 }
- 
+
+.form-header-logo-img {
+  max-height: 56px;
+  width: auto;
+  max-width: min(220px, 100%);
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+
 .form-header h1 {
   font-size: 1.7rem;
   font-weight: 700;
   margin-bottom: 6px;
+  width: 100%;
 }
- 
+
 .form-header p {
   color: var(--lp-text-secondary);
   font-size: 0.92rem;
+  width: 100%;
 }
  
 /* Input Groups */
