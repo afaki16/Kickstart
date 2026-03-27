@@ -32,6 +32,18 @@ export const useValidators = () => {
       if (!value) return true // Optional field
       const pattern = /^[\+]?[1-9][\d]{0,15}$/
       return pattern.test(value) || 'Please enter a valid phone number'
+    },
+
+    /** Boşsa geçerli; doluysa e-posta formatı kontrol edilir */
+    optionalEmail: (value: string) => {
+      if (value === null || value === undefined || String(value).trim() === '') return true
+      return validationRules.email(value as string)
+    },
+
+    /** Boşsa geçerli; doluysa telefon formatı kontrol edilir */
+    optionalPhone: (value: string) => {
+      if (value === null || value === undefined || String(value).trim() === '') return true
+      return validationRules.phone(value)
     }
   }
   

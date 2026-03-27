@@ -15,45 +15,48 @@
     </button>
   </div>
 
-  <v-window v-model="currentTab" class="mt-6">
-    <!-- Tab 1: Temel Bilgiler -->
-    <v-window-item value="basic">
-      <v-container>
-        <v-row>
-          <v-col cols="12">
-            <v-text-field
-              v-model="formData.name"
-              label="Rol Adı"
-              placeholder="Örn: Yönetici, Editör, Doktor"
-              variant="outlined"
-              :disabled="loading || (role && role.isSystemRole)"
-              prepend-inner-icon="mdi-shield-account"
-              density="comfortable"
-              hide-details="auto"
-              class="modern-input"
-            />
-          </v-col>
-        </v-row>
+  <v-form ref="formRef">
+    <v-window v-model="currentTab" class="mt-6">
+      <!-- Tab 1: Temel Bilgiler -->
+      <v-window-item value="basic">
+        <v-container>
+          <v-row>
+            <v-col cols="12">
+              <v-text-field
+                v-model="formData.name"
+                label="Rol Adı"
+                placeholder="Örn: Yönetici, Editör, Doktor"
+                variant="outlined"
+                :disabled="loading || (role && role.isSystemRole)"
+                prepend-inner-icon="mdi-shield-account"
+                density="comfortable"
+                hide-details="auto"
+                :rules="[rules.required, rules.minLength(2)]"
+                class="modern-input"
+              />
+            </v-col>
+          </v-row>
 
-        <v-row>
-          <v-col cols="12">
-            <v-textarea
-              v-model="formData.description"
-              label="Açıklama"
-              placeholder="Bu rolün sorumluluklarını ve amacını açıklayın..."
-              variant="outlined"
-              :disabled="loading"
-              rows="3"
-              auto-grow
-              prepend-inner-icon="mdi-text"
-              density="comfortable"
-              hide-details="auto"
-              class="modern-input"
-            />
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-window-item>
+          <v-row>
+            <v-col cols="12">
+              <v-textarea
+                v-model="formData.description"
+                label="Açıklama"
+                placeholder="Bu rolün sorumluluklarını ve amacını açıklayın..."
+                variant="outlined"
+                :disabled="loading"
+                rows="3"
+                auto-grow
+                prepend-inner-icon="mdi-text"
+                density="comfortable"
+                hide-details="auto"
+                :rules="[rules.maxLength(2000)]"
+                class="modern-input"
+              />
+            </v-col>
+          </v-row>
+        </v-container>
+      </v-window-item>
 
     <!-- Tab 2: İzinler -->
     <v-window-item value="permissions">
@@ -167,34 +170,38 @@
         </v-row>
       </v-container>
     </v-window-item>
-  </v-window>
+    </v-window>
 
-  <!-- Modern Actions -->
-  <div class="form-actions">
-    <v-btn
-      variant="outlined"
-      size="large"
-      @click="$emit('cancel')"
-      :disabled="loading"
-      class="btn-gradient-dark"
-    >
-      İptal
-    </v-btn>
-    
-    <v-btn
-      size="large"
-      :loading="loading"
-      @click="handleSubmit"
-      class="btn-gradient-primary"
-    >
-      {{ role ? 'Güncelle' : 'Kaydet' }}
-    </v-btn>
-  </div>
+    <!-- Modern Actions -->
+    <div class="form-actions">
+      <v-btn
+        variant="outlined"
+        size="large"
+        @click="$emit('cancel')"
+        :disabled="loading"
+        class="btn-gradient-dark"
+      >
+        İptal
+      </v-btn>
+      
+      <v-btn
+        size="large"
+        :loading="loading"
+        :disabled="loading || !isFormValid"
+        @click="handleSubmit"
+        class="btn-gradient-primary"
+      >
+        {{ role ? 'Güncelle' : 'Kaydet' }}
+      </v-btn>
+    </div>
+  </v-form>
 </template>
 
 <script setup lang="ts">
 import type { Role, Permission, CreateRoleRequest, UpdateRoleRequest } from '~/types'
 import { onMounted, watchEffect, computed, reactive, ref } from 'vue'
+
+const { validationRules: rules } = useValidators()
 
 const props = defineProps<{
   role?: Role | null
@@ -207,9 +214,12 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
+const formRef = ref()
 const currentTab = ref('basic')
 const expandedResources = ref<string[]>([])
 const searchQuery = ref('')
+
+const isFormValid = computed(() => formRef.value?.isValid ?? false)
 
 const tabs = [
   { value: 'basic', label: 'Temel Bilgiler', icon: 'mdi-shield-account' },
@@ -299,6 +309,9 @@ const clearAllPermissions = () => {
 }
 
 const handleSubmit = async () => {
+  const { valid } = await formRef.value?.validate()
+  if (!valid) return
+
   const submitData = {
     name: formData.name,
     description: formData.description,

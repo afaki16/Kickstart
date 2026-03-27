@@ -15,68 +15,73 @@
     </button>
   </div>
 
-  <v-window v-model="currentTab" class="mt-6">
-    <!-- Tab 1: Kişisel Bilgiler -->
-    <v-window-item value="personal">
-      <v-container>
-        <v-row>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="formData.firstName"
-              label="Ad"
-              placeholder="Adınızı giriniz"
-              variant="outlined"
-              :disabled="loading"
-              prepend-inner-icon="mdi-account"
-              density="comfortable"
-              hide-details="auto"
-              class="modern-input"
-            />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="formData.lastName"
-              label="Soyad"
-              placeholder="Soyadınızı giriniz"
-              variant="outlined"
-              :disabled="loading"
-              prepend-inner-icon="mdi-account"
-              density="comfortable"
-              hide-details="auto"
-              class="modern-input"
-            />
-          </v-col>
-        </v-row>
+  <v-form ref="formRef">
+    <v-window v-model="currentTab" class="mt-6">
+      <!-- Tab 1: Kişisel Bilgiler -->
+      <v-window-item value="personal">
+        <v-container>
+          <v-row>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="formData.firstName"
+                label="Ad"
+                placeholder="Adınızı giriniz"
+                variant="outlined"
+                :disabled="loading"
+                prepend-inner-icon="mdi-account"
+                density="comfortable"
+                hide-details="auto"
+                :rules="[rules.required, rules.minLength(2)]"
+                class="modern-input"
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="formData.lastName"
+                label="Soyad"
+                placeholder="Soyadınızı giriniz"
+                variant="outlined"
+                :disabled="loading"
+                prepend-inner-icon="mdi-account"
+                density="comfortable"
+                hide-details="auto"
+                :rules="[rules.required, rules.minLength(2)]"
+                class="modern-input"
+              />
+            </v-col>
+          </v-row>
 
-        <v-row>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="formData.email"
-              label="E-posta"
-              placeholder="ornek@email.com"
-              variant="outlined"
-              :disabled="loading || !!user"
-              prepend-inner-icon="mdi-email"
-              density="comfortable"
-              hide-details="auto"
-              type="email"
-              class="modern-input"
-            />
-          </v-col>
-          <v-col cols="12" sm="6">
-            <v-text-field
-              v-model="formData.phoneNumber"
-              label="Telefon Numarası"
-              placeholder="5xxxxxxxxx"
-              variant="outlined"
-              :disabled="loading"
-              prepend-inner-icon="mdi-phone"
-              density="comfortable"
-              hide-details="auto"
-              type="tel"
-              class="modern-input"
-            />
-          </v-col>
+          <v-row>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="formData.email"
+                label="E-posta"
+                placeholder="ornek@email.com"
+                variant="outlined"
+                :disabled="loading || !!user"
+                prepend-inner-icon="mdi-email"
+                density="comfortable"
+                hide-details="auto"
+                type="email"
+                :rules="[rules.required, rules.email]"
+                class="modern-input"
+              />
+            </v-col>
+            <v-col cols="12" sm="6">
+              <v-text-field
+                v-model="formData.phoneNumber"
+                label="Telefon Numarası"
+                placeholder="5xxxxxxxxx"
+                variant="outlined"
+                :disabled="loading"
+                prepend-inner-icon="mdi-phone"
+                density="comfortable"
+                hide-details="auto"
+                type="tel"
+                :rules="[rules.required, rules.phone]"
+                class="modern-input"
+              />
+            </v-col>
           <!-- Tenant seçici: Sadece SuperAdmin yeni kullanıcı oluştururken -->
           <v-col v-if="!user && canAccessAllTenants" cols="12" sm="6">
             <v-select
@@ -150,6 +155,7 @@
               @click:append-inner="showPassword = !showPassword"
               density="comfortable"
               hide-details="auto"
+              :rules="[rules.password]"
               class="modern-input"
             />
           </v-col>
@@ -169,6 +175,7 @@
               @click:append-inner="showConfirmPassword = !showConfirmPassword"
               density="comfortable"
               hide-details="auto"
+              :rules="[rules.confirmPassword(formData.password)]"
               class="modern-input"
             />
           </v-col>
@@ -268,34 +275,38 @@
         </v-row>
       </v-container>
     </v-window-item>
-  </v-window>
+    </v-window>
 
-  <!-- Modern Actions -->
-  <div class="form-actions">
-    <v-btn
-      variant="outlined"
-      size="large"
-      @click="$emit('cancel')"
-      :disabled="loading"
-      class="btn-gradient-dark"
-    >
-      İptal
-    </v-btn>
-    
-    <v-btn
-      size="large"
-      :loading="loading"
-      @click="handleSubmit"
-      class="btn-gradient-primary"
-    >
-      {{ user ? 'Güncelle' : 'Kaydet' }}
-    </v-btn>
-  </div>
+    <!-- Modern Actions -->
+    <div class="form-actions">
+      <v-btn
+        variant="outlined"
+        size="large"
+        @click="$emit('cancel')"
+        :disabled="loading"
+        class="btn-gradient-dark"
+      >
+        İptal
+      </v-btn>
+      
+      <v-btn
+        size="large"
+        :loading="loading"
+        :disabled="loading || !isFormValid"
+        @click="handleSubmit"
+        class="btn-gradient-primary"
+      >
+        {{ user ? 'Güncelle' : 'Kaydet' }}
+      </v-btn>
+    </div>
+  </v-form>
 </template>
 
 <script setup lang="ts">
 import type { User, Role, CreateUserRequest, UpdateUserRequest } from '~/types'
 import { computed, reactive, ref, watch, watchEffect, onMounted } from 'vue'
+
+const { validationRules: rules } = useValidators()
 
 const props = defineProps<{
   user?: User | null
@@ -314,10 +325,13 @@ const emit = defineEmits<{
   'update:selected-roles': [roleIds: string[]]
 }>()
 
+const formRef = ref()
 const currentTab = ref('personal')
 const searchQuery = ref('')
 const showPassword = ref(false)
 const showConfirmPassword = ref(false)
+
+const isFormValid = computed(() => formRef.value?.isValid ?? false)
 
 const tabs = computed(() => {
   const baseTabs = [
@@ -374,6 +388,9 @@ const clearAllRoles = () => {
 }
 
 const handleSubmit = async () => {
+  const { valid } = await formRef.value?.validate()
+  if (!valid) return
+
   const submitData: any = {
     firstName: formData.firstName,
     lastName: formData.lastName,

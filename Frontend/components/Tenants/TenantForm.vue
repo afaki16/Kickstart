@@ -12,7 +12,7 @@
             prepend-inner-icon="mdi-domain"
             density="comfortable"
             hide-details="auto"
-            :rules="[rules.required]"
+            :rules="[rules.required, rules.minLength(2)]"
             class="modern-input"
           />
         </v-col>
@@ -29,6 +29,7 @@
             prepend-inner-icon="mdi-web"
             density="comfortable"
             hide-details="auto"
+            :rules="[rules.required, rules.minLength(2)]"
             class="modern-input"
           />
         </v-col>
@@ -47,6 +48,7 @@
             prepend-inner-icon="mdi-text"
             density="comfortable"
             hide-details="auto"
+            :rules="[rules.maxLength(2000)]"
             class="modern-input"
           />
         </v-col>
@@ -64,6 +66,7 @@
             density="comfortable"
             hide-details="auto"
             type="email"
+            :rules="[rules.optionalEmail]"
             class="modern-input"
           />
         </v-col>
@@ -78,6 +81,7 @@
             density="comfortable"
             hide-details="auto"
             type="tel"
+            :rules="[rules.optionalPhone]"
             class="modern-input"
           />
         </v-col>
@@ -110,6 +114,7 @@
       <v-btn
         size="large"
         :loading="loading"
+        :disabled="loading || !isFormValid"
         type="submit"
         class="btn-gradient-primary"
       >
@@ -121,7 +126,7 @@
 
 <script setup lang="ts">
 import type { Tenant, CreateTenantRequest, UpdateTenantRequest } from '~/types'
-import { ref, reactive, watch } from 'vue'
+import { ref, reactive, watch, computed } from 'vue'
 
 const props = defineProps<{
   tenant?: Tenant | null
@@ -133,6 +138,8 @@ const emit = defineEmits<{
   cancel: []
 }>()
 
+const { validationRules: rules } = useValidators()
+
 const formRef = ref()
 const formData = reactive<CreateTenantRequest>({
   name: '',
@@ -143,9 +150,7 @@ const formData = reactive<CreateTenantRequest>({
   contactPhone: '',
 })
 
-const rules = {
-  required: (v: unknown) => !!v || 'Bu alan zorunludur',
-}
+const isFormValid = computed(() => formRef.value?.isValid ?? false)
 
 watch(
   () => props.tenant,
