@@ -1,31 +1,47 @@
 import type { ApiResponse } from '~/types'
+import { useToastStore } from '~/stores/toast'
 
 export const useApi = () => {
   const { $api } = useNuxtApp()
-
+  const toastStore = useToastStore()
 
   const handleApiError = (error: any) => {
-    console.error('API Error:', error)
-    console.error('Response Status:', error.response?.status)
-    console.error('Response Data:', error.response?.data)
-    console.error('Response Headers:', error.response?.headers)
-    
-    if (error.response?.data?.errors) {
-      // Multiple validation errors
-      error.response.data.errors.forEach((err: string) => {
-        
-      })
-    } else if (error.response?.data?.error) {
-      // Single error message
-    } else if (error.response?.data?.message) {
-      // API error message
-    } else if (error.response?.data) {
-      // Any other error data
-    } else if (error.message) {
-      // Network or other errors
-    } else {
+    const data = error?.response?.data ?? error?.data
+
+    if (!data) {
+      toastStore.add('error', error?.message || 'An unexpected error occurred')
+      throw error
     }
-    
+
+    const collected: string[] = []
+
+    if (data.error?.errors && typeof data.error.errors === 'object') {
+      for (const field of Object.values(data.error.errors) as any[]) {
+        if (Array.isArray(field)) {
+          collected.push(...field)
+        } else if (typeof field === 'string') {
+          collected.push(field)
+        }
+      }
+    }
+
+    if (collected.length === 0 && Array.isArray(data.errors)) {
+      collected.push(...data.errors)
+    }
+
+    if (collected.length === 0 && typeof data.error === 'string') {
+      collected.push(data.error)
+    }
+
+    if (collected.length === 0 && data.message) {
+      collected.push(data.message)
+    }
+
+    if (collected.length === 0) {
+      collected.push('An unexpected error occurred')
+    }
+
+    toastStore.add('error', collected)
     throw error
   }
 
@@ -76,4 +92,4 @@ export const useApi = () => {
     delete: del,
     handleApiError
   }
-} 
+}

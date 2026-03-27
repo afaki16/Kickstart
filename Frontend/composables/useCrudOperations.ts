@@ -1,4 +1,6 @@
 // composables/useCrudOperations.ts
+import { useToastStore } from '~/stores/toast'
+
 export const useCrudOperations = (config) => {
   const {
     loadItems,
@@ -21,6 +23,7 @@ export const useCrudOperations = (config) => {
   } = config
 
   const dialogManager = useDialogManager()
+  const toastStore = useToastStore()
   const items = ref([])
   const isLoading = ref(false)
   const isDeleting = ref(false)
@@ -107,23 +110,16 @@ export const useCrudOperations = (config) => {
       
       if (dialogManager.isEditMode.value && dialogManager.selectedItem.value) {
         await updateItem(dialogManager.selectedItem.value.id, itemData)
-        // TODO: Toast message ekle
-        // await $toast.success(toastMessages.updateSuccess)
+        toastStore.add('success', toastMessages.updateSuccess)
       } else {
         await createItem(itemData)
-        // TODO: Toast message ekle
-        // await $toast.success(toastMessages.createSuccess)
+        toastStore.add('success', toastMessages.createSuccess)
       }
       
       dialogManager.closeCreateDialog()
       await loadItemsData(currentPage.value, pageSize.value, searchTerm.value)
     } catch (error) {
-      const errorMessage = dialogManager.isEditMode.value 
-        ? toastMessages.updateError 
-        : toastMessages.createError
       console.error(`Error submitting ${itemName}:`, error)
-      // TODO: Toast message ekle
-      // await $toast.error(errorMessage)
     } finally {
       isLoading.value = false
     }
@@ -138,12 +134,9 @@ export const useCrudOperations = (config) => {
       await deleteItem(dialogManager.itemToDelete.value.id)
       await loadItemsData(currentPage.value, pageSize.value, searchTerm.value)
       dialogManager.closeDeleteDialog()
-      // TODO: Toast message ekle
-      // await $toast.success(toastMessages.deleteSuccess)
+      toastStore.add('success', toastMessages.deleteSuccess)
     } catch (error) {
       console.error(`Error deleting ${itemName}:`, error)
-      // TODO: Toast message ekle
-      // await $toast.error(toastMessages.deleteError)
     } finally {
       isDeleting.value = false
     }

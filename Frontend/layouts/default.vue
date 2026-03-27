@@ -203,6 +203,8 @@
         <slot />
       </main>
     </div>
+
+    <AppToast />
   </div>
 </template>
 
@@ -212,6 +214,7 @@ import { navigationItems, filterNavigationByPermissions } from '~/composables/us
 import { useAuth } from '~/composables/useAuth'
 import { useAppData } from '~/composables/useAppData'
 import { useAuthStore } from '~/stores/auth'
+import AppToast from '~/components/UI/AppToast.vue'
 
 import { useDisplay } from 'vuetify'
 

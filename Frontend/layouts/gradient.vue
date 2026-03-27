@@ -83,7 +83,7 @@
           </div>
           <div v-if="isSidebarOpen" class="flex-1 min-w-0 text-left">
             <div class="text-sm font-semibold text-white truncate">{{ userInfo.name || 'Kullanıcı Adı' }}</div>
-            <div class="text-xs text-white/60 truncate">{{ userInfo.email || 'admin@theetify.com' }}</div>
+            <div class="text-xs text-white/60 truncate">{{ userInfo.email || 'admin@kickstart.com' }}</div>
           </div>
           <svg v-if="isSidebarOpen" class="w-4 h-4 text-white/60 transition-transform duration-200" :class="{ 'rotate-180': showUserMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
@@ -156,6 +156,8 @@
         <slot />
       </main>
     </div>
+
+    <AppToast />
   </div>
 </template>
 
@@ -165,6 +167,7 @@ import { navigationItems, filterNavigationByPermissions } from '~/composables/us
 import { useAuth } from '~/composables/useAuth'
 import { useAppData } from '~/composables/useAppData'
 import { useAuthStore } from '~/stores/auth'
+import AppToast from '~/components/UI/AppToast.vue'
 
 const isSidebarOpen = ref(true)
 const showUserMenu = ref(false)
