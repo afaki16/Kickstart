@@ -61,7 +61,7 @@ export const useAuth = () => {
         deviceName: credentials.deviceName || getDeviceName()
       }
       
-      const response = await api.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, requestData)
+      const response = await api.post<LoginResponse>(API_ENDPOINTS.AUTH.LOGIN, requestData, { silent: true })
       
       // Farklı response formatlarını destekle
       let loginData = null

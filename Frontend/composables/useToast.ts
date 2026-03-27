@@ -1,4 +1,5 @@
 import type { ToastType } from '~/stores/toast'
+import { parseApiErrorMessages } from '~/utils/apiError'
 
 interface ToastOptions {
   title?: string
@@ -30,42 +31,7 @@ export const useToast = () => {
    *  - { message: "msg" }
    */
   const showApiError = (error: any, fallbackMessage = 'An unexpected error occurred') => {
-    const data = error?.response?.data ?? error?.data
-
-    if (!data) {
-      store.add('error', error?.message || fallbackMessage)
-      return
-    }
-
-    const collected: string[] = []
-
-    if (data.error?.errors && typeof data.error.errors === 'object') {
-      for (const field of Object.values(data.error.errors) as any[]) {
-        if (Array.isArray(field)) {
-          collected.push(...field)
-        } else if (typeof field === 'string') {
-          collected.push(field)
-        }
-      }
-    }
-
-    if (collected.length === 0 && Array.isArray(data.errors)) {
-      collected.push(...data.errors)
-    }
-
-    if (collected.length === 0 && typeof data.error === 'string') {
-      collected.push(data.error)
-    }
-
-    if (collected.length === 0 && data.message) {
-      collected.push(data.message)
-    }
-
-    if (collected.length === 0) {
-      collected.push(fallbackMessage)
-    }
-
-    store.add('error', collected)
+    store.add('error', parseApiErrorMessages(error, fallbackMessage))
   }
 
   return {

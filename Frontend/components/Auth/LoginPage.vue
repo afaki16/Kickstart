@@ -50,6 +50,24 @@
         >
           Your session has expired. Please sign in again.
         </v-alert>
+
+        <!-- Login API errors (from /api/auth/login) -->
+        <v-alert
+          v-if="loginApiErrors.length > 0"
+          type="error"
+          variant="tonal"
+          class="mb-6 login-api-error-alert"
+          closable
+          density="compact"
+          @click:close="loginApiErrors = []"
+        >
+          <template v-if="loginApiErrors.length === 1">
+            {{ loginApiErrors[0] }}
+          </template>
+          <ul v-else class="login-api-error-list">
+            <li v-for="(msg, i) in loginApiErrors" :key="i">{{ msg }}</li>
+          </ul>
+        </v-alert>
  
         <v-form ref="loginForm" v-model="isFormValid" @submit.prevent="handleLogin">
           <div class="input-group">
@@ -138,6 +156,7 @@
  
 <script setup lang="ts">
 import type { LoginRequest } from '~/types'
+import { parseApiErrorMessages } from '~/utils/apiError'
  
 const props = withDefaults(defineProps<{
   showRegister?: boolean
@@ -153,6 +172,7 @@ const { getBackgroundImages, getLoginConfig } = useAppData()
 const loginForm = ref()
 const isFormValid = ref(false)
 const showPassword = ref(false)
+const loginApiErrors = ref<string[]>([])
 const currentImageIndex = ref(0)
  
 const backgroundImages = computed(() => getBackgroundImages.value || [])
@@ -183,10 +203,12 @@ const nextSlide = () => {
 // ── Login Handler ──
 const handleLogin = async () => {
   if (!isFormValid.value) return
+  loginApiErrors.value = []
   try {
     await useAuth().login(form)
   } catch (error) {
     console.error('Login failed:', error)
+    loginApiErrors.value = parseApiErrorMessages(error)
   }
 }
  
@@ -440,6 +462,24 @@ onUnmounted(() => {
 /* Expired Alert */
 .expired-alert :deep(.v-alert) {
   border-radius: 12px !important;
+}
+
+.login-api-error-alert :deep(.v-alert) {
+  border-radius: 12px !important;
+}
+
+.login-api-error-list {
+  margin: 0;
+  padding-left: 1.1rem;
+  list-style: disc;
+}
+
+.login-api-error-list li {
+  margin-top: 0.25rem;
+}
+
+.login-api-error-list li:first-child {
+  margin-top: 0;
 }
  
 /* Options Row */
