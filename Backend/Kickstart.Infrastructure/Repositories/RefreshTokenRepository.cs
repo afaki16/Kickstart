@@ -2,6 +2,7 @@ using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Domain.Entities;
 using Kickstart.Infrastructure.Persistence;
+using Kickstart.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -18,9 +19,13 @@ namespace Kickstart.Infrastructure.Repositories
 
         public async Task<RefreshToken> GetByTokenAsync(string token)
         {
+            if (string.IsNullOrEmpty(token))
+                return null;
+
+            var tokenHash = RefreshTokenHasher.Hash(token);
             return await GetQueryable()
                 .Include(rt => rt.User)
-                .FirstOrDefaultAsync(rt => rt.Token == token);
+                .FirstOrDefaultAsync(rt => rt.Token == tokenHash);
         }
 
         public async Task<RefreshToken> GetActiveTokenByUserIdAsync(int userId)

@@ -38,10 +38,55 @@
           clearable
           hide-details
           density="comfortable"
-          @update:model-value="() => { loadActiveCount(); loadUsers(); }"
+          @update:model-value="() => { loadActiveCount(); loadUsers(); loadActiveUsers(); }"
         />
       </v-col>
     </v-row>
+
+    <!-- Tüm tenantlar: çevrimiçi kullanıcılar -->
+    <v-card variant="outlined" class="mb-4">
+      <v-card-title class="d-flex align-center flex-wrap ga-2">
+        <v-icon class="mr-2">mdi-account-multiple-check-outline</v-icon>
+        Şu an çevrimiçi kullanıcılar
+        <v-spacer />
+        <v-btn
+          size="small"
+          variant="text"
+          prepend-icon="mdi-refresh"
+          :loading="loadingActiveUsers"
+          @click="loadActiveUsers"
+        >
+          Yenile
+        </v-btn>
+      </v-card-title>
+      <v-card-text>
+        <p class="text-body-2 text-medium-emphasis mb-4">
+          En az bir geçerli oturumu olan kullanıcılar. Üstteki tenant filtresi bu tabloya da uygulanır; boş bırakıldığında tüm tenant'lar gösterilir.
+        </p>
+        <v-progress-linear v-if="loadingActiveUsers" indeterminate class="mb-2" />
+        <v-table v-else-if="activeUsers.length" density="comfortable" class="active-users-table">
+          <thead>
+            <tr>
+              <th class="text-left">Tenant</th>
+              <th class="text-left">Ad Soyad</th>
+              <th class="text-left">E-posta</th>
+              <th class="text-left">Oturum sayısı</th>
+              <th class="text-left">Son aktivite</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in activeUsers" :key="row.userId + '-' + (row.tenantId ?? 'x')">
+              <td>{{ row.tenantName || '—' }}</td>
+              <td>{{ row.fullName }}</td>
+              <td>{{ row.email }}</td>
+              <td>{{ row.activeSessionCount }}</td>
+              <td>{{ formatActivity(row.lastActivityAt) }}</td>
+            </tr>
+          </tbody>
+        </v-table>
+        <p v-else class="text-body-2 text-medium-emphasis">Şu anda çevrimiçi kullanıcı yok.</p>
+      </v-card-text>
+    </v-card>
 
     <!-- Revoke User Sessions -->
     <v-card variant="outlined" class="mb-4">
@@ -92,8 +137,10 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { dateTimeFormat } from '~/utils/datesFormat'
+import type { ActiveUserSnapshot } from '~/composables/useSettings'
 
-const { getActiveUserCount, getRevokableUsers, revokeUserSessions } = useSettings()
+const { getActiveUserCount, getActiveUsersSnapshot, getRevokableUsers, revokeUserSessions } = useSettings()
 const { getTenants } = useTenants()
 
 const activeUserCount = ref<number>(0)
@@ -104,6 +151,13 @@ const users = ref<Array<{ id: number; fullName: string; email: string }>>([])
 const loadingUsers = ref(false)
 const selectedUser = ref<number | null>(null)
 const revoking = ref(false)
+const activeUsers = ref<ActiveUserSnapshot[]>([])
+const loadingActiveUsers = ref(false)
+
+const formatActivity = (iso: string | null) => {
+  if (!iso) return '—'
+  return dateTimeFormat(iso)
+}
 
 const tenantOptions = computed(() => [
   { label: 'Tüm tenant\'lar', value: null },
@@ -143,13 +197,24 @@ const loadUsers = async () => {
   }
 }
 
+const loadActiveUsers = async () => {
+  loadingActiveUsers.value = true
+  try {
+    activeUsers.value = await getActiveUsersSnapshot(selectedTenantId.value ?? undefined)
+  } catch {
+    activeUsers.value = []
+  } finally {
+    loadingActiveUsers.value = false
+  }
+}
+
 const revokeSessions = async () => {
   if (!selectedUser.value) return
   revoking.value = true
   try {
     await revokeUserSessions(selectedUser.value, 'SuperAdmin tarafından çıkış yaptırıldı')
     selectedUser.value = null
-    await loadActiveCount()
+    await Promise.all([loadActiveCount(), loadUsers(), loadActiveUsers()])
   } finally {
     revoking.value = false
   }
@@ -157,7 +222,7 @@ const revokeSessions = async () => {
 
 onMounted(async () => {
   await loadTenants()
-  await Promise.all([loadActiveCount(), loadUsers()])
+  await Promise.all([loadActiveCount(), loadUsers(), loadActiveUsers()])
 })
 </script>
 
@@ -180,5 +245,10 @@ onMounted(async () => {
 
 .stat-card {
   border-radius: 12px;
+}
+
+.active-users-table th {
+  font-weight: 600;
+  white-space: nowrap;
 }
 </style>

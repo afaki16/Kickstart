@@ -1,5 +1,7 @@
 using Kickstart.Application.Interfaces;
 using Kickstart.Application.Features.Auth.Dtos;
+using Kickstart.Application.Features.Auth.Models;
+using Kickstart.Infrastructure.Security;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -98,8 +100,8 @@ namespace Kickstart.Infrastructure.Services
             var response = new LoginResponseDto
             {
                 AccessToken = accessTokenResult.Value,
-                RefreshToken = refreshTokenResult.Value.Token,
-                ExpiresAt = refreshTokenResult.Value.ExpiryDate,
+                RefreshToken = refreshTokenResult.Value.PlainToken,
+                ExpiresAt = refreshTokenResult.Value.Stored.ExpiryDate,
                 User = new Application.Features.Users.Dtos.UserDto
                 {
                     Id = user.Id,
@@ -202,7 +204,7 @@ namespace Kickstart.Infrastructure.Services
              }
     }
 
-        public async Task<Result<RefreshToken>> GenerateRefreshTokenAsync(User user, string ipAddress, string userAgent, string deviceId = null, string deviceName = null, bool rememberMe = false, DateTime? preserveExpiryDate = null)
+        public async Task<Result<RefreshTokenIssueResult>> GenerateRefreshTokenAsync(User user, string ipAddress, string userAgent, string deviceId = null, string deviceName = null, bool rememberMe = false, DateTime? preserveExpiryDate = null)
         {
             try
             {
@@ -229,10 +231,13 @@ namespace Kickstart.Infrastructure.Services
                 using var rng = RandomNumberGenerator.Create();
                 rng.GetBytes(randomBytes);
 
+                var plainToken = Convert.ToBase64String(randomBytes);
+                var tokenHash = RefreshTokenHasher.Hash(plainToken);
+
                 var refreshToken = new RefreshToken
                 {
                     UserId = user.Id,
-                    Token = Convert.ToBase64String(randomBytes),
+                    Token = tokenHash,
                     ExpiryDate = expiryDate,
                     IpAddress = ipAddress,
                     UserAgent = userAgent,
@@ -245,11 +250,15 @@ namespace Kickstart.Infrastructure.Services
                 await _unitOfWork.RefreshTokens.AddAsync(refreshToken);
                 await _unitOfWork.SaveChangesAsync();
 
-               return Result<RefreshToken>.Success(refreshToken);
+                return Result<RefreshTokenIssueResult>.Success(new RefreshTokenIssueResult
+                {
+                    Stored = refreshToken,
+                    PlainToken = plainToken
+                });
         }
             catch (Exception ex)
             {
-              return Result<RefreshToken>.Failure(Error.Failure(ErrorCode.ValidationFailed, $"Error generating refresh token: {ex.Message}"));
+              return Result<RefreshTokenIssueResult>.Failure(Error.Failure(ErrorCode.ValidationFailed, $"Error generating refresh token: {ex.Message}"));
              }
     }
 
@@ -310,19 +319,24 @@ namespace Kickstart.Infrastructure.Services
                     ErrorCode.NotFound,
                     "User not found"));
 
-            // Revoke old refresh token
-            storedRefreshToken.IsRevoked = true;
+            storedRefreshToken.Revoke(ipAddress, userAgent, "Token rotated");
             _unitOfWork.RefreshTokens.Update(storedRefreshToken);
+            await _unitOfWork.SaveChangesAsync();
 
-            // Generate new tokens
-            // Generate new tokens
             var newAccessTokenResult = await GenerateAccessTokenAsync(user);
             if (!newAccessTokenResult.IsSuccess)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,
                     "Failed to generate access token"));
 
-            var newRefreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent, preserveExpiryDate: storedRefreshToken.ExpiryDate);
+            var newRefreshTokenResult = await GenerateRefreshTokenAsync(
+                user,
+                ipAddress,
+                userAgent,
+                storedRefreshToken.DeviceId,
+                storedRefreshToken.DeviceName,
+                rememberMe: false,
+                preserveExpiryDate: storedRefreshToken.ExpiryDate);
             if (!newRefreshTokenResult.IsSuccess)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,
@@ -331,8 +345,8 @@ namespace Kickstart.Infrastructure.Services
             var response = new LoginResponseDto
             {
                 AccessToken = newAccessTokenResult.Value,
-                RefreshToken = newRefreshTokenResult.Value.Token,
-                ExpiresAt = newRefreshTokenResult.Value.ExpiryDate,
+                RefreshToken = newRefreshTokenResult.Value.PlainToken,
+                ExpiresAt = newRefreshTokenResult.Value.Stored.ExpiryDate,
                 User = new Application.Features.Users.Dtos.UserDto
                 {
                     Id = user.Id,

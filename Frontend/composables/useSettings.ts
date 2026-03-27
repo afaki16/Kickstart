@@ -1,6 +1,16 @@
 import { API_ENDPOINTS } from '~/utils/apiEndpoints'
 import { useApi } from './useApi'
 
+export interface ActiveUserSnapshot {
+  userId: number
+  fullName: string
+  email: string
+  tenantId: number | null
+  tenantName: string | null
+  activeSessionCount: number
+  lastActivityAt: string | null
+}
+
 export const useSettings = () => {
   const api = useApi()
 
@@ -20,9 +30,20 @@ export const useSettings = () => {
   }
 
   /**
-   * Get users that can be revoked (active sessions only, SuperAdmin excluded).
-   * For the remote logout dropdown.
+   * Tablo: en az bir geçerli oturumu (refresh token) olan kullanıcılar.
+   * Admin: sadece kendi tenant'ı. SuperAdmin: tüm tenant'lar veya tenantId ile filtre.
    */
+  const getActiveUsersSnapshot = async (tenantId?: number | null): Promise<ActiveUserSnapshot[]> => {
+    try {
+      const params = tenantId != null ? `?tenantId=${tenantId}` : ''
+      const response = await api.get<ActiveUserSnapshot[]>(`${API_ENDPOINTS.ADMIN.ACTIVE_USERS}${params}`)
+      return response?.data ?? []
+    } catch (error) {
+      console.error('Get active users snapshot error:', error)
+      throw error
+    }
+  }
+
   const getRevokableUsers = async (tenantId?: number | null): Promise<Array<{ id: number; fullName: string; email: string }>> => {
     try {
       const params = tenantId != null ? `?tenantId=${tenantId}` : ''
@@ -49,6 +70,7 @@ export const useSettings = () => {
 
   return {
     getActiveUserCount,
+    getActiveUsersSnapshot,
     getRevokableUsers,
     revokeUserSessions
   }

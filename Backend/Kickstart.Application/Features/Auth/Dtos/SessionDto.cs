@@ -4,6 +4,9 @@ namespace Kickstart.Application.Features.Auth.Dtos
 {
     public class SessionDto
     {
+        public int Id { get; set; }
+
+        /// <summary>Masked fingerprint for UI (not the refresh secret).</summary>
         public string Token { get; set; }
         public DateTime CreatedDate { get; set; }
         public DateTime ExpiryDate { get; set; }

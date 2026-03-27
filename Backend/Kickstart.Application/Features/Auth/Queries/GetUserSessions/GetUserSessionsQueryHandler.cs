@@ -31,7 +31,10 @@ namespace Kickstart.Application.Features.Auth.Queries.GetUserSessions
                 
                 var sessions = tokens.Select(token => new SessionDto
                 {
-                    Token = token.Token,
+                    Id = token.Id,
+                    Token = !string.IsNullOrEmpty(token.Token) && token.Token.Length >= 8
+                        ? "••••" + token.Token[^8..]
+                        : "••••••••",
                     CreatedDate = token.CreatedDate,
                     ExpiryDate = token.ExpiryDate,
                     IsActive = token.IsActive,

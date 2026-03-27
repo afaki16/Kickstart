@@ -75,13 +75,13 @@ useHead({
 //#region Auth & Tabs
 const authStore = useAuthStore()
 
-const showAdminTab = computed(() => authStore.hasRole('Admin') || authStore.hasRole('SuperAdmin'))
+// Tenant Ayarları: sadece Admin rolü (SuperAdmin ayrı sekme; yoksa yanlışlıkla tenant-scope UI görünür)
+const showAdminTab = computed(() => authStore.hasRole('Admin'))
 const showSuperAdminTab = computed(() => authStore.hasRole('SuperAdmin'))
 
-// Birden fazla sekme varsa tab kullan
+// Hem Admin hem SuperAdmin atanmış kullanıcıda iki sekme
 const hasMultipleTabs = computed(() => showAdminTab.value && showSuperAdminTab.value)
 
-// SuperAdmin ise varsayılan SuperAdmin tab, Admin ise Admin tab
 const activeTab = ref<'admin' | 'superadmin'>('admin')
 
 watch([showAdminTab, showSuperAdminTab], ([admin, superAdmin]) => {

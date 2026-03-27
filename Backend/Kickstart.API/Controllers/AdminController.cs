@@ -1,4 +1,5 @@
 using Kickstart.Application.Features.Admin.Queries.GetActiveUserCount;
+using Kickstart.Application.Features.Admin.Queries.GetActiveUsersSnapshot;
 using Kickstart.Application.Features.Admin.Queries.GetRevokableUsers;
 using Kickstart.Application.Features.Admin.Commands.RevokeUserSessions;
 using MediatR;
@@ -33,6 +34,21 @@ namespace Kickstart.API.Controllers
         public async Task<IActionResult> GetActiveUserCount([FromQuery] int? tenantId = null)
         {
             var query = new GetActiveUserCountQuery { TenantId = tenantId };
+            var result = await _mediator.Send(query);
+            return HandleResult(result);
+        }
+
+        /// <summary>
+        /// Users with at least one active refresh token (session), as a table row per user.
+        /// Admin: own tenant only. SuperAdmin: all tenants, optional tenantId filter.
+        /// </summary>
+        [HttpGet("active-users")]
+        [ProducesResponseType(typeof(object), 200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(403)]
+        public async Task<IActionResult> GetActiveUsersSnapshot([FromQuery] int? tenantId = null)
+        {
+            var query = new GetActiveUsersSnapshotQuery { TenantId = tenantId };
             var result = await _mediator.Send(query);
             return HandleResult(result);
         }

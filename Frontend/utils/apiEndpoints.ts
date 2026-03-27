@@ -56,6 +56,7 @@ export const API_ENDPOINTS = {
   // Admin endpoints (Admin/SuperAdmin only)
   ADMIN: {
     ACTIVE_USERS_COUNT: '/api/admin/active-users-count',
+    ACTIVE_USERS: '/api/admin/active-users',
     REVOKABLE_USERS: '/api/admin/revokable-users',
     REVOKE_USER_SESSIONS: (userId: number) => `/api/admin/users/${userId}/revoke-sessions`
   },

@@ -119,9 +119,9 @@ namespace Kickstart.Application.Features.Mappings;
                 .ForMember(dest => dest.CreatedDate, opt => opt.MapFrom(src => src.Role.CreatedDate))
                 .ForMember(dest => dest.Permissions, opt => opt.Ignore());
 
-            // RefreshToken mappings
+            // RefreshToken mappings (plaintext secret is never on the entity; use JwtService / PlainToken)
             CreateMap<RefreshToken, LoginResponseDto>()
-                .ForMember(dest => dest.RefreshToken, opt => opt.MapFrom(src => src.Token))
+                .ForMember(dest => dest.RefreshToken, opt => opt.Ignore())
                 .ForMember(dest => dest.ExpiresAt, opt => opt.MapFrom(src => src.ExpiryDate))
                 .ForMember(dest => dest.AccessToken, opt => opt.Ignore())
                 .ForMember(dest => dest.User, opt => opt.Ignore());
