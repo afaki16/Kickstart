@@ -133,6 +133,13 @@ if [ -d "$SCRIPT_DIR/.template.config" ]; then
     ok ".template.config silindi"
 fi
 
+# EF Core migrations (yeni projede tek InitialCreate ile baslamak icin)
+MIGRATIONS_DIR="$SCRIPT_DIR/Backend/$PROJECT_NAME.Infrastructure/Migrations"
+if [ -d "$MIGRATIONS_DIR" ]; then
+    rm -rf "$MIGRATIONS_DIR"
+    ok "Migrations klasoru silindi (dotnet ef migrations add InitialCreate ...)"
+fi
+
 # Setup script'lerini sil
 rm -f "$SCRIPT_DIR/setup.ps1" 2>/dev/null || true
 

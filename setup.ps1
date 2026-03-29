@@ -150,6 +150,13 @@ if (Test-Path $templateConfig) {
     Write-Ok ".template.config silindi"
 }
 
+# EF Core migrations (yeni projede tek InitialCreate ile baslamak icin)
+$migrationsPath = Join-Path $ScriptRoot "Backend\$ProjectName.Infrastructure\Migrations"
+if (Test-Path $migrationsPath) {
+    Remove-Item -Path $migrationsPath -Recurse -Force
+    Write-Ok "Migrations klasoru silindi (dotnet ef migrations add InitialCreate ...)"
+}
+
 # Setup script'lerini sil
 $setupFiles = @("setup.ps1", "setup.sh")
 foreach ($f in $setupFiles) {
