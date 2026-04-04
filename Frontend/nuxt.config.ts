@@ -43,7 +43,6 @@ export default defineNuxtConfig({
       apiBase: process.env.API_BASE_URL || 'https://localhost:44333',
       appName: 'Kickstart',
       appVersion: '1.0.0',
-      /** Varsayılan layout: default | gradient */
       defaultLayout: process.env.NUXT_PUBLIC_DEFAULT_LAYOUT || 'default'
     }
   },

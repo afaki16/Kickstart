@@ -148,7 +148,7 @@ const error = ref<string | null>(null)
 export const useAppData = () => {
 
   /**
-   * App data yükler (public/data.json).
+   * App data yï¿½kler (public/data.json).
    */
   const loadAppData = async (forceReload = false) => {
     if (appData.value && !forceReload) {
