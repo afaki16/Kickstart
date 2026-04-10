@@ -186,7 +186,7 @@ namespace Kickstart.Infrastructure.Persistence
             {
                 Name = RoleNames.User,
                 Description = "Standard user with user management permissions only",
-                IsSystemRole = true
+                IsSystemRole = false
             };
 
             await context.Roles.AddRangeAsync(superAdminRole, adminRole, userRole);
