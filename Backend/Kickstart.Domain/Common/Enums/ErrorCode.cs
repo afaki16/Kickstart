@@ -14,4 +14,5 @@ public enum ErrorCode
     InternalError = 1009,
     InvalidOperation = 1010,
     Forbidden = 1011,
+    Unauthorized = 1012,
 }
