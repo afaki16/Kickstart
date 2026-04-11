@@ -1,4 +1,4 @@
-import type { LoginRequest, RegisterRequest, LoginResponse, User } from '~/types'
+import type { LoginRequest, RegisterRequest, LoginResponse, User, Session } from '~/types'
 import { API_ENDPOINTS } from '~/utils/apiEndpoints'
 import { useRouter } from 'nuxt/app'
 import { useAuthStore } from '~/stores/auth'
@@ -80,7 +80,7 @@ export const useAuth = () => {
       
       if (loginData && loginData.accessToken) {
         const deviceId = credentials.deviceId || generateDeviceId()
-        await authStore.setAuth(loginData, credentials.rememberMe ?? false, deviceId)
+        await authStore.setAuth(loginData, deviceId)
         // Login response'da permissions/roles eksik olabilir - /me ile tam kullanıcı bilgisi al (sidebar menü için)
         try {
           await authStore.fetchUserFromApi(false)
@@ -200,6 +200,42 @@ export const useAuth = () => {
     return authStore.user?.roles?.some(r => r.isSystemRole) ?? false
   }
 
+  const getUserSessions = async (): Promise<Session[]> => {
+    try {
+      const response = await api.get<Session[]>(API_ENDPOINTS.AUTH.SESSIONS)
+      // useApi.get returns response.data → ApiResponse shape: { success, data: [...] }
+      const list = (response as any)?.data ?? (response as any)?.value ?? response ?? []
+      return Array.isArray(list) ? list : []
+    } catch (error) {
+      console.error('Get sessions error:', error)
+      return []
+    }
+  }
+
+  const logoutDevice = async (deviceId: string): Promise<void> => {
+    try {
+      await api.post(API_ENDPOINTS.AUTH.LOGOUT_DEVICE(deviceId), {})
+    } catch (error) {
+      console.error('Logout device error:', error)
+      throw error
+    }
+  }
+
+  const revokeSessionById = async (sessionId: number): Promise<void> => {
+    await api.post(API_ENDPOINTS.AUTH.REVOKE_SESSION_BY_ID(sessionId), {})
+  }
+
+  const logoutAllDevices = async (): Promise<void> => {
+    try {
+      await api.post(API_ENDPOINTS.AUTH.LOGOUT_ALL, {})
+      authStore.clearAuth()
+      await router.push('/')
+    } catch (error) {
+      console.error('Logout all devices error:', error)
+      throw error
+    }
+  }
+
   return {
     login,
     register,
@@ -210,6 +246,10 @@ export const useAuth = () => {
     hasRole,
     hasAnyPermission,
     hasAllPermissions,
-    hasSystemRole
+    hasSystemRole,
+    getUserSessions,
+    logoutDevice,
+    logoutAllDevices,
+    revokeSessionById
   }
 } 

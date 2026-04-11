@@ -10,7 +10,11 @@ export const API_ENDPOINTS = {
     FORGOT_PASSWORD: '/api/auth/forgot-password',
     RESET_PASSWORD: '/api/auth/reset-password',
     CONFIRM_EMAIL: '/api/auth/confirm-email',
-    RESEND_CONFIRMATION: '/api/auth/resend-confirmation'
+    RESEND_CONFIRMATION: '/api/auth/resend-confirmation',
+    SESSIONS: '/api/auth/sessions',
+    LOGOUT_ALL: '/api/auth/logout-all',
+    LOGOUT_DEVICE: (deviceId: string) => `/api/auth/logout-device/${deviceId}`,
+    REVOKE_SESSION_BY_ID: (sessionId: number) => `/api/auth/sessions/${sessionId}/revoke`
   },
 
   // User management endpoints

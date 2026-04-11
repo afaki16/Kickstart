@@ -43,7 +43,7 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
-    async setAuth(authData: LoginResponse, rememberMe?: boolean, deviceId?: string) {
+    async setAuth(authData: LoginResponse, deviceId?: string) {
       this.user = authData.user
       this.accessToken = authData.accessToken
       this.refreshToken = authData.refreshToken
@@ -58,9 +58,7 @@ export const useAuthStore = defineStore('auth', {
         const expiresMs = new Date(authData.expiresAt).getTime() - Date.now()
         refreshTokenMaxAge = Math.max(60, Math.floor(expiresMs / 1000))
       } else {
-        refreshTokenMaxAge = (rememberMe ?? false)
-          ? 60 * 60 * 24 * 30  // 30 gün (Remember Me)
-          : 60 * 60 * 24 * 7   // 7 gün (standart)
+        refreshTokenMaxAge = 60 * 60 * 24 * 7
       }
 
       const accessTokenCookie = useCookie('access_token', {
@@ -80,21 +78,16 @@ export const useAuthStore = defineStore('auth', {
       accessTokenCookie.value = authData.accessToken
       refreshTokenCookie.value = authData.refreshToken
 
-      // deviceId ve rememberMe cookie'de sakla (localStorage clear'dan etkilenmesin)
+      // deviceId cookie'de sakla (localStorage clear'dan etkilenmesin)
       const cookieMaxAge = 60 * 60 * 24 * 30 // 30 gün
       if (deviceId !== undefined) {
         const deviceIdCookie = useCookie('device_id', { maxAge: cookieMaxAge, secure: true, sameSite: 'strict' })
         deviceIdCookie.value = deviceId
       }
-      if (rememberMe !== undefined) {
-        const rememberMeCookie = useCookie('remember_me', { maxAge: cookieMaxAge, secure: true, sameSite: 'strict' })
-        rememberMeCookie.value = String(rememberMe)
-      }
 
       // Store user data in localStorage for persistence
       if (process.client) {
         localStorage.setItem('user', JSON.stringify(authData.user))
-        if (rememberMe !== undefined) localStorage.setItem('rememberMe', String(rememberMe))
         if (deviceId) localStorage.setItem('deviceId', deviceId)
       }
     },
@@ -122,16 +115,13 @@ export const useAuthStore = defineStore('auth', {
       const accessTokenCookie = useCookie('access_token')
       const refreshTokenCookie = useCookie('refresh_token')
       const deviceIdCookie = useCookie('device_id')
-      const rememberMeCookie = useCookie('remember_me')
       accessTokenCookie.value = null
       refreshTokenCookie.value = null
       deviceIdCookie.value = null
-      rememberMeCookie.value = null
 
       // Clear localStorage
       if (process.client) {
         localStorage.removeItem('user')
-        localStorage.removeItem('rememberMe')
         localStorage.removeItem('deviceId')
       }
     },
@@ -151,14 +141,10 @@ export const useAuthStore = defineStore('auth', {
         this.refreshToken = refreshTokenCookie.value
         this.isAuthenticated = true
 
-        // Cookie'den deviceId ve rememberMe'yi localStorage'a restore et (clear sonrası)
+        // Cookie'den deviceId'yi localStorage'a restore et (clear sonrası)
         const deviceIdCookie = useCookie('device_id')
-        const rememberMeCookie = useCookie('remember_me')
         if (deviceIdCookie.value) {
           localStorage.setItem('deviceId', deviceIdCookie.value)
-        }
-        if (rememberMeCookie.value !== undefined && rememberMeCookie.value !== null) {
-          localStorage.setItem('rememberMe', rememberMeCookie.value)
         }
 
         // Restore user from localStorage

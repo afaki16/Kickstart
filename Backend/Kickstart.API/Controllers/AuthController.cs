@@ -6,7 +6,7 @@ using Kickstart.Application.Features.Auth.Commands.LogoutAll;
 using Kickstart.Application.Features.Auth.Commands.LogoutDevice;
 using Kickstart.Application.Features.Auth.Commands.Register;
 using Kickstart.Application.Features.Auth.Commands.RefreshToken;
-using Kickstart.Application.Features.Auth.Commands.RevokeSession;
+using Kickstart.Application.Features.Auth.Commands.RevokeSessionById;
 using Kickstart.Application.Features.Auth.Commands.ChangePassword;
 using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
 using Kickstart.Application.Features.Auth.Commands.ResetPassword;
@@ -222,24 +222,27 @@ namespace Kickstart.API.Controllers
             return HandleResult(result);
         }
 
+
         /// <summary>
-        /// Revoke a specific session
+        /// Revoke a specific session by its ID (current user only)
         /// </summary>
-        /// <param name="request">Session revocation request</param>
-        /// <returns>Success message</returns>
-        [HttpPost("revoke-session")]
+        [HttpPost("sessions/{sessionId}/revoke")]
         [Authorize]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
-        public async Task<IActionResult> RevokeSession([FromBody] RevokeSessionRequestDto request)
+        public async Task<IActionResult> RevokeSessionById(int sessionId)
         {
-            var command = new RevokeSessionCommand
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (!int.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var command = new RevokeSessionByIdCommand
             {
-                RefreshToken = request.RefreshToken,
+                SessionId = sessionId,
+                RequestingUserId = userId,
                 IpAddress = GetIpAddress(),
-                UserAgent = GetUserAgent(),
-                Reason = request.Reason ?? "Session revoked by user"
+                UserAgent = GetUserAgent()
             };
 
             var result = await _mediator.Send(command);

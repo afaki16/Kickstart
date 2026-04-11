@@ -22,3 +22,11 @@
 # OS
 .DS_Store
 Thumbs.db
+
+Backend/Kickstart.API/Kickstart.API.csproj.lscache
+
+Backend/Kickstart.Application/Kickstart.Application.csproj.lscache
+
+Backend/Kickstart.Domain/Kickstart.Domain.csproj.lscache
+
+Backend/Kickstart.Infrastructure/Kickstart.Infrastructure.csproj.lscache

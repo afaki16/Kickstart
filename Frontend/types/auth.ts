@@ -26,3 +26,19 @@ export interface RefreshTokenRequest {
   accessToken: string
   refreshToken: string
 }
+
+export interface Session {
+  id: number
+  token: string
+  createdDate: string
+  expiryDate: string
+  isActive: boolean
+  ipAddress: string
+  userAgent: string
+  deviceId: string
+  deviceName: string
+  deviceType: string
+  location: string
+  remainingTime: string
+  isCurrentSession: boolean
+}

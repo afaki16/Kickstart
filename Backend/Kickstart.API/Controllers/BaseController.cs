@@ -51,7 +51,23 @@ public abstract class BaseController : ControllerBase
 
     protected string GetIpAddress()
     {
-        return HttpContext.Connection.RemoteIpAddress?.ToString() ?? "Unknown";
+        // Reverse proxy / load balancer header
+        var forwarded = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwarded))
+            return forwarded.Split(',')[0].Trim();
+
+        var ip = HttpContext.Connection.RemoteIpAddress;
+        if (ip == null) return "Unknown";
+
+        // IPv6 loopback (::1) → localhost
+        if (ip.Equals(System.Net.IPAddress.IPv6Loopback))
+            return "127.0.0.1";
+
+        // IPv4-mapped IPv6 (::ffff:x.x.x.x) → x.x.x.x
+        if (ip.IsIPv4MappedToIPv6)
+            return ip.MapToIPv4().ToString();
+
+        return ip.ToString();
     }
 
     protected string GetUserAgent()

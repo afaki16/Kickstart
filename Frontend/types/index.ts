@@ -13,7 +13,8 @@ export type {
 export type {
   LoginRequest,
   RegisterRequest,
-  RefreshTokenRequest
+  RefreshTokenRequest,
+  Session
 } from './auth'
 
 export interface LoginResponse {
