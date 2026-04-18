@@ -14,7 +14,8 @@ export const API_ENDPOINTS = {
     SESSIONS: '/api/auth/sessions',
     LOGOUT_ALL: '/api/auth/logout-all',
     LOGOUT_DEVICE: (deviceId: string) => `/api/auth/logout-device/${deviceId}`,
-    REVOKE_SESSION_BY_ID: (sessionId: number) => `/api/auth/sessions/${sessionId}/revoke`
+    REVOKE_SESSION_BY_ID: (sessionId: number) => `/api/auth/sessions/${sessionId}/revoke`,
+    CHANGE_PASSWORD: '/api/auth/change-password'
   },
 
   // User management endpoints

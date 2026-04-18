@@ -1,47 +1,58 @@
 using Kickstart.Application.Interfaces;
-using Kickstart.Application.Features.Auth.Commands.Login;
-using Kickstart.Application.Features.Auth.Commands.Logout;
-using Kickstart.Application.Features.Auth.Commands.LogoutAll;
-using Kickstart.Application.Features.Auth.Commands.LogoutDevice;
-using Kickstart.Application.Features.Auth.Commands.Register;
-using Kickstart.Application.Features.Auth.Commands.RefreshToken;
-using Kickstart.Application.Features.Auth.Commands.ChangePassword;
-using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
-using Kickstart.Application.Features.Auth.Commands.ResetPassword;
-using Kickstart.Domain.Common.Interfaces;
-using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
 using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Models;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Kickstart.Application.Features.Auth.Commands.ChangePassword
 {
     public class ChangePasswordCommandHandler : IRequestHandler<ChangePasswordCommand, Result>
-{
-    private readonly IPasswordService _passwordService;
-    private readonly ICurrentUserService _currentUserService;
-
-    public ChangePasswordCommandHandler(
-        IPasswordService passwordService,
-        ICurrentUserService currentUserService)
     {
-        _passwordService = passwordService;
-        _currentUserService = currentUserService;
-    }
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IPasswordService _passwordService;
+        private readonly ICurrentUserService _currentUserService;
 
-    public async Task<Result> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
-    {
-        var userId = _currentUserService.UserId;
-        if (!userId.HasValue)
-            return Result<int>.Failure(Error.Failure(
-               ErrorCode.NotFound,
-               "User not authenticated"));
+        public ChangePasswordCommandHandler(
+            IUnitOfWork unitOfWork,
+            IPasswordService passwordService,
+            ICurrentUserService currentUserService)
+        {
+            _unitOfWork = unitOfWork;
+            _passwordService = passwordService;
+            _currentUserService = currentUserService;
+        }
 
-        // TODO: Implement password change logic
-        return Result.Success();
+        public async Task<Result> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
+        {
+            var userId = _currentUserService.UserId;
+            if (!userId.HasValue)
+                return Result.Failure(Error.Failure(ErrorCode.Unauthorized, "User not authenticated"));
+
+            var user = await _unitOfWork.Users.GetByIdAsync(userId.Value);
+            if (user is null)
+                return Result.Failure(Error.Failure(ErrorCode.NotFound, "User not found"));
+
+            var verifyResult = _passwordService.VerifyPassword(request.CurrentPassword, user.PasswordHash);
+            if (!verifyResult.IsSuccess)
+                return Result.Failure(verifyResult.Errors);
+
+            if (!verifyResult.Value)
+                return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, "Current password is incorrect"));
+
+            var strengthResult = _passwordService.ValidatePasswordStrength(request.NewPassword);
+            if (!strengthResult.IsSuccess)
+                return Result.Failure(strengthResult.Errors);
+
+            var hashResult = _passwordService.HashPassword(request.NewPassword);
+            if (!hashResult.IsSuccess)
+                return Result.Failure(hashResult.Errors);
+
+            user.PasswordHash = hashResult.Value;
+            _unitOfWork.Users.Update(user);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
+        }
     }
 }
-} 

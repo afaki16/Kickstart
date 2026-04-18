@@ -273,6 +273,67 @@
       </v-col>
     </v-row>
 
+    <!-- ═══════════════ CHANGE PASSWORD ═══════════════ -->
+    <v-row class="mt-0">
+      <v-col cols="12" md="6">
+        <v-card rounded="xl" elevation="0" border>
+          <v-card-title class="section-title pa-5">
+            <v-avatar color="primary" variant="tonal" size="32" rounded="lg" class="mr-3">
+              <v-icon size="16">mdi-lock-reset</v-icon>
+            </v-avatar>
+            Şifre Değiştir
+          </v-card-title>
+          <v-divider />
+
+          <v-card-text class="pa-5">
+            <v-form ref="passwordFormRef" @submit.prevent="submitChangePassword">
+              <v-text-field
+                v-model="currentPassword"
+                label="Mevcut Şifre"
+                :type="showCurrent ? 'text' : 'password'"
+                :append-inner-icon="showCurrent ? 'mdi-eye-off' : 'mdi-eye'"
+                :rules="[validationRules.required]"
+                variant="outlined"
+                density="comfortable"
+                class="mb-3"
+                @click:append-inner="showCurrent = !showCurrent"
+              />
+              <v-text-field
+                v-model="newPassword"
+                label="Yeni Şifre"
+                :type="showNew ? 'text' : 'password'"
+                :append-inner-icon="showNew ? 'mdi-eye-off' : 'mdi-eye'"
+                :rules="[validationRules.password]"
+                variant="outlined"
+                density="comfortable"
+                class="mb-3"
+                @click:append-inner="showNew = !showNew"
+              />
+              <v-text-field
+                v-model="confirmNewPassword"
+                label="Yeni Şifre Tekrar"
+                :type="showConfirm ? 'text' : 'password'"
+                :append-inner-icon="showConfirm ? 'mdi-eye-off' : 'mdi-eye'"
+                :rules="[validationRules.confirmPassword(newPassword)]"
+                variant="outlined"
+                density="comfortable"
+                class="mb-4"
+                @click:append-inner="showConfirm = !showConfirm"
+              />
+              <v-btn
+                type="submit"
+                color="primary"
+                :loading="isChangingPassword"
+                block
+              >
+                Şifreyi Güncelle
+              </v-btn>
+            </v-form>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
   </div>
 </template>
 
@@ -281,6 +342,7 @@ import { ref, computed, onMounted } from 'vue'
 import type { Session } from '~/types'
 import { dateFormat, dateTimeFormat } from '~/utils/datesFormat'
 import BreadCrumb from '~/components/BreadCrumb.vue'
+import { useValidators } from '~/composables/useValidators'
 
 definePageMeta({
   title: 'Profilim',
@@ -291,7 +353,8 @@ definePageMeta({
 useHead({ title: 'Profilim - Kickstart' })
 
 const authStore = useAuthStore()
-const { getUserSessions } = useAuth()
+const { getUserSessions, changePassword } = useAuth()
+const { validationRules } = useValidators()
 
 const user = computed(() => authStore.user)
 
@@ -377,6 +440,31 @@ const remainingLabel = (session: Session) => {
   if (h >= 1)    return `${h} saat`
   if (m >= 1)    return `${m} dakika`
   return '< 1 dakika'
+}
+
+// Change password
+const passwordFormRef    = ref()
+const currentPassword    = ref('')
+const newPassword        = ref('')
+const confirmNewPassword = ref('')
+const showCurrent        = ref(false)
+const showNew            = ref(false)
+const showConfirm        = ref(false)
+const isChangingPassword = ref(false)
+
+const submitChangePassword = async () => {
+  const { valid } = await passwordFormRef.value.validate()
+  if (!valid) return
+  isChangingPassword.value = true
+  try {
+    await changePassword(currentPassword.value, newPassword.value)
+    passwordFormRef.value.reset()
+    currentPassword.value    = ''
+    newPassword.value        = ''
+    confirmNewPassword.value = ''
+  } finally {
+    isChangingPassword.value = false
+  }
 }
 
 onMounted(loadSessions)

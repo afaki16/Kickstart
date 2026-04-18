@@ -3,11 +3,13 @@ import { API_ENDPOINTS } from '~/utils/apiEndpoints'
 import { useRouter } from 'nuxt/app'
 import { useAuthStore } from '~/stores/auth'
 import { useApi } from './useApi'
+import { useToast } from './useToast'
 
 export const useAuth = () => {
   const api = useApi()
   const authStore = useAuthStore()
   const router = useRouter()
+  const toast = useToast()
 
   // Device ID oluştur
   const generateDeviceId = (): string => {
@@ -225,6 +227,11 @@ export const useAuth = () => {
     await api.post(API_ENDPOINTS.AUTH.REVOKE_SESSION_BY_ID(sessionId), {})
   }
 
+  const changePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    await api.post(API_ENDPOINTS.AUTH.CHANGE_PASSWORD, { currentPassword, newPassword })
+    toast.success('Şifreniz başarıyla güncellendi')
+  }
+
   const logoutAllDevices = async (): Promise<void> => {
     try {
       await api.post(API_ENDPOINTS.AUTH.LOGOUT_ALL, {})
@@ -250,6 +257,7 @@ export const useAuth = () => {
     getUserSessions,
     logoutDevice,
     logoutAllDevices,
-    revokeSessionById
+    revokeSessionById,
+    changePassword
   }
 } 
