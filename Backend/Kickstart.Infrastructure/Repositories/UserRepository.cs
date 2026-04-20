@@ -130,4 +130,13 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
 
         return await query.CountAsync();
     }
+
+    public async Task<IEnumerable<int>> GetUserIdsByRoleIdAsync(int roleId)
+    {
+        return await _context.UserRoles
+            .Where(ur => ur.RoleId == roleId)
+            .Select(ur => ur.UserId)
+            .Distinct()
+            .ToListAsync();
+    }
 }

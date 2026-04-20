@@ -27,12 +27,14 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IPermissionService _permissionService;
 
-        public UpdateUserCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
+        public UpdateUserCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService, IPermissionService permissionService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _currentUserService = currentUserService;
+            _permissionService = permissionService;
         }
 
         public async Task<Result<UserListDto>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -76,50 +78,33 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
             user.Status = request.Status;
             user.ProfileImageUrl = request.ProfileImageUrl;
 
-            _unitOfWork.Users.Update(user);
-            await _unitOfWork.SaveChangesAsync();
-
-            // Clear existing roles
-            var existingUserRoles = await _unitOfWork.Users.FindAsync(u => u.Id == request.Id);
-            var userWithRoles = existingUserRoles.FirstOrDefault();
-            if (userWithRoles != null)
-            {
-                foreach (var userRole in userWithRoles.UserRoles.ToList())
-                {
-                    _unitOfWork.Users.RemoveUserRole(userRole);
-                }
-            }
+            // Clear existing roles using already-loaded navigation property
+            foreach (var userRole in user.UserRoles.ToList())
+                _unitOfWork.Users.RemoveUserRole(userRole);
 
             // Add new roles if provided
             if (request.RoleIds?.Any() == true)
             {
                 if (!_currentUserService.CanAccessAllTenants)
                 {
-                    foreach (var roleId in request.RoleIds)
-                    {
-                        var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
-                        if (role != null && role.Name == RoleNames.SuperAdmin)
-                            return Result<UserListDto>.Failure(Error.Failure(
-                                ErrorCode.Forbidden,
-                                "You cannot assign the SuperAdmin role"));
-                    }
+                    var roles = await _unitOfWork.Roles.FindAsync(r => request.RoleIds.Contains(r.Id));
+                    if (roles.Any(r => r.Name == RoleNames.SuperAdmin))
+                        return Result<UserListDto>.Failure(Error.Failure(
+                            ErrorCode.Forbidden,
+                            "You cannot assign the SuperAdmin role"));
                 }
 
                 foreach (var roleId in request.RoleIds)
-                {
-                    var userRole = new UserRole
-                    {
-                        UserId = user.Id,
-                        RoleId = roleId
-                    };
-                    await _unitOfWork.Users.AddUserRoleAsync(userRole);
-                }
+                    await _unitOfWork.Users.AddUserRoleAsync(new UserRole { UserId = user.Id, RoleId = roleId });
             }
+
+            _unitOfWork.Users.Update(user);
             await _unitOfWork.SaveChangesAsync();
 
-            // Reload user with roles to get complete data for mapping
-            _ = await _unitOfWork.Users.GetUserWithRolesAsync(user.Id);
-            var userDto = _mapper.Map<UserListDto>(userWithRoles);
+            _permissionService.ClearUserPermissionCache(request.Id);
+
+            var updatedUser = await _unitOfWork.Users.GetUserWithRolesAsync(user.Id);
+            var userDto = _mapper.Map<UserListDto>(updatedUser);
             return Result<UserListDto>.Success(userDto);
         }
     }

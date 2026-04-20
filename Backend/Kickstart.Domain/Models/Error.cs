@@ -36,12 +36,22 @@ public class Error
     public static Error Failure(
         ErrorCode code,
         string message,
-        int status = 400)
+        int status = 0)
     {
-        return new Error(
-            code,
-            message,
-            status);
+        var httpStatus = status != 0 ? status : code switch
+        {
+            ErrorCode.NotFound      => 404,
+            ErrorCode.Forbidden     => 403,
+            ErrorCode.Unauthorized  => 401,
+            ErrorCode.AlreadyExists => 409,
+            ErrorCode.InternalError
+            or ErrorCode.DatabaseError
+            or ErrorCode.SaveError
+            or ErrorCode.DeleteError
+            or ErrorCode.UpdateError => 500,
+            _ => 400
+        };
+        return new Error(code, message, httpStatus);
     }
 
     public override bool Equals(object? obj)

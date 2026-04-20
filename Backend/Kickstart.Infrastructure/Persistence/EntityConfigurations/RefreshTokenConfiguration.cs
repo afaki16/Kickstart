@@ -22,6 +22,9 @@ namespace Kickstart.Infrastructure.Persistence.EntityConfigurations
             builder.HasIndex(x => x.Token)
                 .IsUnique();
 
+            builder.HasIndex(x => new { x.UserId, x.IsRevoked, x.ExpiryDate })
+                .HasDatabaseName("IX_RefreshTokens_UserId_IsRevoked_ExpiryDate");
+
             builder.Property(x => x.ExpiryDate)
                 .IsRequired();
 

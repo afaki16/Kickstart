@@ -32,20 +32,8 @@ where T : class
     public void Update(T entity)
         => _context.Set<T>().Update(entity);
 
-    public async Task UpdateAsync(T entity)
-    {
-        _context.Set<T>().Update(entity);
-        await Task.CompletedTask;
-    }
-
     public void Delete(T entity)
         => _context.Set<T>().Remove(entity);
-
-    public async Task DeleteAsync(T entity)
-    {
-        _context.Set<T>().Remove(entity);
-        await Task.CompletedTask;
-    }
 
     public async Task<bool> ExistsAsync(TKey id)
     {

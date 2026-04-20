@@ -64,23 +64,8 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
                 {
                     _logger.LogInformation($"Adding {request.PermissionIds.Count()} permissions to new role. Permission IDs: {string.Join(", ", request.PermissionIds)}");
 
-                    var rolePermissions = new List<RolePermission>();
+                    var permissions = await _unitOfWork.Permissions.FindAsync(p => request.PermissionIds.Contains(p.Id));
 
-                    // First, get all permissions to verify they exist
-                    var permissions = new List<Permission>();
-                    foreach (var permissionId in request.PermissionIds)
-                    {
-                        var permission = await _unitOfWork.Permissions.GetByIdAsync(permissionId);
-                        if (permission == null)
-                        {
-                            _logger.LogWarning($"Permission with ID {permissionId} not found, skipping...");
-                            continue;
-                        }
-                        permissions.Add(permission);
-                        _logger.LogInformation($"Found permission: {permission.Name} (ID: {permission.Id})");
-                    }
-
-                    // Create role permissions for all valid permissions
                     foreach (var permission in permissions)
                     {
                         var rolePermission = new RolePermission
@@ -90,30 +75,11 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
                             CreatedDate = DateTime.UtcNow,
                             IsDeleted = false
                         };
-                        
-                        rolePermissions.Add(rolePermission);
                         await _unitOfWork.Roles.AddRolePermissionAsync(rolePermission);
-                        _logger.LogInformation($"Added permission {permission.Name} (ID: {permission.Id}) to new role {role.Name} (ID: {role.Id})");
-                        _logger.LogInformation($"RolePermission created: RoleId={rolePermission.RoleId}, PermissionId={rolePermission.PermissionId}, CreatedDate={rolePermission.CreatedDate}");
                     }
 
-                    if (rolePermissions.Any())
-                    {
-                        try
-                        {
-                            await _unitOfWork.SaveChangesAsync();
-                            _logger.LogInformation($"Saved {rolePermissions.Count} role permissions to database");
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, $"Error saving role permissions to database: {ex.Message}");
-                            throw;
-                        }
-                    }
-                }
-                else
-                {
-                    _logger.LogWarning("No permission IDs provided in request");
+                    await _unitOfWork.SaveChangesAsync();
+                    _logger.LogInformation($"Saved {permissions.Count()} role permissions to database");
                 }
 
                 // Get role with permissions for mapping

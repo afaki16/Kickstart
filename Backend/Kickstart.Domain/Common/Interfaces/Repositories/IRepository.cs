@@ -17,9 +17,7 @@ public interface IRepository<TEntity, TKey> where TEntity : class
     void SoftDelete(TEntity entity);
     Task<IReadOnlyList<TEntity>> GetAllAsync();
     void Update(TEntity entity);
-    Task UpdateAsync(TEntity entity);
     void Delete(TEntity entity);
-    Task DeleteAsync(TEntity entity);
     Task<bool> ExistsAsync(TKey id);
 
 

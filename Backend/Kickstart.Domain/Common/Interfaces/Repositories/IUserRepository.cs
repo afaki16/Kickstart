@@ -19,5 +19,6 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
         void RemoveUserRole(UserRole userRole);
         Task<IEnumerable<User>> GetUsersWithRolesAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false);
         Task<int> GetUsersWithRolesCountAsync(string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false);
+        Task<IEnumerable<int>> GetUserIdsByRoleIdAsync(int roleId);
     }
 } 

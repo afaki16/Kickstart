@@ -1,4 +1,5 @@
 using AutoMapper;
+using Kickstart.Application.Interfaces;
 using Kickstart.Application.Features.Roles.Commands.CreateRole;
 using Kickstart.Application.Features.Roles.Commands.UpdateRole;
 using Kickstart.Application.Features.Roles.Commands.DeleteRole;
@@ -25,12 +26,14 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<UpdateRoleCommandHandler> _logger;
+        private readonly IPermissionService _permissionService;
 
-        public UpdateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UpdateRoleCommandHandler> logger)
+        public UpdateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UpdateRoleCommandHandler> logger, IPermissionService permissionService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _permissionService = permissionService;
         }
 
         public async Task<Result<RoleDto>> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
@@ -77,27 +80,24 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
                 {
                     _logger.LogInformation($"Adding {request.PermissionIds.Count()} permissions to role");
 
-                    foreach (var permissionId in request.PermissionIds)
-                    {
-                        // Verify permission exists
-                        var permission = await _unitOfWork.Permissions.GetByIdAsync(permissionId);
-                        if (permission == null)
-                        {
-                            _logger.LogWarning($"Permission with ID {permissionId} not found, skipping...");
-                            continue;
-                        }
+                    var permissions = await _unitOfWork.Permissions.FindAsync(p => request.PermissionIds.Contains(p.Id));
 
+                    foreach (var permission in permissions)
+                    {
                         var rolePermission = new RolePermission
                         {
                             RoleId = role.Id,
-                            PermissionId = permissionId
+                            PermissionId = permission.Id
                         };
                         await _unitOfWork.Roles.AddRolePermissionAsync(rolePermission);
-                        _logger.LogInformation($"Added permission {permission.Name} to role {role.Name}");
                     }
                 }
 
                 await _unitOfWork.SaveChangesAsync();
+
+                var affectedUserIds = await _unitOfWork.Users.GetUserIdsByRoleIdAsync(request.Id);
+                foreach (var userId in affectedUserIds)
+                    _permissionService.ClearUserPermissionCache(userId);
 
                 // Get updated role with permissions
                 var updatedRole = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(role.Id);

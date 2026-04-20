@@ -65,14 +65,11 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
 
             if (!_currentUserService.CanAccessAllTenants && request.RoleIds?.Any() == true)
             {
-                foreach (var roleId in request.RoleIds)
-                {
-                    var role = await _unitOfWork.Roles.GetByIdAsync(roleId);
-                    if (role != null && role.Name == RoleNames.SuperAdmin)
-                        return Result<UserListDto>.Failure(Error.Failure(
-                            ErrorCode.Forbidden,
-                            "You cannot assign the SuperAdmin role"));
-                }
+                var roles = await _unitOfWork.Roles.FindAsync(r => request.RoleIds.Contains(r.Id));
+                if (roles.Any(r => r.Name == RoleNames.SuperAdmin))
+                    return Result<UserListDto>.Failure(Error.Failure(
+                        ErrorCode.Forbidden,
+                        "You cannot assign the SuperAdmin role"));
             }
 
             // Hash password

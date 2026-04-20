@@ -18,7 +18,7 @@ public abstract class BaseController : ControllerBase
             return Ok(new { success = true, data = result.Value });
         }
 
-        return BadRequest(new { success = false, error = result.Error });
+        return StatusCode(result.Error!.Status, new { success = false, error = result.Error });
     }
 
     protected IActionResult HandleResult(Result result)
@@ -26,7 +26,7 @@ public abstract class BaseController : ControllerBase
         if (result.IsSuccess)
             return Ok(new { success = true, message = "Operation completed successfully" });
 
-        return BadRequest(new { success = false, error = result.Error });
+        return StatusCode(result.Error!.Status, new { success = false, error = result.Error });
     }
 
     protected IActionResult HandlePagedResult<T>(PagedResult<T> result)
@@ -46,7 +46,7 @@ public abstract class BaseController : ControllerBase
             });
         }
 
-        return BadRequest(new { success = false, error = result.Error });
+        return StatusCode(result.Error!.Status, new { success = false, error = result.Error });
     }
 
     protected string GetIpAddress()

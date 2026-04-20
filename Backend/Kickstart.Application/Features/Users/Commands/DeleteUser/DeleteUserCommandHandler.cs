@@ -22,11 +22,13 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IPermissionService _permissionService;
 
-        public DeleteUserCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public DeleteUserCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IPermissionService permissionService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _permissionService = permissionService;
         }
 
         public async Task<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -51,6 +53,8 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
 
             _unitOfWork.Users.SoftDelete(user);
             await _unitOfWork.SaveChangesAsync();
+
+            _permissionService.ClearUserPermissionCache(request.Id);
 
             return Result.Success();
         }

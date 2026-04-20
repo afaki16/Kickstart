@@ -25,7 +25,7 @@ namespace Kickstart.Application.Features.Auth.Commands.RevokeSessionById
                 return Result.Failure(Error.Failure(ErrorCode.NotFound, "Session not found"));
 
             if (token.UserId != request.RequestingUserId)
-                return Result.Failure(Error.Failure(ErrorCode.Unauthorized, "Access denied"));
+                return Result.Failure(Error.Failure(ErrorCode.Forbidden, "Access denied"));
 
             if (!token.IsActive)
                 return Result.Failure(Error.Failure(ErrorCode.InvalidRequest, "Session is already inactive"));
