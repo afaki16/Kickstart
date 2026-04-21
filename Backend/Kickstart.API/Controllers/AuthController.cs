@@ -287,6 +287,7 @@ namespace Kickstart.API.Controllers
             var command = new ForgotPasswordCommand
             {
                 Email = request.Email,
+                TenantId = request.TenantId,
                 IpAddress = GetIpAddress(),
                 UserAgent = GetUserAgent()
             };
@@ -308,6 +309,7 @@ namespace Kickstart.API.Controllers
         {
             var command = new ResetPasswordCommand
             {
+                Email = request.Email,
                 Token = request.Token,
                 NewPassword = request.NewPassword,
                 IpAddress = GetIpAddress(),

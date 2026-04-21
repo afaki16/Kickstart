@@ -14,6 +14,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     IRoleRepository Roles { get; }
     IPermissionRepository Permissions { get; }
     IRefreshTokenRepository RefreshTokens { get; }
+    IPasswordResetTokenRepository PasswordResetTokens { get; }
     ITenantRepository Tenants { get; }
     // Core operations
     /// <summary>

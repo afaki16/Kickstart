@@ -4,6 +4,7 @@ using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Infrastructure.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Kickstart.Infrastructure.Persistence;
@@ -19,6 +20,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     private readonly Lazy<IRoleRepository> _roles;
     private readonly Lazy<IPermissionRepository> _permissions;
     private readonly Lazy<IRefreshTokenRepository> _refreshTokens;
+    private readonly Lazy<IPasswordResetTokenRepository> _passwordResetTokens;
     private readonly Lazy<ITenantRepository> _tenants;
 
     public UnitOfWork(ApplicationDbContext context, IServiceProvider serviceProvider)
@@ -31,6 +33,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         _roles = new Lazy<IRoleRepository>(() => _serviceProvider.GetRequiredService<IRoleRepository>());
         _permissions = new Lazy<IPermissionRepository>(() => _serviceProvider.GetRequiredService<IPermissionRepository>());
         _refreshTokens = new Lazy<IRefreshTokenRepository>(() => _serviceProvider.GetRequiredService<IRefreshTokenRepository>());
+        _passwordResetTokens = new Lazy<IPasswordResetTokenRepository>(() => _serviceProvider.GetRequiredService<IPasswordResetTokenRepository>());
         _tenants = new Lazy<ITenantRepository>(() => _serviceProvider.GetRequiredService<ITenantRepository>());
 
     }
@@ -40,6 +43,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public IRoleRepository Roles => _roles.Value;
     public IPermissionRepository Permissions => _permissions.Value;
     public IRefreshTokenRepository RefreshTokens => _refreshTokens.Value;
+    public IPasswordResetTokenRepository PasswordResetTokens => _passwordResetTokens.Value;
     public ITenantRepository Tenants => _tenants.Value;
 
 

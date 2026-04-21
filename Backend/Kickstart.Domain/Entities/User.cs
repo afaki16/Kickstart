@@ -23,7 +23,7 @@ namespace Kickstart.Domain.Entities
         public string ProfileImageUrl { get; set; } = string.Empty;
         public int? TenantId { get; set; }
 
-  
+
 
     // Navigation properties
     public ICollection<UserRole> UserRoles { get; set; }

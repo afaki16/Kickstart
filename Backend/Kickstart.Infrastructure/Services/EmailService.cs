@@ -1,24 +1,25 @@
-using Kickstart.Application.Interfaces;
-using Kickstart.Domain.Common.Interfaces;
-using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
-using Kickstart.Domain.Entities;
-using Kickstart.Domain.Models;
+using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Models;
+using Kickstart.Infrastructure.Configuration;
+using Kickstart.Infrastructure.Helpers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
+using System.Net;
+using System.Net.Mail;
 
 namespace Kickstart.Infrastructure.Services
 {
     public class EmailService : IEmailService
     {
-        private readonly IConfiguration _configuration;
+        private readonly SmtpSettings _smtp;
         private readonly ILogger<EmailService> _logger;
 
         public EmailService(IConfiguration configuration, ILogger<EmailService> logger)
         {
-            _configuration = configuration;
+            _smtp = configuration.GetSection("NotificationService:Mail").Get<SmtpSettings>()
+                    ?? new SmtpSettings();
             _logger = logger;
         }
 
@@ -26,59 +27,72 @@ namespace Kickstart.Infrastructure.Services
         {
             try
             {
-                // TODO: Implement actual email sending logic (SMTP, SendGrid, etc.)
-                // For now, just log the email
-                _logger.LogInformation("Email would be sent to: {To}, Subject: {Subject}", to, subject);
-                
-                // Simulate async operation
-                await Task.Delay(100);
-                
+                using var client = new SmtpClient(_smtp.Host, _smtp.Port)
+                {
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential(_smtp.Username, _smtp.Password),
+                    EnableSsl = _smtp.EnableSsl,
+                    DeliveryMethod = SmtpDeliveryMethod.Network
+                };
+
+                var message = new MailMessage
+                {
+                    From = new MailAddress(_smtp.FromAddress, _smtp.FromName),
+                    Subject = subject,
+                    Body = body,
+                    IsBodyHtml = true
+                };
+                message.To.Add(to);
+
+                await client.SendMailAsync(message);
+                _logger.LogInformation("E-posta gönderildi: {To}, Konu: {Subject}", to, subject);
                 return Result.Success();
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send email to {To}", to);
-            return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, $"Failed to send email: {ex.Message}"));
-        }
+                _logger.LogError(ex, "E-posta gönderilemedi: {To}", to);
+                return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, "E-posta gönderilemedi."));
+            }
         }
 
         public async Task<Result> SendEmailConfirmationAsync(string email, string confirmationLink)
         {
-            var subject = "Confirm your email address";
-            var body = $@"
-                <h2>Email Confirmation</h2>
-                <p>Please click the link below to confirm your email address:</p>
-                <a href='{confirmationLink}'>Confirm Email</a>
-                <p>If you didn't create an account, please ignore this email.</p>
-            ";
+            const string subject = "E-posta Adresinizi Doğrulayın";
 
-            return await SendEmailAsync(email, subject, body);
+            var content = $@"
+<h2 style=""color:#333;"">E-posta Doğrulama</h2>
+<p>Hesabınızı aktif etmek için aşağıdaki butona tıklayın.</p>
+{EmailTemplates.CtaButton("E-postamı Doğrula", confirmationLink)}
+<p style=""color:#666;"">Bu isteği siz yapmadıysanız dikkate almayın.</p>";
+
+            return await SendEmailAsync(email, subject, EmailTemplates.Wrap(subject, content));
         }
 
-        public async Task<Result> SendPasswordResetAsync(string email, string resetLink)
+        public async Task<Result> SendPasswordResetAsync(string email, string firstName, string resetLink)
         {
-            var subject = "Password Reset Request";
-            var body = $@"
-                <h2>Password Reset</h2>
-                <p>You requested a password reset. Click the link below to reset your password:</p>
-                <a href='{resetLink}'>Reset Password</a>
-                <p>If you didn't request this, please ignore this email.</p>
-                <p>This link will expire in 24 hours.</p>
-            ";
+            const string subject = "Şifre Sıfırlama";
 
-            return await SendEmailAsync(email, subject, body);
+            var content = $@"
+<h2 style=""color:#333;"">Şifre Sıfırlama</h2>
+<p>Merhaba <strong>{firstName}</strong>,</p>
+<p>Şifrenizi sıfırlamak için aşağıdaki butona tıklayın.</p>
+{EmailTemplates.CtaButton("Şifremi Sıfırla", resetLink)}
+<p style=""color:#666;"">Bu link <strong>24 saat</strong> geçerlidir.</p>
+<p style=""color:#666;"">Bu isteği siz yapmadıysanız dikkate almayın.</p>";
+
+            return await SendEmailAsync(email, subject, EmailTemplates.Wrap(subject, content));
         }
 
         public async Task<Result> SendWelcomeEmailAsync(string email, string userName)
         {
-            var subject = "Welcome to Kickstart!";
-            var body = $@"
-                <h2>Welcome {userName}!</h2>
-                <p>Your account has been successfully created.</p>
-                <p>Thank you for joining us!</p>
-            ";
+            const string subject = "Hoş Geldiniz!";
 
-            return await SendEmailAsync(email, subject, body);
+            var content = $@"
+<h2 style=""color:#333;"">Hoş Geldiniz, <strong>{userName}</strong>!</h2>
+<p>Hesabınız başarıyla oluşturuldu. Artık platformumuzu kullanabilirsiniz.</p>
+<p style=""color:#666;"">İyi kullanımlar dileriz.</p>";
+
+            return await SendEmailAsync(email, subject, EmailTemplates.Wrap(subject, content));
         }
     }
-} 
+}

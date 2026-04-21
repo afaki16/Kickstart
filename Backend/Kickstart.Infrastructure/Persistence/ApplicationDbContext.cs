@@ -24,6 +24,7 @@ namespace Kickstart.Infrastructure.Persistence
         public DbSet<UserRole> UserRoles { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<Tenant> Tenants { get; set; }
 
 

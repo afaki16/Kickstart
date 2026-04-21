@@ -1,35 +1,46 @@
-using Kickstart.Application.Interfaces;
-using Kickstart.Application.Features.Auth.Commands.Login;
-using Kickstart.Application.Features.Auth.Commands.Logout;
-using Kickstart.Application.Features.Auth.Commands.LogoutAll;
-using Kickstart.Application.Features.Auth.Commands.LogoutDevice;
-using Kickstart.Application.Features.Auth.Commands.Register;
-using Kickstart.Application.Features.Auth.Commands.RefreshToken;
-using Kickstart.Application.Features.Auth.Commands.ChangePassword;
-using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
-using Kickstart.Application.Features.Auth.Commands.ResetPassword;
-using Kickstart.Domain.Common.Interfaces;
-using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
+using Kickstart.Application.Interfaces;
+using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Common.Interfaces;
+using Kickstart.Domain.Models;
 using MediatR;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Kickstart.Application.Features.Auth.Commands.ResetPassword
 {
     public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, Result>
     {
+        private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
 
-        public ResetPasswordCommandHandler(IPasswordService passwordService)
+        public ResetPasswordCommandHandler(IUnitOfWork unitOfWork, IPasswordService passwordService)
         {
+            _unitOfWork = unitOfWork;
             _passwordService = passwordService;
         }
 
         public async Task<Result> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
         {
-            // TODO: Implement password reset logic
+            var resetToken = await _unitOfWork.PasswordResetTokens.GetValidTokenAsync(request.Token, request.Email);
+
+            if (resetToken is null)
+                return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, "Geçersiz veya süresi dolmuş sıfırlama bağlantısı."));
+
+            var strengthResult = _passwordService.ValidatePasswordStrength(request.NewPassword);
+            if (!strengthResult.IsSuccess)
+                return Result.Failure(strengthResult.Errors);
+
+            var hashResult = _passwordService.HashPassword(request.NewPassword);
+            if (!hashResult.IsSuccess)
+                return Result.Failure(hashResult.Errors);
+
+            resetToken.User.PasswordHash = hashResult.Value;
+            resetToken.MarkAsUsed();
+
+            _unitOfWork.Users.Update(resetToken.User);
+            _unitOfWork.PasswordResetTokens.Update(resetToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
             return Result.Success();
         }
     }
-} 
+}
