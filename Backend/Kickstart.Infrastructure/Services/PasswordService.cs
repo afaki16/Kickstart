@@ -4,7 +4,9 @@ using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Domain.Entities;
 using Kickstart.Application.Common.Results;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Kickstart.Domain.Models;
@@ -14,6 +16,13 @@ namespace Kickstart.Infrastructure.Services
 {
     public class PasswordService : IPasswordService
     {
+        private readonly ILogger<PasswordService> _logger;
+
+        public PasswordService(ILogger<PasswordService> logger)
+        {
+            _logger = logger;
+        }
+
     public Result<string> HashPassword(string password)
     {
         try
@@ -28,9 +37,10 @@ namespace Kickstart.Infrastructure.Services
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to hash password");
             return Result<string>.Failure(Error.Failure(
                 ErrorCode.InternalError,
-                $"Error hashing password: {ex.Message}"));
+                "Failed to hash password"));
         }
     }
 
@@ -46,9 +56,10 @@ namespace Kickstart.Infrastructure.Services
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Failed to verify password");
             return Result<bool>.Failure(Error.Failure(
                 ErrorCode.InternalError,
-                $"Error verifying password: {ex.Message}"));
+                "Failed to verify password"));
         }
     }
 
@@ -65,36 +76,31 @@ namespace Kickstart.Infrastructure.Services
                 const string digits = "0123456789";
                 const string special = "!@#$%^&*";
                 
-                var random = new Random();
                 var password = new StringBuilder();
 
-                // Ensure at least one character from each category
-                password.Append(lowercase[random.Next(lowercase.Length)]);
-                password.Append(uppercase[random.Next(uppercase.Length)]);
-                password.Append(digits[random.Next(digits.Length)]);
-                password.Append(special[random.Next(special.Length)]);
+                password.Append(lowercase[RandomNumberGenerator.GetInt32(lowercase.Length)]);
+                password.Append(uppercase[RandomNumberGenerator.GetInt32(uppercase.Length)]);
+                password.Append(digits[RandomNumberGenerator.GetInt32(digits.Length)]);
+                password.Append(special[RandomNumberGenerator.GetInt32(special.Length)]);
 
-                // Fill the rest randomly
                 string allChars = lowercase + uppercase + digits + special;
                 for (int i = 4; i < length; i++)
-                {
-                    password.Append(allChars[random.Next(allChars.Length)]);
-                }
+                    password.Append(allChars[RandomNumberGenerator.GetInt32(allChars.Length)]);
 
-                // Shuffle the password
                 var chars = password.ToString().ToCharArray();
                 for (int i = chars.Length - 1; i > 0; i--)
                 {
-                    int j = random.Next(i + 1);
+                    int j = RandomNumberGenerator.GetInt32(i + 1);
                     (chars[i], chars[j]) = (chars[j], chars[i]);
                 }
 
-            return Result<string>.Success(new string(chars));
-        }
+                return Result<string>.Success(new string(chars));
+            }
             catch (Exception ex)
             {
-            return Result<string>.Failure(
-            Error.Failure(ErrorCode.ValidationFailed, $"Error generating password: {ex.Message}"));
+                _logger.LogError(ex, "Failed to generate random password");
+                return Result<string>.Failure(
+                    Error.Failure(ErrorCode.InternalError, "Failed to generate password"));
             }
         }
 

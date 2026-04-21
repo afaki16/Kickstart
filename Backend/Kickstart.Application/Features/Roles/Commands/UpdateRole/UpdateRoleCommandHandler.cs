@@ -108,10 +108,10 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred while updating role with ID: {request.Id}");
-            return Result<RoleDto>.Failure(Error.Failure(
-                ErrorCode.InvalidOperation,
-                $"An error occurred while creating the role: {ex.Message}"));
+                _logger.LogError(ex, "Error occurred while updating role with ID: {RoleId}", request.Id);
+                return Result<RoleDto>.Failure(Error.Failure(
+                    ErrorCode.InternalError,
+                    "An unexpected error occurred while updating the role"));
         }
         }
     }

@@ -43,38 +43,30 @@ namespace Kickstart.Application.Features.Admin.Queries.GetActiveUsersSnapshot
             if (!_currentUserService.CanAccessAllTenants)
                 usersQuery = usersQuery.Where(u => !u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
 
-            var query =
+            var list = await (
                 from rt in _unitOfWork.RefreshTokens.GetQueryable()
                 where !rt.IsRevoked && rt.ExpiryDate > now
                 join u in usersQuery on rt.UserId equals u.Id
+                where !tenantId.HasValue || u.TenantId == tenantId.Value
                 join tenant in _unitOfWork.Tenants.GetQueryable() on u.TenantId equals tenant.Id into tj
                 from tenant in tj.DefaultIfEmpty()
-                select new { rt, u, tenant };
-
-            if (tenantId.HasValue)
-                query = query.Where(x => x.u.TenantId == tenantId.Value);
-
-            var rows = await query.ToListAsync(cancellationToken);
-
-            var list = rows
-                .GroupBy(x => x.u.Id)
-                .Select(g =>
+                group rt by new
                 {
-                    var first = g.First();
-                    return new ActiveUserSnapshotDto
-                    {
-                        UserId = g.Key,
-                        FullName = first.u.FullName,
-                        Email = first.u.Email,
-                        TenantId = first.u.TenantId,
-                        TenantName = first.tenant?.Name,
-                        ActiveSessionCount = g.Count(),
-                        LastActivityAt = g.Max(x => x.rt.CreatedDate)
-                    };
+                    u.Id, u.FirstName, u.LastName, u.Email, u.TenantId,
+                    TenantName = (string?)tenant.Name
+                } into g
+                orderby g.Key.TenantName, g.Key.LastName, g.Key.FirstName
+                select new ActiveUserSnapshotDto
+                {
+                    UserId             = g.Key.Id,
+                    FullName           = g.Key.FirstName + " " + g.Key.LastName,
+                    Email              = g.Key.Email,
+                    TenantId           = g.Key.TenantId,
+                    TenantName         = g.Key.TenantName,
+                    ActiveSessionCount = g.Count(),
+                    LastActivityAt     = g.Max(rt => rt.CreatedDate)
                 })
-                .OrderBy(x => x.TenantName ?? "")
-                .ThenBy(x => x.FullName)
-                .ToList();
+                .ToListAsync(cancellationToken);
 
             return Result<List<ActiveUserSnapshotDto>>.Success(list);
         }

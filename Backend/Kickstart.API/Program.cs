@@ -2,6 +2,7 @@ using Kickstart.Infrastructure;
 using Kickstart.Infrastructure.Persistence;
 using Kickstart.Application;
 using Kickstart.API.Extensions;
+using Kickstart.API.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,7 @@ if (app.Environment.IsDevelopment())
     
 }
 
+app.UseMiddleware<RequestLoggingMiddleware>();
 app.UseHttpsRedirection();
 
 // Add CORS middleware (must be before authentication)

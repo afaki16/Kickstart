@@ -94,10 +94,10 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
             }
             catch (System.Exception ex)
             {
-                _logger.LogError(ex, $"Error occurred while creating role: {request.Name}");
-            return Result<RoleDto>.Failure(Error.Failure(
-                    ErrorCode.InvalidOperation,
-                    $"An error occurred while creating the role: {ex.Message}"));
+                _logger.LogError(ex, "Error occurred while creating role: {RoleName}", request.Name);
+                return Result<RoleDto>.Failure(Error.Failure(
+                    ErrorCode.InternalError,
+                    "An unexpected error occurred while creating the role"));
             }
         }
     }
