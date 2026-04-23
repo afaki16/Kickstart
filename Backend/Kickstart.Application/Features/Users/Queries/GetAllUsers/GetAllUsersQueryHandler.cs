@@ -35,8 +35,7 @@ namespace Kickstart.Application.Features.Users.Queries.GetAllUsers
             int? tenantId = _currentUserService.CanAccessAllTenants ? null : _currentUserService.TenantId;
             var excludeSuperAdmins = !_currentUserService.CanAccessAllTenants;
 
-            var users = await _unitOfWork.Users.GetUsersWithRolesAsync(request.Page, request.PageSize, request.SearchTerm, tenantId, excludeSuperAdmins);
-            var totalCount = await _unitOfWork.Users.GetUsersWithRolesCountAsync(request.SearchTerm, tenantId, excludeSuperAdmins);
+            var (users, totalCount) = await _unitOfWork.Users.GetUsersPagedAsync(request.Page, request.PageSize, request.SearchTerm, tenantId, excludeSuperAdmins);
             var userDtos = _mapper.Map<IEnumerable<UserListDto>>(users);
             var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
             return PagedResult<UserListDto>.Success(userDtos, request.Page, totalPages, totalCount);

@@ -31,6 +31,17 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
         return await _context.Set<User>().Where(u => u.Email == email).ToListAsync();
     }
 
+    public async Task<IReadOnlyList<User>> GetUsersByEmailWithPermissionsAsync(string email)
+    {
+        return await _context.Set<User>()
+            .Include(u => u.UserRoles)
+                .ThenInclude(ur => ur.Role)
+                    .ThenInclude(r => r.RolePermissions)
+                        .ThenInclude(rp => rp.Permission)
+            .Where(u => u.Email == email)
+            .ToListAsync();
+    }
+
     public async Task<User> GetUserWithRolesAsync(int userId)
     {
         return await _context.Set<User>()
@@ -80,55 +91,37 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
         _context.UserRoles.Remove(userRole);
     }
 
-    public async Task<IEnumerable<User>> GetUsersWithRolesAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false)
+    public async Task<(IEnumerable<User> Users, int TotalCount)> GetUsersPagedAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false)
     {
-        var query = _context.Set<User>().Include(u => u.UserRoles).ThenInclude(ur => ur.Role).AsQueryable();
+        var baseQuery = BuildUsersQuery(searchTerm, tenantId, excludeUsersWithSuperAdminRole);
+        var totalCount = await baseQuery.CountAsync();
 
-        if (tenantId.HasValue)
-        {
-            query = query.Where(u => u.TenantId == tenantId.Value);
-        }
-
-        if (excludeUsersWithSuperAdminRole)
-            query = query.Where(u => !u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
-
-        if (!string.IsNullOrEmpty(searchTerm))
-        {
-            var searchTermLower = searchTerm.ToLower();
-            query = query.Where(u =>
-                u.FirstName.ToLower().Contains(searchTermLower) ||
-                u.LastName.ToLower().Contains(searchTermLower) ||
-                u.Email.ToLower().Contains(searchTermLower));
-        }
-
-        return await query
+        var users = await baseQuery
+            .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
+
+        return (users, totalCount);
     }
 
-    public async Task<int> GetUsersWithRolesCountAsync(string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false)
+    private IQueryable<User> BuildUsersQuery(string searchTerm, int? tenantId, bool excludeUsersWithSuperAdminRole)
     {
         var query = _context.Set<User>().AsQueryable();
 
         if (tenantId.HasValue)
-        {
             query = query.Where(u => u.TenantId == tenantId.Value);
-        }
 
         if (excludeUsersWithSuperAdminRole)
             query = query.Where(u => !u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
 
         if (!string.IsNullOrEmpty(searchTerm))
-        {
-            var searchTermLower = searchTerm.ToLower();
             query = query.Where(u =>
-                u.FirstName.ToLower().Contains(searchTermLower) ||
-                u.LastName.ToLower().Contains(searchTermLower) ||
-                u.Email.ToLower().Contains(searchTermLower));
-        }
+                u.FirstName.ToLower().Contains(searchTerm.ToLower()) ||
+                u.LastName.ToLower().Contains(searchTerm.ToLower()) ||
+                u.Email.ToLower().Contains(searchTerm.ToLower()));
 
-        return await query.CountAsync();
+        return query;
     }
 
     public async Task<IEnumerable<int>> GetUserIdsByRoleIdAsync(int roleId)

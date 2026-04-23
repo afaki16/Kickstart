@@ -7,5 +7,6 @@ namespace Kickstart.Application.Interfaces
         Task<Result<bool>> HasPermissionAsync(int userId, string permission);
         Task<Result<List<string>>> GetUserPermissionsAsync(int userId);
         void ClearUserPermissionCache(int userId);
+        void ClearRolePermissionCache();
     }
 }

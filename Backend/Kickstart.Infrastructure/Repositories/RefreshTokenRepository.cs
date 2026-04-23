@@ -116,16 +116,15 @@ namespace Kickstart.Infrastructure.Repositories
 
         public async Task RevokeAllUserTokensAsync(int userId, string ipAddress = null, string userAgent = null, string reason = "User logout")
         {
-            var tokens = await GetQueryable()
+            var now = DateTime.UtcNow;
+            await _context.Set<RefreshToken>()
                 .Where(rt => rt.UserId == userId && !rt.IsRevoked)
-                .ToListAsync();
-
-            foreach (var token in tokens)
-            {
-                token.Revoke(ipAddress, userAgent, reason);
-            }
-
-            UpdateRange(tokens);
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(rt => rt.IsRevoked, true)
+                    .SetProperty(rt => rt.RevokedDate, now)
+                    .SetProperty(rt => rt.RevokedByIpAddress, ipAddress)
+                    .SetProperty(rt => rt.RevokedByUserAgent, userAgent)
+                    .SetProperty(rt => rt.Reason, reason));
         }
 
         public async Task RevokeTokenAsync(string token, string ipAddress = null, string userAgent = null, string reason = "Token revoked")
@@ -165,21 +164,17 @@ namespace Kickstart.Infrastructure.Repositories
 
         public async Task CleanupExpiredTokensAsync()
         {
-            var expiredTokens = await GetQueryable()
+            await _context.Set<RefreshToken>()
                 .Where(rt => rt.ExpiryDate <= DateTime.UtcNow)
-                .ToListAsync();
-
-            RemoveRange(expiredTokens);
+                .ExecuteDeleteAsync();
         }
 
         public async Task CleanupRevokedTokensAsync(int daysOld = 30)
         {
             var cutoffDate = DateTime.UtcNow.AddDays(-daysOld);
-            var oldRevokedTokens = await GetQueryable()
+            await _context.Set<RefreshToken>()
                 .Where(rt => rt.IsRevoked && rt.RevokedDate <= cutoffDate)
-                .ToListAsync();
-
-            RemoveRange(oldRevokedTokens);
+                .ExecuteDeleteAsync();
         }
 
         public async Task<IEnumerable<RefreshToken>> GetExpiringSoonTokensAsync(int minutesThreshold = 30)

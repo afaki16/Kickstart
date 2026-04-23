@@ -9,6 +9,7 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
     {
         Task<User> GetByEmailAsync(string email, int? tenantId);
         Task<IReadOnlyList<User>> GetUsersByEmailAsync(string email);
+        Task<IReadOnlyList<User>> GetUsersByEmailWithPermissionsAsync(string email);
         Task<User> GetUserWithRolesAsync(int userId);
         Task<User> GetUserWithPermissionsAsync(int userId);
         Task<bool> EmailExistsAsync(string email, int? tenantId);
@@ -17,8 +18,7 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
         Task<UserRole> GetUserRoleAsync(int userId, int roleId);
         Task AddUserRoleAsync(UserRole userRole);
         void RemoveUserRole(UserRole userRole);
-        Task<IEnumerable<User>> GetUsersWithRolesAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false);
-        Task<int> GetUsersWithRolesCountAsync(string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false);
+        Task<(IEnumerable<User> Users, int TotalCount)> GetUsersPagedAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false);
         Task<IEnumerable<int>> GetUserIdsByRoleIdAsync(int roleId);
     }
 } 

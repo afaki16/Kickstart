@@ -7,45 +7,57 @@ namespace Kickstart.Infrastructure.Services
 {
     public class PermissionService(IMemoryCache cache, IUnitOfWork unitOfWork) : IPermissionService
     {
-        private const int CacheExpirationMinutes = 15;
+        private const string RolePermCacheKey = "role_permissions_all";
+        private const int RoleCacheMinutes = 60;
+        private const int UserCacheMinutes = 15;
+
+        private async Task<Dictionary<int, List<string>>> GetRolePermissionsMapAsync()
+        {
+            if (cache.TryGetValue(RolePermCacheKey, out Dictionary<int, List<string>>? map) && map is not null)
+                return map;
+
+            var roles = await unitOfWork.Roles.GetAllWithPermissionsAsync();
+            map = roles.ToDictionary(
+                r => r.Id,
+                r => r.RolePermissions
+                    .SelectMany(rp =>
+                    {
+                        var perms = new List<string> { rp.Permission.FullPermission };
+                        foreach (var permType in rp.Permission.GetIndividualPermissions())
+                            perms.Add($"{rp.Permission.Resource}.{permType}");
+                        return perms;
+                    })
+                    .Distinct()
+                    .ToList()
+            );
+
+            cache.Set(RolePermCacheKey, map,
+                new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(RoleCacheMinutes)));
+
+            return map;
+        }
 
         public async Task<Result<List<string>>> GetUserPermissionsAsync(int userId)
         {
             var cacheKey = $"user_permissions_{userId}";
 
-            if (cache.TryGetValue(cacheKey, out List<string> permissions))
-            {
-                return Result<List<string>>.Success(permissions);
-            }
+            if (cache.TryGetValue(cacheKey, out List<string>? cached) && cached is not null)
+                return Result<List<string>>.Success(cached);
 
-            var user = await unitOfWork.Users.GetUserWithPermissionsAsync(userId);
-
+            var user = await unitOfWork.Users.GetUserWithRolesAsync(userId);
             if (user == null)
-            {
                 return Result<List<string>>.Success(new List<string>());
-            }
 
-            permissions = user.UserRoles
-                .SelectMany(ur => ur.Role.RolePermissions.Select(rp => rp.Permission))
-                .Distinct()
-                .SelectMany(p =>
-                {
-                    var perms = new List<string> { p.FullPermission };
+            var rolePermMap = await GetRolePermissionsMapAsync();
 
-                    foreach (var permissionType in p.GetIndividualPermissions())
-                    {
-                        perms.Add($"{p.Resource}.{permissionType}");
-                    }
-
-                    return perms;
-                })
+            var permissions = user.UserRoles
+                .Where(ur => rolePermMap.ContainsKey(ur.RoleId))
+                .SelectMany(ur => rolePermMap[ur.RoleId])
                 .Distinct()
                 .ToList();
 
-            var cacheOptions = new MemoryCacheEntryOptions()
-                .SetAbsoluteExpiration(TimeSpan.FromMinutes(CacheExpirationMinutes));
-
-            cache.Set(cacheKey, permissions, cacheOptions);
+            cache.Set(cacheKey, permissions,
+                new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(UserCacheMinutes)));
 
             return Result<List<string>>.Success(permissions);
         }
@@ -63,8 +75,12 @@ namespace Kickstart.Infrastructure.Services
 
         public void ClearUserPermissionCache(int userId)
         {
-            var cacheKey = $"user_permissions_{userId}";
-            cache.Remove(cacheKey);
+            cache.Remove($"user_permissions_{userId}");
+        }
+
+        public void ClearRolePermissionCache()
+        {
+            cache.Remove(RolePermCacheKey);
         }
     }
 }

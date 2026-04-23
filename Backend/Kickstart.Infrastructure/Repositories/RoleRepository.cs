@@ -47,31 +47,21 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Role>> GetRolesWithPermissionsPagedAsync(int page, int pageSize, string searchTerm = null, bool excludeSuperAdminRole = false)
+    public async Task<(IEnumerable<Role> Roles, int TotalCount)> GetRolesPagedAsync(int page, int pageSize, string searchTerm = null, bool excludeSuperAdminRole = false)
     {
-        var query = _context.Set<Role>()
-            .Include(r => r.RolePermissions)
-            .ThenInclude(rp => rp.Permission)
-            .AsQueryable();
+        var baseQuery = BuildRolesQuery(searchTerm, excludeSuperAdminRole);
+        var totalCount = await baseQuery.CountAsync();
 
-        if (excludeSuperAdminRole)
-            query = query.Where(r => r.Name != RoleNames.SuperAdmin);
-
-        if (!string.IsNullOrEmpty(searchTerm))
-        {
-            var searchTermLower = searchTerm.ToLower();
-            query = query.Where(r =>
-                (r.Name != null && r.Name.ToLower().Contains(searchTermLower)) ||
-                (r.Description != null && r.Description.ToLower().Contains(searchTermLower)));
-        }
-
-        return await query
+        var roles = await baseQuery
+            .Include(r => r.RolePermissions).ThenInclude(rp => rp.Permission)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
+
+        return (roles, totalCount);
     }
 
-    public async Task<int> GetRolesWithPermissionsCountAsync(string searchTerm = null, bool excludeSuperAdminRole = false)
+    private IQueryable<Role> BuildRolesQuery(string searchTerm, bool excludeSuperAdminRole)
     {
         var query = _context.Set<Role>().AsQueryable();
 
@@ -80,13 +70,13 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
-            var searchTermLower = searchTerm.ToLower();
+            var lower = searchTerm.ToLower();
             query = query.Where(r =>
-                (r.Name != null && r.Name.ToLower().Contains(searchTermLower)) ||
-                (r.Description != null && r.Description.ToLower().Contains(searchTermLower)));
+                (r.Name != null && r.Name.ToLower().Contains(lower)) ||
+                (r.Description != null && r.Description.ToLower().Contains(lower)));
         }
 
-        return await query.CountAsync();
+        return query;
     }
 
     public async Task<IEnumerable<Role>> GetNonSystemRolesWithPermissionsAsync()

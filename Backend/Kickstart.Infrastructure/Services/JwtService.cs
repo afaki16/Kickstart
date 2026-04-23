@@ -41,16 +41,16 @@ namespace Kickstart.Infrastructure.Services
     {
         try
         {
-            var candidates = await _unitOfWork.Users.GetUsersByEmailAsync(email);
+            var candidates = await _unitOfWork.Users.GetUsersByEmailWithPermissionsAsync(email);
             if (candidates.Count == 0)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
                     "Invalid email or password"));
 
-            User resolved;
+            User user;
             if (candidates.Count == 1)
             {
-                resolved = candidates[0];
+                user = candidates[0];
             }
             else
             {
@@ -59,14 +59,12 @@ namespace Kickstart.Infrastructure.Services
                         ErrorCode.InvalidRequest,
                         "Multiple accounts with this email. Specify tenant id."));
 
-                resolved = candidates.FirstOrDefault(u => u.TenantId == tenantId);
-                if (resolved == null)
+                user = candidates.FirstOrDefault(u => u.TenantId == tenantId);
+                if (user == null)
                     return Result<LoginResponseDto>.Failure(Error.Failure(
                         ErrorCode.InvalidRequest,
                         "Invalid email or password"));
             }
-
-            var user = await _unitOfWork.Users.GetUserWithPermissionsAsync(resolved.Id);
 
             if (user == null)
                 return Result<LoginResponseDto>.Failure(Error.Failure(

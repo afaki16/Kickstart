@@ -95,6 +95,7 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
 
                 await _unitOfWork.SaveChangesAsync();
 
+                _permissionService.ClearRolePermissionCache();
                 var affectedUserIds = await _unitOfWork.Users.GetUserIdsByRoleIdAsync(request.Id);
                 foreach (var userId in affectedUserIds)
                     _permissionService.ClearUserPermissionCache(userId);

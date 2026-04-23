@@ -11,8 +11,7 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
         Task<Role> GetRoleWithPermissionsAsync(int roleId);
         Task<int> GetByIdWithNameAsync(string name);
         Task<IEnumerable<Role>> GetAllWithPermissionsAsync();
-        Task<IEnumerable<Role>> GetRolesWithPermissionsPagedAsync(int page, int pageSize, string searchTerm = null, bool excludeSuperAdminRole = false);
-        Task<int> GetRolesWithPermissionsCountAsync(string searchTerm = null, bool excludeSuperAdminRole = false);
+        Task<(IEnumerable<Role> Roles, int TotalCount)> GetRolesPagedAsync(int page, int pageSize, string searchTerm = null, bool excludeSuperAdminRole = false);
         Task<IEnumerable<Role>> GetNonSystemRolesWithPermissionsAsync();
         Task<IEnumerable<Role>> GetRolesByUserIdAsync(int userId);
         Task<bool> RoleExistsAsync(string name);
