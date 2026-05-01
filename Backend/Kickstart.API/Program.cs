@@ -3,6 +3,7 @@ using Kickstart.Infrastructure.Persistence;
 using Kickstart.Application;
 using Kickstart.API.Extensions;
 using Kickstart.API.Middleware;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,8 @@ builder.Services.AddApiServices(builder.Configuration);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Configuration.ValidateRequiredSettings(builder.Environment);
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -31,7 +34,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    
 }
 
 app.UseMiddleware<RequestLoggingMiddleware>();
@@ -45,6 +47,13 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Apply pending migrations automatically
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 // Seed data only if database is empty
 await SeedData.SeedAsyncIfEmpty(app.Services);

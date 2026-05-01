@@ -30,3 +30,13 @@ Backend/Kickstart.Application/Kickstart.Application.csproj.lscache
 Backend/Kickstart.Domain/Kickstart.Domain.csproj.lscache
 
 Backend/Kickstart.Infrastructure/Kickstart.Infrastructure.csproj.lscache
+
+# Sensitive config files
+**/appsettings.Development.json
+
+# Environment variables
+.env
+.env.local
+
+# IDE (additional patterns)
+**/.vs/
