@@ -3,7 +3,9 @@ using Kickstart.Infrastructure.Persistence;
 using Kickstart.Application;
 using Kickstart.API.Extensions;
 using Kickstart.API.Middleware;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +14,27 @@ builder.Services.AddControllers();
 
 // Add HttpContextAccessor
 builder.Services.AddHttpContextAccessor();
+
+// Configure Forwarded Headers (so backend trusts X-Forwarded-* from Nginx/reverse proxy)
+// SECURITY: Only trust private/Docker network ranges. Never add public IP ranges here —
+// doing so allows IP spoofing from any client that can reach the backend directly.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor
+                             | ForwardedHeaders.XForwardedProto;
+
+    // Clear default networks/proxies; add explicit trusted ranges below.
+    options.KnownNetworks.Clear();
+    options.KnownProxies.Clear();
+
+    // Docker bridge / private LAN ranges where the reverse proxy lives.
+    options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("172.16.0.0"), 12));   // Docker default bridge
+    options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("10.0.0.0"), 8));      // Common private range
+    options.KnownNetworks.Add(new Microsoft.AspNetCore.HttpOverrides.IPNetwork(IPAddress.Parse("192.168.0.0"), 16));  // Common private range
+
+    // Limit forwarded header processing to the immediate proxy hop.
+    options.ForwardLimit = 2;
+});
 
 // Add Application services (MediatR, AutoMapper, FluentValidation)
 builder.Services.AddApplication();
@@ -29,6 +52,10 @@ builder.Configuration.ValidateRequiredSettings(builder.Environment);
 
 var app = builder.Build();
 
+// MUST be first: rewrite RemoteIpAddress / scheme from forwarded headers
+// before any downstream middleware (logging, auth, rate-limiting) reads them.
+app.UseForwardedHeaders();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -37,7 +64,18 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseMiddleware<RequestLoggingMiddleware>();
-app.UseHttpsRedirection();
+
+// HTTPS redirection only outside Development (local dev runs over HTTP).
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+app.UseRouting();
+
+// Security headers run after routing so they apply to every response,
+// including auth failures and route-not-found responses.
+app.UseSecurityHeaders();
 
 // Add CORS middleware (must be before authentication)
 app.UseCors("DefaultCorsPolicy");

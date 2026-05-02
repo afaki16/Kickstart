@@ -11,8 +11,11 @@ using Kickstart.Application.Features.Roles.Dtos;
 using Kickstart.Application.Features.Tenants.Dtos;
 using Kickstart.Application.Features.Permissions.Dtos;
 using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Constants;
 using Kickstart.Domain.Models;
 using MediatR;
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -40,6 +43,12 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
                     ErrorCode.NotFound,
                     "User not found"));
 
+            // Prevent self-deletion
+            if (user.Id == _currentUserService.UserId)
+                return Result.Failure(Error.Failure(
+                    ErrorCode.Forbidden,
+                    "You cannot delete your own account"));
+
             // Admin/User can only delete users from their own tenant; SuperAdmin can delete any user
             if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
                 return Result.Failure(Error.Failure(
@@ -51,7 +60,27 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
                     ErrorCode.Forbidden,
                     "You do not have access to delete this user"));
 
+            // Last SuperAdmin protection
+            var isSuperAdmin = user.UserRoles?.Any(ur => ur.Role?.Name == RoleNames.SuperAdmin) == true;
+            if (isSuperAdmin)
+            {
+                var activeSuperAdminCount = await _unitOfWork.Users.CountActiveSuperAdminsAsync();
+                if (activeSuperAdminCount <= 1)
+                    return Result.Failure(Error.Failure(
+                        ErrorCode.Forbidden,
+                        "Cannot delete the last SuperAdmin in the system"));
+            }
+
             _unitOfWork.Users.SoftDelete(user);
+
+            // Revoke all active sessions for the deleted user
+            user.LastSessionsRevokedAt = DateTime.UtcNow;
+            await _unitOfWork.RefreshTokens.RevokeAllUserTokensAsync(
+                user.Id,
+                ipAddress: null,
+                userAgent: null,
+                reason: "User account deleted");
+
             await _unitOfWork.SaveChangesAsync();
 
             _permissionService.ClearUserPermissionCache(request.Id);

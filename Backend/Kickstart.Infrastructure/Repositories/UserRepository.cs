@@ -132,4 +132,13 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
             .Distinct()
             .ToListAsync();
     }
+
+    public async Task<int> CountActiveSuperAdminsAsync()
+    {
+        // GlobalQueryFilter on User automatically applies IsDeleted == false,
+        // so this count reflects only active SuperAdmins.
+        return await _context.Set<User>()
+            .Where(u => u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin))
+            .CountAsync();
+    }
 }
