@@ -50,6 +50,10 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 builder.Services.AddApiServices(builder.Configuration);
 
+// Rate limiting (memory-based, per-IP). Limits are looser in Development
+// to keep manual testing painless; Staging/Production stay strict.
+builder.Services.AddRateLimiting(builder.Environment);
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -87,6 +91,10 @@ app.UseSecurityHeaders();
 
 // Add CORS middleware (must be before authentication)
 app.UseCors("DefaultCorsPolicy");
+
+// Rate limiting runs before authentication so unauthenticated traffic
+// (login, register, forgot-password) is also throttled.
+app.UseRateLimiter();
 
 // Authentication and Authorization (order is important)
 app.UseAuthentication();

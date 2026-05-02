@@ -1,8 +1,11 @@
 using Kickstart.Domain.Constants;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.OpenApi.Models;
 using System.Reflection;
+using System.Threading.RateLimiting;
 
 namespace Kickstart.API.Extensions
 {
@@ -92,6 +95,100 @@ namespace Kickstart.API.Extensions
 
             return services;
         }
+
+        public static IServiceCollection AddRateLimiting(
+            this IServiceCollection services,
+            IHostEnvironment environment)
+        {
+            // Development: 10x more permissive so devs aren't blocked while testing.
+            // Production/Staging keep the strict limits that protect against abuse.
+            var loginLimit = environment.IsDevelopment() ? 50 : 5;
+            var sensitiveLimit = environment.IsDevelopment() ? 30 : 3;
+            var globalLimit = environment.IsDevelopment() ? 1000 : 100;
+
+            services.AddRateLimiter(options =>
+            {
+                options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+                options.OnRejected = async (context, cancellationToken) =>
+                {
+                    if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+                    {
+                        context.HttpContext.Response.Headers.RetryAfter =
+                            ((int)retryAfter.TotalSeconds).ToString();
+                    }
+
+                    var logger = context.HttpContext.RequestServices
+                        .GetRequiredService<ILogger<RateLimiterRejectionLog>>();
+
+                    var endpoint = context.HttpContext.Request.Path;
+                    var clientIp = GetClientIp(context.HttpContext);
+                    var policyName = context.HttpContext.GetEndpoint()?.Metadata
+                        .GetMetadata<EnableRateLimitingAttribute>()?.PolicyName ?? "global";
+                    var retryAfterSeconds = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var ra)
+                        ? (int)ra.TotalSeconds
+                        : 0;
+
+                    logger.LogWarning(
+                        "Rate limit exceeded. IP: {ClientIp}, Endpoint: {Endpoint}, " +
+                        "Policy: {Policy}, RetryAfter: {RetryAfterSeconds}s",
+                        clientIp, endpoint, policyName, retryAfterSeconds);
+
+                    await context.HttpContext.Response.WriteAsync(
+                        "Too many requests. Please try again later.", cancellationToken);
+                };
+
+                // Login policy: per-IP sliding window
+                options.AddPolicy("login", httpContext =>
+                    RateLimitPartition.GetSlidingWindowLimiter(
+                        partitionKey: GetClientIp(httpContext),
+                        factory: _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = loginLimit,
+                            Window = TimeSpan.FromMinutes(1),
+                            SegmentsPerWindow = 6,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0
+                        }));
+
+                // Sensitive policy: per-IP sliding window (forgot/reset password, register)
+                options.AddPolicy("sensitive", httpContext =>
+                    RateLimitPartition.GetSlidingWindowLimiter(
+                        partitionKey: GetClientIp(httpContext),
+                        factory: _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = sensitiveLimit,
+                            Window = TimeSpan.FromMinutes(1),
+                            SegmentsPerWindow = 6,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0
+                        }));
+
+                // Global default fallback applied to every request
+                options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(
+                    httpContext => RateLimitPartition.GetSlidingWindowLimiter(
+                        partitionKey: GetClientIp(httpContext),
+                        factory: _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = globalLimit,
+                            Window = TimeSpan.FromMinutes(1),
+                            SegmentsPerWindow = 6,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0
+                        }));
+            });
+
+            return services;
+        }
+
+        // Real client IP — relies on UseForwardedHeaders running first.
+        private static string GetClientIp(HttpContext context)
+        {
+            return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        }
+
+        // Marker type used purely as the logger category name for rate-limit rejections.
+        private class RateLimiterRejectionLog { }
 
         private static void AddAuthorizationPolicies(this IServiceCollection services)
         {

@@ -15,6 +15,7 @@ using Kickstart.Application.Features.Users.Queries.GetCurrentUser;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace Kickstart.API.Controllers
 {
@@ -35,6 +36,7 @@ namespace Kickstart.API.Controllers
         /// <returns>Access token and user information</returns>
         [HttpPost("login")]
         [AllowAnonymous]
+        [EnableRateLimiting("login")]
         [ProducesResponseType(typeof(LoginResponseDto), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]
@@ -63,6 +65,7 @@ namespace Kickstart.API.Controllers
         /// <returns>Created user information</returns>
         [HttpPost("register")]
         [AllowAnonymous]
+        [EnableRateLimiting("sensitive")]
         [ProducesResponseType(typeof(Application.Features.Users.Dtos.UserDto), 201)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto request)
@@ -280,6 +283,7 @@ namespace Kickstart.API.Controllers
         /// <returns>Success message</returns>
         [HttpPost("forgot-password")]
         [AllowAnonymous]
+        [EnableRateLimiting("sensitive")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequestDto request)
@@ -303,6 +307,7 @@ namespace Kickstart.API.Controllers
         /// <returns>Success message</returns>
         [HttpPost("reset-password")]
         [AllowAnonymous]
+        [EnableRateLimiting("sensitive")]
         [ProducesResponseType(200)]
         [ProducesResponseType(400)]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto request)
