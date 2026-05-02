@@ -9,6 +9,12 @@ using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Suppress "Server: Kestrel" header so the runtime cannot be fingerprinted.
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.AddServerHeader = false;
+});
+
 // Add services to the container.
 builder.Services.AddControllers();
 
@@ -49,6 +55,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Configuration.ValidateRequiredSettings(builder.Environment);
+builder.Configuration.ValidateCorsSettings(builder.Environment);
 
 var app = builder.Build();
 
@@ -57,7 +64,8 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// Swagger is exposed in Development and Staging only. Production keeps the API surface hidden.
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

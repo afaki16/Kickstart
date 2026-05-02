@@ -35,4 +35,26 @@ public static class ConfigurationExtensions
         if (errors.Count > 0)
             throw new InvalidOperationException(string.Join(Environment.NewLine, errors));
     }
+
+    public static void ValidateCorsSettings(this IConfiguration config, IHostEnvironment env)
+    {
+        var origins = config.GetSection("CorsSettings:AllowedOrigins").Get<string[]>()
+                      ?? Array.Empty<string>();
+
+        if (origins.Length == 0 && !env.IsDevelopment())
+        {
+            throw new InvalidOperationException(
+                "CORS configuration missing: CorsSettings:AllowedOrigins is empty. " +
+                $"You must configure allowed origins in appsettings.{env.EnvironmentName}.json " +
+                "or via environment variable CorsSettings__AllowedOrigins__0");
+        }
+
+        if (origins.Length == 0 && env.IsDevelopment())
+        {
+            // Logger is not yet built at this point; fall back to Console.
+            Console.WriteLine("[WARN] CORS AllowedOrigins is empty. " +
+                "API will not respond to cross-origin requests. " +
+                "Add origins to appsettings.Development.json if needed.");
+        }
+    }
 }

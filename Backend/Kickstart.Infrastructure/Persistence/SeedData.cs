@@ -191,7 +191,8 @@ namespace Kickstart.Infrastructure.Persistence
             var userRole = new Role
             {
                 Name = RoleNames.User,
-                Description = "Standard user with user management permissions only",
+                Description = "Standard authenticated user. No management permissions by default. " +
+                              "Derived projects should add domain-specific permissions as needed.",
                 IsSystemRole = false
             };
 
@@ -214,16 +215,10 @@ namespace Kickstart.Infrastructure.Persistence
             await context.RolePermissions.AddRangeAsync(superAdminRolePermissions);
             await context.RolePermissions.AddRangeAsync(adminRolePermissions);
 
-            // Get only Users permissions and assign to user role
-            var userPermissionNames = Permissions.Helper.GetPermissionsByResource("Users");
-            var userPermissions = allPermissions.Where(p => userPermissionNames.Contains(p.Name)).ToList();
-            var userRolePermissions = userPermissions.Select(p => new RolePermission
-            {
-                RoleId = userRole.Id,
-                PermissionId = p.Id
-            });
+            // User role: NO PERMISSIONS by default.
+            // Standard authenticated users have no management capabilities.
+            // Derived projects should add specific permissions to User role as needed.
 
-            await context.RolePermissions.AddRangeAsync(userRolePermissions);
             await context.SaveChangesAsync();
         }
 

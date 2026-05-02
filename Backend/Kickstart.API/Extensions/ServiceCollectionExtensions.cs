@@ -65,12 +65,25 @@ namespace Kickstart.API.Extensions
             {
                 options.AddPolicy("DefaultCorsPolicy", policy =>
                 {
-                    var allowedOrigins = configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>() ?? new[] { "*" };
-                    
-                    policy.WithOrigins(allowedOrigins)
-                          .AllowAnyMethod()
-                          .AllowAnyHeader()
-                          .AllowCredentials();
+                    var allowedOrigins = configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>()
+                                         ?? Array.Empty<string>();
+
+                    // Defense-in-depth: reject wildcard. Browsers already reject "*" with AllowCredentials,
+                    // but we fail loudly here so misconfiguration is caught at startup, not at request time.
+                    if (allowedOrigins.Any(o => o == "*"))
+                    {
+                        throw new InvalidOperationException(
+                            "CORS configuration error: Wildcard '*' is not allowed in CorsSettings:AllowedOrigins. " +
+                            "Specify explicit origins (e.g., https://app.example.com).");
+                    }
+
+                    if (allowedOrigins.Length > 0)
+                    {
+                        policy.WithOrigins(allowedOrigins)
+                              .AllowAnyMethod()
+                              .AllowAnyHeader()
+                              .AllowCredentials();
+                    }
                 });
             });
 
