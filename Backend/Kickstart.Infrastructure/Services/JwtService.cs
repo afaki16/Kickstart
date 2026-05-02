@@ -1,7 +1,7 @@
 using Kickstart.Application.Interfaces;
 using Kickstart.Application.Features.Auth.Dtos;
 using Kickstart.Application.Features.Auth.Models;
-using Kickstart.Infrastructure.Security;
+using Kickstart.Application.Common.Security;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -41,7 +41,8 @@ namespace Kickstart.Infrastructure.Services
     {
         try
         {
-            var candidates = await _unitOfWork.Users.GetUsersByEmailWithPermissionsAsync(email);
+            var normalizedEmail = email?.Trim().ToLowerInvariant();
+            var candidates = await _unitOfWork.Users.GetUsersByEmailWithPermissionsAsync(normalizedEmail);
             if (candidates.Count == 0)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
@@ -103,7 +104,7 @@ namespace Kickstart.Infrastructure.Services
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Login failed for email {Email}", email);
+            _logger.LogError(ex, "Login failed for email {Email}", email?.Trim().ToLowerInvariant());
             return Result<LoginResponseDto>.Failure(Error.Failure(
                 ErrorCode.InternalError,
                 "An unexpected error occurred during login"));
@@ -267,7 +268,31 @@ namespace Kickstart.Infrastructure.Services
                     ErrorCode.InvalidRequest,
                     "Invalid refresh token"));
 
-            if (!storedRefreshToken.IsActive)
+            // Reuse detection: a revoked token being presented indicates the previous holder
+            // already rotated past it — the real owner is likely an attacker. Revoke everything.
+            if (storedRefreshToken.IsRevoked)
+            {
+                _logger.LogWarning(
+                    "Refresh token reuse detected for user {UserId}. All sessions revoked. Source IP: {IpAddress}, UserAgent: {UserAgent}",
+                    storedRefreshToken.UserId, ipAddress, userAgent);
+
+                await _unitOfWork.RefreshTokens.RevokeAllUserTokensAsync(
+                    storedRefreshToken.UserId, ipAddress, userAgent, "Refresh token reuse detected");
+
+                var compromisedUser = await _unitOfWork.Users.GetByIdAsync(storedRefreshToken.UserId);
+                if (compromisedUser != null)
+                {
+                    compromisedUser.LastSessionsRevokedAt = DateTime.UtcNow;
+                    _unitOfWork.Users.Update(compromisedUser);
+                    await _unitOfWork.SaveChangesAsync();
+                }
+
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Invalid refresh token"));
+            }
+
+            if (storedRefreshToken.IsExpired)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
                     "Refresh token is not active"));

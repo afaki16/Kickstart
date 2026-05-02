@@ -3,7 +3,7 @@ using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Domain.Constants;
 using Kickstart.Domain.Entities;
 using Kickstart.Infrastructure.Persistence;
-using Kickstart.Infrastructure.Security;
+using Kickstart.Application.Common.Security;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;

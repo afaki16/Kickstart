@@ -23,6 +23,10 @@ services:
       NotificationService__Mail__Username: ${SMTP_USER_KICKSTART}
       NotificationService__Mail__Password: ${SMTP_PASS_KICKSTART}
       NotificationService__Mail__FromAddress: ${SMTP_FROM_KICKSTART}
+      # Seed admin user passwords (only used on first deploy when DB is empty)
+      # Set these in /opt/services/.env, then unset after first successful deploy
+      INITIAL_SUPERADMIN_PASSWORD: ${INITIAL_SUPERADMIN_PASSWORD_KICKSTART_PROD}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD_KICKSTART_PROD}
     networks: [app-network]
     ports:
       - '127.0.0.1:5003:8080'  # 5003: değiştir (kullanılan port'lara göre)
@@ -44,6 +48,10 @@ services:
       NotificationService__Mail__Username: ${SMTP_USER_KICKSTART}
       NotificationService__Mail__Password: ${SMTP_PASS_KICKSTART}
       NotificationService__Mail__FromAddress: ${SMTP_FROM_KICKSTART}
+      # Seed admin user passwords (only used on first deploy when DB is empty)
+      # Set these in /opt/services/.env, then unset after first successful deploy
+      INITIAL_SUPERADMIN_PASSWORD: ${INITIAL_SUPERADMIN_PASSWORD_KICKSTART_TEST}
+      INITIAL_ADMIN_PASSWORD: ${INITIAL_ADMIN_PASSWORD_KICKSTART_TEST}
     networks: [app-network]
     ports:
       - '127.0.0.1:5004:8080'  # 5004: değiştir (kullanılan port'lara göre)

@@ -57,8 +57,10 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
                     ErrorCode.Forbidden,
                     "You do not have access to update this user"));
 
+            var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
+
             // Check if email already exists for another user in the same tenant
-        var existingUser = await _unitOfWork.Users.GetByEmailAsync(request.Email, user.TenantId);
+        var existingUser = await _unitOfWork.Users.GetByEmailAsync(normalizedEmail, user.TenantId);
             if (existingUser != null && existingUser.Id != request.Id)
             return Result<UserListDto>.Failure(Error.Failure(
                         ErrorCode.AlreadyExists,
@@ -73,7 +75,7 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
             // Update user properties
             user.FirstName = request.FirstName;
             user.LastName = request.LastName;
-            user.Email = request.Email;
+            user.Email = normalizedEmail;
             user.PhoneNumber = request.PhoneNumber;
             user.Status = request.Status;
             user.ProfileImageUrl = request.ProfileImageUrl;

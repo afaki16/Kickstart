@@ -51,8 +51,10 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
                 tenantId = _currentUserService.TenantId;
             }
 
+            var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
+
             // Check if email already exists within this tenant scope
-            if (await _unitOfWork.Users.EmailExistsAsync(request.Email, tenantId))
+            if (await _unitOfWork.Users.EmailExistsAsync(normalizedEmail, tenantId))
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.AlreadyExists,
                     "Email already exists"));
@@ -72,6 +74,11 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
                         "You cannot assign the SuperAdmin role"));
             }
 
+            // Validate password strength (single source of truth: PasswordService)
+            var strengthResult = _passwordService.ValidatePasswordStrength(request.Password);
+            if (!strengthResult.IsSuccess)
+                return Result<UserListDto>.Failure(strengthResult.Errors);
+
             // Hash password
             var passwordResult = _passwordService.HashPassword(request.Password);
             if (!passwordResult.IsSuccess)
@@ -84,7 +91,7 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
             {
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Email = request.Email,
+                Email = normalizedEmail,
                 PasswordHash = passwordResult.Value,
                 PhoneNumber = request.PhoneNumber,
                 Status = request.Status,

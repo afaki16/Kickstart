@@ -141,7 +141,20 @@ POSTGRES_PASSWORD=<strong password>
 SMTP_USER_YOURPROJECT=user@gmail.com
 SMTP_PASS_YOURPROJECT=<app password>
 SMTP_FROM_YOURPROJECT=noreply@yourdomain.com
+
+# Initial admin user passwords (only required on first deploy when DB is empty)
+# Min 8 chars. Generate with: openssl rand -base64 16
+# Remove from .env after first successful deploy.
+INITIAL_SUPERADMIN_PASSWORD_YOURPROJECT_PROD=<min 8 chars>
+INITIAL_ADMIN_PASSWORD_YOURPROJECT_PROD=<min 8 chars>
+INITIAL_SUPERADMIN_PASSWORD_YOURPROJECT_TEST=<min 8 chars>
+INITIAL_ADMIN_PASSWORD_YOURPROJECT_TEST=<min 8 chars>
 ```
+
+| Variable | Purpose |
+|----------|---------|
+| `INITIAL_SUPERADMIN_PASSWORD_*` | Initial superadmin password for first deploy. Min 8 chars. Generate with `openssl rand -base64 16`. Remove from .env after first successful deploy. |
+| `INITIAL_ADMIN_PASSWORD_*` | Initial admin password. Same rules. |
 
 ### Required GitHub Secrets (Repo → Settings → Secrets → Actions)
 
@@ -175,6 +188,24 @@ dotnet ef migrations add MigrationName \
 Migration dosyalarını git'e commit edin. Container bir sonraki başlatmada otomatik uygular.
 
 > **Not:** Migrations klasörü boşsa `MigrateAsync()` crash etmez, sessizce geçer. Bu, setup sonrası ilk run için beklenen davranıştır.
+
+---
+
+## Initial Admin User
+
+On first deployment to a fresh database, the application seeds two admin users:
+- **SuperAdmin** (cross-tenant access)
+- **Admin** (default tenant)
+
+**Development:** Default passwords are used (`SuperAdmin123!` / `Admin123!`). An info log is written on startup; see logs on first run.
+
+**Staging/Production:** Passwords MUST be provided via environment variables:
+- `INITIAL_SUPERADMIN_PASSWORD`
+- `INITIAL_ADMIN_PASSWORD`
+
+If env vars are not set or are shorter than 8 characters, admin users will NOT be seeded — a warning is logged and you'll need to create them manually via SQL or a one-time migration. Roles, permissions, and tenants are still seeded.
+
+**Best practice:** Set these env vars in `/opt/services/.env` on the first deploy, verify admin login works, then unset them. They're only needed on a fresh DB.
 
 ---
 

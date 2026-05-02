@@ -41,8 +41,10 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
 
         public async Task<Result<UserDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
         {
+            var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
+
             // Public register: users without a tenant share one uniqueness scope (TenantId null)
-            if (await _unitOfWork.Users.EmailExistsAsync(request.Email, tenantId: null))
+            if (await _unitOfWork.Users.EmailExistsAsync(normalizedEmail, tenantId: null))
              return Result<UserDto>.Failure(Error.Failure(
                   ErrorCode.AlreadyExists,
                   "Email already exists"));
@@ -52,6 +54,11 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
                 return Result<UserDto>.Failure(Error.Failure(
                     ErrorCode.AlreadyExists,
                     "Phone number already exists"));
+
+            // Validate password strength (single source of truth: PasswordService)
+            var strengthResult = _passwordService.ValidatePasswordStrength(request.Password);
+            if (!strengthResult.IsSuccess)
+                return Result<UserDto>.Failure(strengthResult.Errors);
 
         // Hash password
         var passwordResult = _passwordService.HashPassword(request.Password);
@@ -65,7 +72,7 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
             {
                 FirstName = request.FirstName,
                 LastName = request.LastName,
-                Email = request.Email,
+                Email = normalizedEmail,
                 PasswordHash = passwordResult.Value,
                 PhoneNumber = request.PhoneNumber,
                 Status = UserStatus.Active,

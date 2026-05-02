@@ -30,10 +30,7 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
 
             RuleFor(x => x.Password)
                 .NotEmpty().WithMessage("Password is required.")
-                .MinimumLength(6).WithMessage("Password must be at least 6 characters long.")
-                .MaximumLength(100).WithMessage("Password cannot exceed 100 characters.")
-                .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)")
-                .WithMessage("Password must contain at least one lowercase letter, one uppercase letter, and one digit.");
+                .MaximumLength(100).WithMessage("Password cannot exceed 100 characters.");
 
             RuleFor(x => x.ConfirmPassword)
                 .NotEmpty().WithMessage("Confirm password is required.")

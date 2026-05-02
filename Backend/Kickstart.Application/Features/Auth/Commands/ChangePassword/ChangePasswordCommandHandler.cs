@@ -49,7 +49,12 @@ namespace Kickstart.Application.Features.Auth.Commands.ChangePassword
                 return Result.Failure(hashResult.Errors);
 
             user.PasswordHash = hashResult.Value;
+            user.LastSessionsRevokedAt = DateTime.UtcNow;
             _unitOfWork.Users.Update(user);
+
+            await _unitOfWork.RefreshTokens.RevokeAllUserTokensAsync(
+                user.Id, reason: "Password changed");
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             return Result.Success();

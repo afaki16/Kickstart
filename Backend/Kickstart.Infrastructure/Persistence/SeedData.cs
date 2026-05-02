@@ -2,7 +2,9 @@ using Kickstart.Domain.Entities;
 using Kickstart.Domain.Common.Enums;
 using Kickstart.Domain.Constants;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
@@ -16,6 +18,8 @@ namespace Kickstart.Infrastructure.Persistence
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
+            var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
             try
             {
@@ -30,9 +34,9 @@ namespace Kickstart.Infrastructure.Persistence
 
                 // Seed Tenants
                 await SeedTenantsAsync(context);
-                
+
                 // Seed Admin User
-                await SeedAdminUserAsync(context);
+                await SeedAdminUserAsync(context, logger, environment, configuration);
 
 
 
@@ -50,12 +54,14 @@ namespace Kickstart.Infrastructure.Persistence
             using var scope = serviceProvider.CreateScope();
             var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             var logger = scope.ServiceProvider.GetRequiredService<ILogger<ApplicationDbContext>>();
+            var environment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
             try
             {
                 // Check if database has any data
-                var hasAnyData = await context.Users.AnyAsync() || 
-                                await context.Roles.AnyAsync() || 
+                var hasAnyData = await context.Users.AnyAsync() ||
+                                await context.Roles.AnyAsync() ||
                                 await context.Permissions.AnyAsync() ||
                                 await context.Tenants.AnyAsync();
             ;
@@ -73,12 +79,12 @@ namespace Kickstart.Infrastructure.Persistence
 
                 // Seed Roles
                 await SeedRolesAsync(context);
-                
+
                 // Seed Tenants
                 await SeedTenantsAsync(context);
-            
+
                 // Seed Admin User
-                await SeedAdminUserAsync(context);
+                await SeedAdminUserAsync(context, logger, environment, configuration);
 
                 logger.LogInformation("Seed data completed successfully.");
             }
@@ -255,8 +261,43 @@ namespace Kickstart.Infrastructure.Persistence
         await context.SaveChangesAsync();
     }
 
-        private static async Task SeedAdminUserAsync(ApplicationDbContext context)
+        private const int MinAdminPasswordLength = 8;
+
+        private static async Task SeedAdminUserAsync(
+            ApplicationDbContext context,
+            ILogger logger,
+            IHostEnvironment environment,
+            IConfiguration configuration)
         {
+            string superAdminPassword;
+            string adminPassword;
+
+            if (environment.IsDevelopment())
+            {
+                superAdminPassword = "SuperAdmin123!";
+                adminPassword = "Admin123!";
+                logger.LogInformation("Seeding admin users with default development passwords.");
+            }
+            else
+            {
+                superAdminPassword = configuration["INITIAL_SUPERADMIN_PASSWORD"]
+                    ?? Environment.GetEnvironmentVariable("INITIAL_SUPERADMIN_PASSWORD");
+                adminPassword = configuration["INITIAL_ADMIN_PASSWORD"]
+                    ?? Environment.GetEnvironmentVariable("INITIAL_ADMIN_PASSWORD");
+
+                if (string.IsNullOrWhiteSpace(superAdminPassword) ||
+                    string.IsNullOrWhiteSpace(adminPassword) ||
+                    superAdminPassword.Length < MinAdminPasswordLength ||
+                    adminPassword.Length < MinAdminPasswordLength)
+                {
+                    logger.LogWarning(
+                        "Skipping admin seed: INITIAL_SUPERADMIN_PASSWORD/INITIAL_ADMIN_PASSWORD env vars not set or shorter than {MinLength} characters. " +
+                        "Create admin users manually or set the env vars and re-run on a fresh DB.",
+                        MinAdminPasswordLength);
+                    return;
+                }
+            }
+
             // Get default tenant
             var defaultTenant = await context.Tenants.FirstOrDefaultAsync(t => t.Domain == "default");
 
@@ -265,7 +306,7 @@ namespace Kickstart.Infrastructure.Persistence
                 FirstName = "Super",
                 LastName = "Administrator",
                 Email = "superadmin@kickstart.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("SuperAdmin123!"), // Default password
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(superAdminPassword),
                 PhoneNumber = "+905550000001",
                 Status = UserStatus.Active,
                 EmailConfirmed = true,
@@ -279,7 +320,7 @@ namespace Kickstart.Infrastructure.Persistence
                 FirstName = "System",
                 LastName = "Administrator",
                 Email = "admin@kickstart.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!"), // Default password
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(adminPassword),
                 PhoneNumber = "+905551234567",
                 Status = UserStatus.Active,
                 EmailConfirmed = true,
@@ -288,21 +329,7 @@ namespace Kickstart.Infrastructure.Persistence
                 CreatedDate = DateTime.UtcNow
             };
 
-            var standardUser = new User
-            {
-                FirstName = "Standard",
-                LastName = "User",
-                Email = "user@kickstart.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("User123!"), // Default password
-                PhoneNumber = "+905559998877",
-                Status = UserStatus.Active,
-                EmailConfirmed = true,
-                PhoneConfirmed = true,
-                TenantId = defaultTenant?.Id,
-                CreatedDate = DateTime.UtcNow
-            };
-
-            await context.Users.AddRangeAsync(superAdminUser, adminUser, standardUser);
+            await context.Users.AddRangeAsync(superAdminUser, adminUser);
             await context.SaveChangesAsync();
 
             // Assign super admin role to super admin user
@@ -327,15 +354,35 @@ namespace Kickstart.Infrastructure.Persistence
                 });
             }
 
-            // Assign user role to standard user
-            var userRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == RoleNames.User);
-            if (userRole != null)
+            // Seed standard demo user only in Development
+            if (environment.IsDevelopment())
             {
-                await context.UserRoles.AddAsync(new UserRole
+                var standardUser = new User
                 {
-                    UserId = standardUser.Id,
-                    RoleId = userRole.Id
-                });
+                    FirstName = "Standard",
+                    LastName = "User",
+                    Email = "user@kickstart.com",
+                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("User123!"),
+                    PhoneNumber = "+905559998877",
+                    Status = UserStatus.Active,
+                    EmailConfirmed = true,
+                    PhoneConfirmed = true,
+                    TenantId = defaultTenant?.Id,
+                    CreatedDate = DateTime.UtcNow
+                };
+
+                await context.Users.AddAsync(standardUser);
+                await context.SaveChangesAsync();
+
+                var userRole = await context.Roles.FirstOrDefaultAsync(r => r.Name == RoleNames.User);
+                if (userRole != null)
+                {
+                    await context.UserRoles.AddAsync(new UserRole
+                    {
+                        UserId = standardUser.Id,
+                        RoleId = userRole.Id
+                    });
+                }
             }
 
             await context.SaveChangesAsync();

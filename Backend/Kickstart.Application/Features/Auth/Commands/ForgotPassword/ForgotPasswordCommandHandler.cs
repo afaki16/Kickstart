@@ -1,4 +1,5 @@
 using Kickstart.Application.Common.Results;
+using Kickstart.Application.Common.Security;
 using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Entities;
@@ -27,7 +28,8 @@ namespace Kickstart.Application.Features.Auth.Commands.ForgotPassword
 
         public async Task<Result> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
         {
-            var user = await _unitOfWork.Users.GetByEmailAsync(request.Email, request.TenantId);
+            var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
+            var user = await _unitOfWork.Users.GetByEmailAsync(normalizedEmail, request.TenantId);
 
             // Güvenlik: kullanıcı bulunamasa bile 200 dön
             if (user is null)
@@ -36,11 +38,13 @@ namespace Kickstart.Application.Features.Auth.Commands.ForgotPassword
             // Önceki aktif tokenları geçersiz kıl
             await _unitOfWork.PasswordResetTokens.InvalidatePreviousTokensAsync(user.Id);
 
-            var token = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            var plainToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            var hashedToken = RefreshTokenHasher.Hash(plainToken);
+
             var resetToken = new PasswordResetToken
             {
                 UserId = user.Id,
-                Token = token,
+                Token = hashedToken,
                 ExpiresAt = DateTime.UtcNow.AddHours(24),
                 RequestIpAddress = request.IpAddress
             };
@@ -49,7 +53,7 @@ namespace Kickstart.Application.Features.Auth.Commands.ForgotPassword
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var frontendUrl = _configuration["App:FrontendUrl"];
-            var resetLink = $"{frontendUrl}/reset-password?token={HttpUtility.UrlEncode(token)}&email={HttpUtility.UrlEncode(user.Email)}";
+            var resetLink = $"{frontendUrl}/reset-password?token={HttpUtility.UrlEncode(plainToken)}&email={HttpUtility.UrlEncode(user.Email)}";
 
             await _emailService.SendPasswordResetAsync(user.Email, user.FirstName, resetLink);
 
