@@ -8,5 +8,11 @@ namespace Kickstart.Application.Interfaces
         Task<Result> SendEmailConfirmationAsync(string email, string confirmationLink);
         Task<Result> SendPasswordResetAsync(string email, string firstName, string resetLink);
         Task<Result> SendWelcomeEmailAsync(string email, string userName);
+        Task<Result> SendBruteForceAlertAsync(
+            string email,
+            string firstName,
+            string ipAddress,
+            int failureCount,
+            int lockoutMinutes);
     }
 }

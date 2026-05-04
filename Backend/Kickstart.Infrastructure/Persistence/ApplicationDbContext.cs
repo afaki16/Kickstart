@@ -26,6 +26,7 @@ namespace Kickstart.Infrastructure.Persistence
         public DbSet<RefreshToken> RefreshTokens { get; set; }
         public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
         public DbSet<Tenant> Tenants { get; set; }
+        public DbSet<LoginAttempt> LoginAttempts { get; set; }
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -28,25 +28,51 @@ namespace Kickstart.Infrastructure.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
         private readonly ILogger<JwtService> _logger;
+        private readonly IBruteForceProtectionService _bruteForceService;
+        private readonly IEmailService _emailService;
 
-        public JwtService(IConfiguration configuration, IUnitOfWork unitOfWork, IPasswordService passwordService, ILogger<JwtService> logger)
+        public JwtService(
+            IConfiguration configuration,
+            IUnitOfWork unitOfWork,
+            IPasswordService passwordService,
+            ILogger<JwtService> logger,
+            IBruteForceProtectionService bruteForceService,
+            IEmailService emailService)
         {
             _configuration = configuration;
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
             _logger = logger;
+            _bruteForceService = bruteForceService;
+            _emailService = emailService;
         }
 
     public async Task<Result<LoginResponseDto>> LoginAsync(string email, string password, string ipAddress, string userAgent, string deviceId = null, string deviceName = null, bool rememberMe = false, int? tenantId = null)
     {
+        var normalizedEmail = email?.Trim().ToLowerInvariant() ?? string.Empty;
+        var safeIp = ipAddress ?? string.Empty;
+
         try
         {
-            var normalizedEmail = email?.Trim().ToLowerInvariant();
-            var candidates = await _unitOfWork.Users.GetUsersByEmailWithPermissionsAsync(normalizedEmail);
-            if (candidates.Count == 0)
+            var lockoutStatus = await _bruteForceService.CheckLockoutAsync(normalizedEmail, safeIp);
+            if (lockoutStatus.IsLockedOut)
+            {
+                await _bruteForceService.RecordFailedAttemptAsync(
+                    normalizedEmail, safeIp, userAgent, "AccountLocked");
+
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
                     "Invalid email or password"));
+            }
+
+            var candidates = await _unitOfWork.Users.GetUsersByEmailWithPermissionsAsync(normalizedEmail);
+            if (candidates.Count == 0)
+            {
+                await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "UserNotFound", null);
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    "Invalid email or password"));
+            }
 
             User user;
             if (candidates.Count == 1)
@@ -62,21 +88,22 @@ namespace Kickstart.Infrastructure.Services
 
                 user = candidates.FirstOrDefault(u => u.TenantId == tenantId);
                 if (user == null)
+                {
+                    await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "UserNotFound", null);
                     return Result<LoginResponseDto>.Failure(Error.Failure(
                         ErrorCode.InvalidRequest,
                         "Invalid email or password"));
+                }
             }
-
-            if (user == null)
-                return Result<LoginResponseDto>.Failure(Error.Failure(
-                    ErrorCode.InvalidRequest,
-                    "Invalid email or password"));
 
             var passwordVerification = _passwordService.VerifyPassword(password, user.PasswordHash);
             if (!passwordVerification.IsSuccess || !passwordVerification.Value)
+            {
+                await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "InvalidPassword", user);
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
                     "Invalid email or password"));
+            }
 
             if (user.Status != Domain.Common.Enums.UserStatus.Active)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
@@ -95,6 +122,8 @@ namespace Kickstart.Infrastructure.Services
                     ErrorCode.InternalError,
                     "Failed to generate refresh token"));
 
+            await _bruteForceService.RecordSuccessfulAttemptAsync(normalizedEmail, safeIp, userAgent);
+
             user.LastLoginDate = DateTime.UtcNow;
             _unitOfWork.Users.Update(user);
             await _unitOfWork.SaveChangesAsync();
@@ -104,11 +133,51 @@ namespace Kickstart.Infrastructure.Services
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Login failed for email {Email}", email?.Trim().ToLowerInvariant());
+            _logger.LogError(ex, "Login failed for email {Email}", normalizedEmail);
             return Result<LoginResponseDto>.Failure(Error.Failure(
                 ErrorCode.InternalError,
                 "An unexpected error occurred during login"));
         }
+    }
+
+    private async Task RecordFailureAndNotifyAsync(
+        string email,
+        string ipAddress,
+        string userAgent,
+        string failureReason,
+        User user)
+    {
+        await _bruteForceService.RecordFailedAttemptAsync(email, ipAddress, userAgent, failureReason);
+
+        if (user == null)
+            return;
+
+        var statusAfter = await _bruteForceService.CheckLockoutAsync(email, ipAddress);
+        if (!IsNewTierTransition(statusAfter.FailureCount))
+            return;
+
+        try
+        {
+            await _emailService.SendBruteForceAlertAsync(
+                user.Email,
+                user.FirstName,
+                ipAddress,
+                statusAfter.FailureCount,
+                statusAfter.LockoutMinutes);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send brute force alert email to {Email}", email);
+        }
+    }
+
+    private static bool IsNewTierTransition(int failureCount)
+    {
+        return failureCount == 5
+            || failureCount == 10
+            || failureCount == 15
+            || failureCount == 20
+            || failureCount == 25;
     }
     public async Task<Result<string>> GenerateAccessTokenAsync(User user)
         {

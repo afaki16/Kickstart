@@ -16,6 +16,7 @@ public interface IUnitOfWork : IDisposable, IAsyncDisposable
     IRefreshTokenRepository RefreshTokens { get; }
     IPasswordResetTokenRepository PasswordResetTokens { get; }
     ITenantRepository Tenants { get; }
+    ILoginAttemptRepository LoginAttempts { get; }
     // Core operations
     /// <summary>
     /// Save all changes made in this unit of work

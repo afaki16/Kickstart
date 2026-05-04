@@ -40,6 +40,7 @@ namespace Kickstart.Infrastructure
         services.AddScoped<IAuthService, JwtService>();
         services.AddScoped<IRevokedSessionService, RevokedSessionService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IBruteForceProtectionService, BruteForceProtectionService>();
         services.AddScoped<ICurrentUserService, CurrentUserService>();
         services.AddScoped<IPermissionService, PermissionService>();
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();

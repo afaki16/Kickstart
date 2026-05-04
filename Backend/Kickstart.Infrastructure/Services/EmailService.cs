@@ -83,6 +83,40 @@ namespace Kickstart.Infrastructure.Services
             return await SendEmailAsync(email, subject, EmailTemplates.Wrap(subject, content));
         }
 
+        public async Task<Result> SendBruteForceAlertAsync(
+            string email,
+            string firstName,
+            string ipAddress,
+            int failureCount,
+            int lockoutMinutes)
+        {
+            const string subject = "Şüpheli Giriş Aktivitesi Tespit Edildi";
+
+            var content = $@"
+<h2 style=""color:#333;"">Hesabınızda Şüpheli Aktivite</h2>
+<p>Merhaba <strong>{firstName}</strong>,</p>
+<p>Hesabınıza <strong>{ipAddress}</strong> IP adresinden <strong>{failureCount}</strong> başarısız giriş denemesi tespit edildi.</p>
+<p>Güvenlik amacıyla hesabınız <strong>{lockoutMinutes} dakika</strong> süreyle geçici olarak kilitlendi. Bu süre sonunda tekrar giriş yapabilirsiniz.</p>
+
+<h3 style=""color:#333;margin-top:24px;"">Bu işlemi siz yapmadıysanız:</h3>
+<ul style=""color:#555;"">
+  <li>Şifrenizi <strong>derhal değiştirin</strong>.</li>
+  <li>Hesap güvenliğinizi gözden geçirin.</li>
+  <li>İki adımlı doğrulama mevcut olduğunda etkinleştirin.</li>
+</ul>
+
+<h3 style=""color:#333;margin-top:24px;"">Güvenlik İpuçları</h3>
+<ul style=""color:#555;"">
+  <li>Güçlü ve benzersiz şifreler kullanın.</li>
+  <li>Şifrenizi asla kimseyle paylaşmayın.</li>
+  <li>Phishing e-postalarına karşı dikkatli olun.</li>
+</ul>
+
+<p style=""color:#666;margin-top:24px;"">Güvenlik Ekibi</p>";
+
+            return await SendEmailAsync(email, subject, EmailTemplates.Wrap(subject, content));
+        }
+
         public async Task<Result> SendWelcomeEmailAsync(string email, string userName)
         {
             const string subject = "Hoş Geldiniz!";
