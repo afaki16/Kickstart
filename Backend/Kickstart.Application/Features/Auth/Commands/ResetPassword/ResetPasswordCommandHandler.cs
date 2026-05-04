@@ -5,6 +5,7 @@ using Kickstart.Domain.Common.Enums;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Models;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Kickstart.Application.Features.Auth.Commands.ResetPassword
 {
@@ -12,11 +13,16 @@ namespace Kickstart.Application.Features.Auth.Commands.ResetPassword
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
+        private readonly ILogger<ResetPasswordCommandHandler> _logger;
 
-        public ResetPasswordCommandHandler(IUnitOfWork unitOfWork, IPasswordService passwordService)
+        public ResetPasswordCommandHandler(
+            IUnitOfWork unitOfWork,
+            IPasswordService passwordService,
+            ILogger<ResetPasswordCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
+            _logger = logger;
         }
 
         public async Task<Result> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
@@ -26,7 +32,12 @@ namespace Kickstart.Application.Features.Auth.Commands.ResetPassword
             var resetToken = await _unitOfWork.PasswordResetTokens.GetValidTokenAsync(hashedToken, normalizedEmail);
 
             if (resetToken is null)
+            {
+                _logger.LogWarning(
+                    "Password reset failed - invalid or expired token. Email: {Email}",
+                    normalizedEmail);
                 return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, "Geçersiz veya süresi dolmuş sıfırlama bağlantısı."));
+            }
 
             var strengthResult = _passwordService.ValidatePasswordStrength(request.NewPassword);
             if (!strengthResult.IsSuccess)
@@ -47,6 +58,10 @@ namespace Kickstart.Application.Features.Auth.Commands.ResetPassword
                 resetToken.User.Id, reason: "Password reset");
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Password reset completed. UserId: {UserId}, Email: {Email}",
+                resetToken.User.Id, resetToken.User.Email);
 
             return Result.Success();
         }

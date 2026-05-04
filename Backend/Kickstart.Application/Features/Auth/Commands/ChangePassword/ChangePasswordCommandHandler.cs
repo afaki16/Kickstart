@@ -4,6 +4,7 @@ using Kickstart.Domain.Common.Enums;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Models;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace Kickstart.Application.Features.Auth.Commands.ChangePassword
 {
@@ -12,15 +13,18 @@ namespace Kickstart.Application.Features.Auth.Commands.ChangePassword
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
         private readonly ICurrentUserService _currentUserService;
+        private readonly ILogger<ChangePasswordCommandHandler> _logger;
 
         public ChangePasswordCommandHandler(
             IUnitOfWork unitOfWork,
             IPasswordService passwordService,
-            ICurrentUserService currentUserService)
+            ICurrentUserService currentUserService,
+            ILogger<ChangePasswordCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
             _currentUserService = currentUserService;
+            _logger = logger;
         }
 
         public async Task<Result> Handle(ChangePasswordCommand request, CancellationToken cancellationToken)
@@ -38,7 +42,12 @@ namespace Kickstart.Application.Features.Auth.Commands.ChangePassword
                 return Result.Failure(verifyResult.Errors);
 
             if (!verifyResult.Value)
+            {
+                _logger.LogWarning(
+                    "Change password failed - incorrect current password. UserId: {UserId}",
+                    user.Id);
                 return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, "Current password is incorrect"));
+            }
 
             var strengthResult = _passwordService.ValidatePasswordStrength(request.NewPassword);
             if (!strengthResult.IsSuccess)
@@ -56,6 +65,10 @@ namespace Kickstart.Application.Features.Auth.Commands.ChangePassword
                 user.Id, reason: "Password changed");
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation(
+                "Password changed. UserId: {UserId}, Email: {Email}",
+                user.Id, user.Email);
 
             return Result.Success();
         }

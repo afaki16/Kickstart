@@ -149,6 +149,11 @@ namespace Kickstart.Infrastructure.Services
             _unitOfWork.Users.Update(user);
             await _unitOfWork.SaveChangesAsync();
 
+            _logger.LogInformation(
+                "Login successful. UserId: {UserId}, Email: {Email}, " +
+                "IpAddress: {IpAddress}, DeviceId: {DeviceId}",
+                user.Id, normalizedEmail, safeIp, deviceId ?? "unknown");
+
             return Result<LoginResponseDto>.Success(
                 BuildLoginResponse(user, accessTokenResult.Value, refreshTokenResult.Value));
         }
@@ -416,6 +421,10 @@ namespace Kickstart.Infrastructure.Services
                     ErrorCode.InternalError,
                     "Failed to generate refresh token"));
 
+            _logger.LogInformation(
+                "Token refreshed. UserId: {UserId}, IpAddress: {IpAddress}",
+                user.Id, ipAddress);
+
             return Result<LoginResponseDto>.Success(
                 BuildLoginResponse(user, newAccessTokenResult.Value, newRefreshTokenResult.Value));
         }
@@ -478,6 +487,11 @@ namespace Kickstart.Infrastructure.Services
             {
                 await _unitOfWork.RefreshTokens.RevokeTokenAsync(refreshToken, ipAddress, userAgent, reason);
                 await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "Logout. IpAddress: {IpAddress}, Reason: {Reason}",
+                    ipAddress ?? "unknown", reason ?? "User logout");
+
                 return Result.Success();
             }
             catch (Exception ex)
@@ -493,6 +507,11 @@ namespace Kickstart.Infrastructure.Services
             {
                 await _unitOfWork.RefreshTokens.RevokeAllUserTokensAsync(userId, ipAddress, userAgent, reason);
                 await _unitOfWork.SaveChangesAsync();
+
+                _logger.LogWarning(
+                    "All sessions revoked. UserId: {UserId}, IpAddress: {IpAddress}, Reason: {Reason}",
+                    userId, ipAddress ?? "unknown", reason ?? "User logout");
+
                 return Result.Success();
             }
             catch (Exception ex)

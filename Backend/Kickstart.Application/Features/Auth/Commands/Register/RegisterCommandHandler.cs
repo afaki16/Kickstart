@@ -21,6 +21,7 @@ using Kickstart.Application.Features.Roles.Dtos;
 using Kickstart.Application.Features.Tenants.Dtos;
 using Kickstart.Application.Features.Permissions.Dtos;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,12 +32,18 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
         private readonly IMapper _mapper;
+        private readonly ILogger<RegisterCommandHandler> _logger;
 
-        public RegisterCommandHandler(IUnitOfWork unitOfWork, IPasswordService passwordService, IMapper mapper)
+        public RegisterCommandHandler(
+            IUnitOfWork unitOfWork,
+            IPasswordService passwordService,
+            IMapper mapper,
+            ILogger<RegisterCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
             _mapper = mapper;
+            _logger = logger;
         }
 
         public async Task<Result<UserDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -88,6 +95,10 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
 
             await _unitOfWork.Users.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "User registered. UserId: {UserId}, Email: {Email}, TenantId: {TenantId}",
+                user.Id, normalizedEmail, user.TenantId);
 
             var userDto = _mapper.Map<UserDto>(user);
             return Result<UserDto>.Success(userDto);

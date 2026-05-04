@@ -5,6 +5,7 @@ using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Entities;
 using MediatR;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Web;
 
@@ -15,15 +16,18 @@ namespace Kickstart.Application.Features.Auth.Commands.ForgotPassword
         private readonly IUnitOfWork _unitOfWork;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<ForgotPasswordCommandHandler> _logger;
 
         public ForgotPasswordCommandHandler(
             IUnitOfWork unitOfWork,
             IEmailService emailService,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<ForgotPasswordCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _emailService = emailService;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<Result> Handle(ForgotPasswordCommand request, CancellationToken cancellationToken)
@@ -48,7 +52,13 @@ namespace Kickstart.Application.Features.Auth.Commands.ForgotPassword
             // leaking whether the email exists / which tenant it belongs to.
 
             if (targetUser is null)
+            {
+                _logger.LogWarning(
+                    "Password reset requested for non-existent email. Email: {Email}, " +
+                    "IpAddress: {IpAddress}",
+                    normalizedEmail, request.IpAddress);
                 return Result.Success();
+            }
 
             // Önceki aktif tokenları geçersiz kıl
             await _unitOfWork.PasswordResetTokens.InvalidatePreviousTokensAsync(targetUser.Id);
@@ -71,6 +81,10 @@ namespace Kickstart.Application.Features.Auth.Commands.ForgotPassword
             var resetLink = $"{frontendUrl}/reset-password?token={HttpUtility.UrlEncode(plainToken)}&email={HttpUtility.UrlEncode(targetUser.Email)}";
 
             await _emailService.SendPasswordResetAsync(targetUser.Email, targetUser.FirstName, resetLink);
+
+            _logger.LogInformation(
+                "Password reset requested. Email: {Email}, IpAddress: {IpAddress}",
+                normalizedEmail, request.IpAddress);
 
             return Result.Success();
         }

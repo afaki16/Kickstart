@@ -14,6 +14,7 @@ using Kickstart.Domain.Common.Enums;
 using Kickstart.Domain.Constants;
 using Kickstart.Domain.Models;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Threading;
@@ -26,12 +27,18 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
         private readonly IPermissionService _permissionService;
+        private readonly ILogger<DeleteUserCommandHandler> _logger;
 
-        public DeleteUserCommandHandler(IUnitOfWork unitOfWork, ICurrentUserService currentUserService, IPermissionService permissionService)
+        public DeleteUserCommandHandler(
+            IUnitOfWork unitOfWork,
+            ICurrentUserService currentUserService,
+            IPermissionService permissionService,
+            ILogger<DeleteUserCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _permissionService = permissionService;
+            _logger = logger;
         }
 
         public async Task<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -45,9 +52,14 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
 
             // Prevent self-deletion
             if (user.Id == _currentUserService.UserId)
+            {
+                _logger.LogWarning(
+                    "Self-deletion attempt blocked. UserId: {UserId}",
+                    _currentUserService.UserId);
                 return Result.Failure(Error.Failure(
                     ErrorCode.Forbidden,
                     "You cannot delete your own account"));
+            }
 
             // Admin/User can only delete users from their own tenant; SuperAdmin can delete any user
             if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
@@ -66,9 +78,15 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
             {
                 var activeSuperAdminCount = await _unitOfWork.Users.CountActiveSuperAdminsAsync();
                 if (activeSuperAdminCount <= 1)
+                {
+                    _logger.LogWarning(
+                        "Last SuperAdmin deletion attempt blocked. AdminId: {AdminId}, " +
+                        "TargetUserId: {TargetUserId}",
+                        _currentUserService.UserId, request.Id);
                     return Result.Failure(Error.Failure(
                         ErrorCode.Forbidden,
                         "Cannot delete the last SuperAdmin in the system"));
+                }
             }
 
             _unitOfWork.Users.SoftDelete(user);
@@ -84,6 +102,11 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
             await _unitOfWork.SaveChangesAsync();
 
             _permissionService.ClearUserPermissionCache(request.Id);
+
+            _logger.LogWarning(
+                "User deleted by admin. AdminId: {AdminId}, DeletedUserId: {DeletedUserId}, " +
+                "DeletedEmail: {DeletedEmail}",
+                _currentUserService.UserId, request.Id, user.Email);
 
             return Result.Success();
         }

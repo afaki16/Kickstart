@@ -12,6 +12,7 @@ using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,14 +21,25 @@ namespace Kickstart.Application.Features.Auth.Commands.Logout
     public class LogoutCommandHandler : IRequestHandler<LogoutCommand, Result>
     {
         private readonly IAuthService _authService;
+        private readonly ICurrentUserService _currentUserService;
+        private readonly ILogger<LogoutCommandHandler> _logger;
 
-        public LogoutCommandHandler(IAuthService authService)
+        public LogoutCommandHandler(
+            IAuthService authService,
+            ICurrentUserService currentUserService,
+            ILogger<LogoutCommandHandler> logger)
         {
             _authService = authService;
+            _currentUserService = currentUserService;
+            _logger = logger;
         }
 
         public async Task<Result> Handle(LogoutCommand request, CancellationToken cancellationToken)
         {
+            _logger.LogInformation(
+                "Logout requested. UserId: {UserId}",
+                _currentUserService.UserId);
+
             return await _authService.RevokeTokenAsync(request.RefreshToken);
         }
     }

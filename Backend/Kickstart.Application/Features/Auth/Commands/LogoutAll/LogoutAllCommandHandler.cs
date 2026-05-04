@@ -14,6 +14,7 @@ using Kickstart.Application.Common.Results;
 using Kickstart.Domain.Common.Enums;
 using Kickstart.Domain.Models;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,11 +24,16 @@ namespace Kickstart.Application.Features.Auth.Commands.LogoutAll
     {
         private readonly IAuthService _authService;
         private readonly ICurrentUserService _currentUserService;
+        private readonly ILogger<LogoutAllCommandHandler> _logger;
 
-        public LogoutAllCommandHandler(IAuthService authService, ICurrentUserService currentUserService)
+        public LogoutAllCommandHandler(
+            IAuthService authService,
+            ICurrentUserService currentUserService,
+            ILogger<LogoutAllCommandHandler> logger)
         {
             _authService = authService;
             _currentUserService = currentUserService;
+            _logger = logger;
         }
 
         public async Task<Result> Handle(LogoutAllCommand request, CancellationToken cancellationToken)
@@ -37,6 +43,10 @@ namespace Kickstart.Application.Features.Auth.Commands.LogoutAll
             return Result<int>.Failure(Error.Failure(
                ErrorCode.NotFound,
                "User not authenticated"));
+
+            _logger.LogWarning(
+                "Logout all devices requested. UserId: {UserId}",
+                userId.Value);
 
         return await _authService.RevokeAllUserTokensAsync(userId.Value, request.IpAddress, request.UserAgent, request.Reason);
         }
