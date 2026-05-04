@@ -57,43 +57,53 @@ namespace Kickstart.Infrastructure.Services
             var lockoutStatus = await _bruteForceService.CheckLockoutAsync(normalizedEmail, safeIp);
             if (lockoutStatus.IsLockedOut)
             {
+                // Run dummy verify so locked-out path takes the same time as a real verify.
+                _passwordService.VerifyPassword(password, SecurityConstants.DummyBCryptHash);
+
                 await _bruteForceService.RecordFailedAttemptAsync(
                     normalizedEmail, safeIp, userAgent, "AccountLocked");
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
-                    ErrorCode.InvalidRequest,
+                    ErrorCode.Unauthorized,
                     "Invalid email or password"));
             }
 
             var candidates = await _unitOfWork.Users.GetUsersByEmailWithPermissionsAsync(normalizedEmail);
-            if (candidates.Count == 0)
-            {
-                await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "UserNotFound", null);
-                return Result<LoginResponseDto>.Failure(Error.Failure(
-                    ErrorCode.InvalidRequest,
-                    "Invalid email or password"));
-            }
 
-            User user;
-            if (candidates.Count == 1)
+            User user = null;
+            if (tenantId.HasValue && tenantId.Value > 0)
+            {
+                user = candidates.FirstOrDefault(u => u.TenantId == tenantId.Value);
+            }
+            else if (candidates.Count == 1)
             {
                 user = candidates[0];
             }
-            else
+            else if (candidates.Count > 1)
             {
-                if (!tenantId.HasValue)
-                    return Result<LoginResponseDto>.Failure(Error.Failure(
-                        ErrorCode.InvalidRequest,
-                        "Multiple accounts with this email. Specify tenant id."));
+                // Multiple tenants matched and caller did not disambiguate — dummy verify
+                // before responding so the timing matches a real login attempt.
+                _passwordService.VerifyPassword(password, SecurityConstants.DummyBCryptHash);
 
-                user = candidates.FirstOrDefault(u => u.TenantId == tenantId);
-                if (user == null)
-                {
-                    await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "UserNotFound", null);
-                    return Result<LoginResponseDto>.Failure(Error.Failure(
-                        ErrorCode.InvalidRequest,
-                        "Invalid email or password"));
-                }
+                await _bruteForceService.RecordFailedAttemptAsync(
+                    normalizedEmail, safeIp, userAgent, "MultipleTenants");
+
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.ValidationFailed,
+                    "Multiple accounts with this email. Specify tenant id."));
+            }
+
+            if (user == null)
+            {
+                // User-not-found path runs the same BCrypt cost so an attacker cannot
+                // distinguish missing accounts from real ones via response time.
+                _passwordService.VerifyPassword(password, SecurityConstants.DummyBCryptHash);
+
+                await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "UserNotFound", null);
+
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.Unauthorized,
+                    "Invalid email or password"));
             }
 
             var passwordVerification = _passwordService.VerifyPassword(password, user.PasswordHash);
@@ -101,14 +111,25 @@ namespace Kickstart.Infrastructure.Services
             {
                 await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "InvalidPassword", user);
                 return Result<LoginResponseDto>.Failure(Error.Failure(
-                    ErrorCode.InvalidRequest,
+                    ErrorCode.Unauthorized,
                     "Invalid email or password"));
             }
 
             if (user.Status != Domain.Common.Enums.UserStatus.Active)
+            {
+                await _bruteForceService.RecordFailedAttemptAsync(
+                    normalizedEmail, safeIp, userAgent, "AccountInactive");
+
+                _logger.LogWarning(
+                    "Login attempt on inactive account. Email: {Email}, Status: {Status}, IP: {IpAddress}",
+                    normalizedEmail, user.Status, safeIp);
+
+                // Generic response — do not leak account-status info to the caller.
+                // No email notification: the legitimate owner already knows the account is inactive.
                 return Result<LoginResponseDto>.Failure(Error.Failure(
-                    ErrorCode.InvalidRequest,
-                    "Account is not active"));
+                    ErrorCode.Unauthorized,
+                    "Invalid email or password"));
+            }
 
             var accessTokenResult = await GenerateAccessTokenAsync(user);
             if (!accessTokenResult.IsSuccess)

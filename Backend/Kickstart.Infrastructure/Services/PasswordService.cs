@@ -1,5 +1,6 @@
 using Kickstart.Application.Interfaces;
 using BCrypt.Net;
+using Kickstart.Application.Common.Security;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Domain.Entities;
@@ -46,13 +47,28 @@ namespace Kickstart.Infrastructure.Services
 
     public Result<bool> VerifyPassword(string password, string hashedPassword)
     {
+        // Always exercise BCrypt to keep verify time constant — a fast-path early
+        // return on null/empty/malformed hash would leak timing information that an
+        // attacker can use for user enumeration.
+        var safePassword = password ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(hashedPassword))
+        {
+            try { BCrypt.Net.BCrypt.Verify(safePassword, SecurityConstants.DummyBCryptHash); }
+            catch { /* dummy verify — result discarded */ }
+            return Result<bool>.Success(false);
+        }
+
         try
         {
-            if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(hashedPassword))
-                return Result<bool>.Success(false);
-
-            var isValid = BCrypt.Net.BCrypt.Verify(password, hashedPassword);
+            var isValid = BCrypt.Net.BCrypt.Verify(safePassword, hashedPassword);
             return Result<bool>.Success(isValid);
+        }
+        catch (SaltParseException)
+        {
+            try { BCrypt.Net.BCrypt.Verify(safePassword, SecurityConstants.DummyBCryptHash); }
+            catch { /* dummy verify — result discarded */ }
+            return Result<bool>.Success(false);
         }
         catch (Exception ex)
         {
