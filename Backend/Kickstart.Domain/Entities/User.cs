@@ -11,7 +11,7 @@ namespace Kickstart.Domain.Entities
         public string LastName { get; set; }
         public string Email { get; set; }
         public string PasswordHash { get; set; }
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
         public UserStatus Status { get; set; }
         public DateTime? LastLoginDate { get; set; }
         /// <summary>
@@ -20,7 +20,7 @@ namespace Kickstart.Domain.Entities
         public DateTime? LastSessionsRevokedAt { get; set; }
         public bool EmailConfirmed { get; set; }
         public bool PhoneConfirmed { get; set; }
-        public string ProfileImageUrl { get; set; } = string.Empty;
+        public string? ProfileImageUrl { get; set; }
         public int? TenantId { get; set; }
 
 
@@ -28,7 +28,7 @@ namespace Kickstart.Domain.Entities
     // Navigation properties
     public ICollection<UserRole> UserRoles { get; set; }
     public ICollection<RefreshToken> RefreshTokens { get; set; }
-    public Tenant Tenant { get; set; }
+    public Tenant? Tenant { get; set; }
 
     public User()
         {

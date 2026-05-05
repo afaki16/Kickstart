@@ -51,15 +51,15 @@ public abstract class BaseController : ControllerBase
 
     protected string GetIpAddress()
     {
-        // Reverse proxy / load balancer header
-        var forwarded = HttpContext.Request.Headers["X-Forwarded-For"].FirstOrDefault();
-        if (!string.IsNullOrEmpty(forwarded))
-            return forwarded.Split(',')[0].Trim();
-
+        // UseForwardedHeaders middleware X-Forwarded-For'u zaten consume edip
+        // Connection.RemoteIpAddress'e yazıyor (KnownNetworks filtresi ile).
+        // Manuel header okumak bu güvenlik filtresini bypass eder ve spoofing'e
+        // yol açar — saldırgan direkt API'ye vurursa kendi IP'sini gizleyebilir
+        // veya başka kullanıcıların IP'sini lockout'a sokabilir.
         var ip = HttpContext.Connection.RemoteIpAddress;
         if (ip == null) return "Unknown";
 
-        // IPv6 loopback (::1) → localhost
+        // IPv6 loopback (::1) → 127.0.0.1
         if (ip.Equals(System.Net.IPAddress.IPv6Loopback))
             return "127.0.0.1";
 

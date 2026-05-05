@@ -10,7 +10,7 @@ namespace Kickstart.Application.Features.Users.Dtos
         public string LastName { get; set; }
         public string Email { get; set; }
         public string Password { get; set; }
-        public string PhoneNumber { get; set; }
+        public string? PhoneNumber { get; set; }
         public UserStatus Status { get; set; } = UserStatus.Active;
         public List<int> RoleIds { get; set; } = new List<int>();
         /// <summary>
