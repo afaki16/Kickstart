@@ -112,11 +112,18 @@ namespace Kickstart.API.Extensions
 
                 options.OnRejected = async (context, cancellationToken) =>
                 {
-                    if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
-                    {
-                        context.HttpContext.Response.Headers.RetryAfter =
-                            ((int)retryAfter.TotalSeconds).ToString();
-                    }
+                    // SlidingWindowRateLimiter with QueueLimit=0 always reports MetadataName.RetryAfter = 0,
+                    // because no requests are queued. Fall back to one segment duration (Window / SegmentsPerWindow)
+                    // — this is the worst-case wait until the oldest segment expires and a slot frees up.
+                    // Our config: Window=60s, SegmentsPerWindow=6 → 10 second fallback.
+                    const int FallbackRetryAfterSeconds = 10;
+
+                    var retryAfterSeconds = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter)
+                        && retryAfter.TotalSeconds > 0
+                            ? (int)retryAfter.TotalSeconds
+                            : FallbackRetryAfterSeconds;
+
+                    context.HttpContext.Response.Headers.RetryAfter = retryAfterSeconds.ToString();
 
                     var logger = context.HttpContext.RequestServices
                         .GetRequiredService<ILogger<RateLimiterRejectionLog>>();
@@ -125,9 +132,6 @@ namespace Kickstart.API.Extensions
                     var clientIp = GetClientIp(context.HttpContext);
                     var policyName = context.HttpContext.GetEndpoint()?.Metadata
                         .GetMetadata<EnableRateLimitingAttribute>()?.PolicyName ?? "global";
-                    var retryAfterSeconds = context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var ra)
-                        ? (int)ra.TotalSeconds
-                        : 0;
 
                     logger.LogWarning(
                         "Rate limit exceeded. IP: {ClientIp}, Endpoint: {Endpoint}, " +
