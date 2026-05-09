@@ -21,6 +21,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     private readonly Lazy<IPermissionRepository> _permissions;
     private readonly Lazy<IRefreshTokenRepository> _refreshTokens;
     private readonly Lazy<IPasswordResetTokenRepository> _passwordResetTokens;
+    private readonly Lazy<IUserVerificationTokenRepository> _userVerificationTokens;
     private readonly Lazy<ITenantRepository> _tenants;
     private readonly Lazy<ILoginAttemptRepository> _loginAttempts;
 
@@ -35,6 +36,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
         _permissions = new Lazy<IPermissionRepository>(() => _serviceProvider.GetRequiredService<IPermissionRepository>());
         _refreshTokens = new Lazy<IRefreshTokenRepository>(() => _serviceProvider.GetRequiredService<IRefreshTokenRepository>());
         _passwordResetTokens = new Lazy<IPasswordResetTokenRepository>(() => _serviceProvider.GetRequiredService<IPasswordResetTokenRepository>());
+        _userVerificationTokens = new Lazy<IUserVerificationTokenRepository>(() => _serviceProvider.GetRequiredService<IUserVerificationTokenRepository>());
         _tenants = new Lazy<ITenantRepository>(() => _serviceProvider.GetRequiredService<ITenantRepository>());
         _loginAttempts = new Lazy<ILoginAttemptRepository>(() => _serviceProvider.GetRequiredService<ILoginAttemptRepository>());
 
@@ -46,6 +48,7 @@ public class UnitOfWork : IUnitOfWork, IAsyncDisposable
     public IPermissionRepository Permissions => _permissions.Value;
     public IRefreshTokenRepository RefreshTokens => _refreshTokens.Value;
     public IPasswordResetTokenRepository PasswordResetTokens => _passwordResetTokens.Value;
+    public IUserVerificationTokenRepository UserVerificationTokens => _userVerificationTokens.Value;
     public ITenantRepository Tenants => _tenants.Value;
     public ILoginAttemptRepository LoginAttempts => _loginAttempts.Value;
 

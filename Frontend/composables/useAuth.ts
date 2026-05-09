@@ -106,9 +106,9 @@ export const useAuth = () => {
     try {
       authStore.setLoading(true)
       const response = await api.post<User>(API_ENDPOINTS.AUTH.REGISTER, userData)
-      
+
       if (response.success) {
-        await router.push('/')
+        await router.push(`/auth/check-email?email=${encodeURIComponent(userData.email)}`)
         return response.data
       }
     } catch (error) {
@@ -117,6 +117,14 @@ export const useAuth = () => {
     } finally {
       authStore.setLoading(false)
     }
+  }
+
+  const verifyEmail = async (email: string, token: string) => {
+    return await api.post(API_ENDPOINTS.AUTH.VERIFY_EMAIL, { email, token }, { silent: true })
+  }
+
+  const resendVerification = async (email: string, tenantId: number = 0) => {
+    return await api.post(API_ENDPOINTS.AUTH.RESEND_VERIFICATION, { email, tenantId }, { silent: true })
   }
 
   const logout = async () => {
@@ -249,6 +257,8 @@ export const useAuth = () => {
     logout,
     refreshToken,
     getCurrentUser,
+    verifyEmail,
+    resendVerification,
     hasPermission,
     hasRole,
     hasAnyPermission,
@@ -260,4 +270,4 @@ export const useAuth = () => {
     revokeSessionById,
     changePassword
   }
-} 
+}

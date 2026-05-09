@@ -15,4 +15,5 @@ public enum ErrorCode
     InvalidOperation = 1010,
     Forbidden = 1011,
     Unauthorized = 1012,
+    EmailNotConfirmed = 1013,
 }

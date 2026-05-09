@@ -9,9 +9,14 @@ export default defineNuxtRouteMiddleware(async (to) => {
     await authStore.initializeAuth()
   }
 
+  // Verify-email her zaman erişilebilir: kullanıcı email linkine
+  // tıklayarak gelir; başka bir hesap altında authenticated olsa bile
+  // token doğrulamasının yine de çalışması gerekir.
+  if (to.path === '/auth/verify-email') return
+
   // Public routes that don't require authentication
-  const publicRoutes = ['/auth/register', '/']
-  
+  const publicRoutes = ['/auth/register', '/auth/check-email', '/']
+
   if (publicRoutes.includes(to.path)) {
     // If user is already authenticated and trying to access auth pages, redirect to dashboard
     if (authStore.isAuthenticated && to.path.startsWith('/auth/')) {

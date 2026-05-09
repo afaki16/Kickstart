@@ -9,6 +9,7 @@ using Kickstart.Application.Features.Auth.Commands.RefreshToken;
 using Kickstart.Application.Features.Auth.Commands.ChangePassword;
 using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
 using Kickstart.Application.Features.Auth.Commands.ResetPassword;
+using Kickstart.Application.Common.Security;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Constants;
 using Kickstart.Domain.Common.Interfaces.Repositories;
@@ -21,9 +22,12 @@ using Kickstart.Application.Features.Roles.Dtos;
 using Kickstart.Application.Features.Tenants.Dtos;
 using Kickstart.Application.Features.Permissions.Dtos;
 using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace Kickstart.Application.Features.Auth.Commands.Register
 {
@@ -31,17 +35,23 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
+        private readonly IEmailService _emailService;
+        private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
         private readonly ILogger<RegisterCommandHandler> _logger;
 
         public RegisterCommandHandler(
             IUnitOfWork unitOfWork,
             IPasswordService passwordService,
+            IEmailService emailService,
+            IConfiguration configuration,
             IMapper mapper,
             ILogger<RegisterCommandHandler> logger)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
+            _emailService = emailService;
+            _configuration = configuration;
             _mapper = mapper;
             _logger = logger;
         }
@@ -100,8 +110,50 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
                 "User registered. UserId: {UserId}, Email: {Email}, TenantId: {TenantId}",
                 user.Id, normalizedEmail, user.TenantId);
 
+            await IssueVerificationEmailAsync(user, request.IpAddress, cancellationToken);
+
             var userDto = _mapper.Map<UserDto>(user);
             return Result<UserDto>.Success(userDto);
+        }
+
+        private async Task IssueVerificationEmailAsync(User user, string ipAddress, CancellationToken cancellationToken)
+        {
+            var plainToken = Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+            var hashedToken = RefreshTokenHasher.Hash(plainToken);
+
+            var verificationToken = new UserVerificationToken
+            {
+                UserId = user.Id,
+                Token = hashedToken,
+                Channel = VerificationChannel.Email,
+                Purpose = VerificationPurpose.Registration,
+                Destination = user.Email,
+                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                RequestIpAddress = ipAddress
+            };
+
+            await _unitOfWork.UserVerificationTokens.AddAsync(verificationToken);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            var frontendUrl = _configuration["App:FrontendUrl"];
+            var verifyLink = $"{frontendUrl}/auth/verify-email?token={HttpUtility.UrlEncode(plainToken)}&email={HttpUtility.UrlEncode(user.Email)}";
+
+            try
+            {
+                var sendResult = await _emailService.SendEmailConfirmationAsync(user.Email, verifyLink);
+                if (!sendResult.IsSuccess)
+                {
+                    _logger.LogError(
+                        "Failed to send verification email after register. UserId: {UserId}, Email: {Email}",
+                        user.Id, user.Email);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Exception while sending verification email after register. UserId: {UserId}, Email: {Email}",
+                    user.Id, user.Email);
+            }
         }
     }
 } 

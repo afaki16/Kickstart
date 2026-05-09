@@ -10,6 +10,8 @@ using Kickstart.Application.Features.Auth.Commands.RevokeSessionById;
 using Kickstart.Application.Features.Auth.Commands.ChangePassword;
 using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
 using Kickstart.Application.Features.Auth.Commands.ResetPassword;
+using Kickstart.Application.Features.Auth.Commands.VerifyEmail;
+using Kickstart.Application.Features.Auth.Commands.ResendVerificationEmail;
 using Kickstart.Application.Features.Auth.Queries.GetUserSessions;
 using Kickstart.Application.Features.Users.Queries.GetCurrentUser;
 using MediatR;
@@ -317,6 +319,48 @@ namespace Kickstart.API.Controllers
                 Email = request.Email,
                 Token = request.Token,
                 NewPassword = request.NewPassword,
+                IpAddress = GetIpAddress(),
+                UserAgent = GetUserAgent()
+            };
+
+            var result = await _mediator.Send(command);
+            return HandleResult(result);
+        }
+
+        /// <summary>
+        /// Verify email address using verification token
+        /// </summary>
+        [HttpPost("verify-email")]
+        [AllowAnonymous]
+        [EnableRateLimiting("sensitive")]
+        [ProducesResponseType(200)]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailRequestDto request)
+        {
+            var command = new VerifyEmailCommand
+            {
+                Email = request.Email,
+                Token = request.Token,
+                IpAddress = GetIpAddress()
+            };
+
+            var result = await _mediator.Send(command);
+            return HandleResult(result);
+        }
+
+        /// <summary>
+        /// Resend email verification link
+        /// </summary>
+        [HttpPost("resend-verification")]
+        [AllowAnonymous]
+        [EnableRateLimiting("sensitive")]
+        [ProducesResponseType(200)]
+        public async Task<IActionResult> ResendVerification([FromBody] ResendVerificationRequestDto request)
+        {
+            var command = new ResendVerificationEmailCommand
+            {
+                Email = request.Email,
+                TenantId = request.TenantId,
                 IpAddress = GetIpAddress(),
                 UserAgent = GetUserAgent()
             };

@@ -131,6 +131,20 @@ namespace Kickstart.Infrastructure.Services
                     "Invalid email or password"));
             }
 
+            if (!user.EmailConfirmed)
+            {
+                await _bruteForceService.RecordFailedAttemptAsync(
+                    normalizedEmail, safeIp, userAgent, "EmailNotConfirmed");
+
+                _logger.LogWarning(
+                    "Login attempt on unconfirmed email. Email: {Email}, IpAddress: {IpAddress}",
+                    normalizedEmail, safeIp);
+
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.EmailNotConfirmed,
+                    "Lütfen email adresinizi doğrulayın. Doğrulama bağlantısı email adresinize gönderildi."));
+            }
+
             var accessTokenResult = await GenerateAccessTokenAsync(user);
             if (!accessTokenResult.IsSuccess)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
