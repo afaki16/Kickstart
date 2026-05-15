@@ -16,11 +16,12 @@ namespace Kickstart.Infrastructure.Services
 
         private static readonly (int Threshold, int LockoutMinutes)[] Tiers = new[]
         {
-            (5, 5),
-            (10, 15),
-            (15, 30),
-            (20, 60),
-            (25, 1440)
+            (3, 1),        // 3 failures -> 1 minute (minor friction, attacker slow-down)
+            (5, 5),        // 5 failures -> 5 minutes
+            (8, 30),       // 8 failures -> 30 minutes
+            (12, 240),     // 12 failures -> 4 hours
+            (20, 1440),    // 20 failures -> 24 hours
+            (30, 10080)    // 30 failures -> 7 days (manual admin intervention recommended)
         };
 
         private static readonly TimeSpan FailureWindow = TimeSpan.FromHours(24);
@@ -158,6 +159,14 @@ namespace Kickstart.Infrastructure.Services
                     return true;
             }
             return false;
+        }
+
+        public bool IsAtTierThreshold(int failureCount)
+        {
+            // Returns true exactly when failureCount equals one of the tier thresholds.
+            // Used by AuthService to trigger one-time notifications when a user crosses
+            // into a new lockout tier - we don't want to spam them on every failed attempt.
+            return Tiers.Any(t => t.Threshold == failureCount);
         }
     }
 }

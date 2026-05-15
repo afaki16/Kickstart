@@ -193,7 +193,7 @@ namespace Kickstart.Infrastructure.Services
             return;
 
         var statusAfter = await _bruteForceService.CheckLockoutAsync(email, ipAddress);
-        if (!IsNewTierTransition(statusAfter.FailureCount))
+        if (!_bruteForceService.IsAtTierThreshold(statusAfter.FailureCount))
             return;
 
         try
@@ -211,14 +211,7 @@ namespace Kickstart.Infrastructure.Services
         }
     }
 
-    private static bool IsNewTierTransition(int failureCount)
-    {
-        return failureCount == 5
-            || failureCount == 10
-            || failureCount == 15
-            || failureCount == 20
-            || failureCount == 25;
-    }
+  
     public async Task<Result<string>> GenerateAccessTokenAsync(User user)
         {
             try

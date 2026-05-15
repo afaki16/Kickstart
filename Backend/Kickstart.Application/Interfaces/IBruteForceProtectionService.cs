@@ -23,6 +23,12 @@ namespace Kickstart.Application.Interfaces
             string ipAddress,
             string? userAgent,
             CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Returns true if reaching this failure count crosses a lockout tier threshold.
+        /// Used to decide whether to notify the user about the lockout escalation.
+        /// </summary>
+        bool IsAtTierThreshold(int failureCount);
     }
 
     public class LockoutStatus
