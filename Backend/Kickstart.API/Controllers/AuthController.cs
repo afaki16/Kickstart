@@ -99,6 +99,7 @@ namespace Kickstart.API.Controllers
         /// <returns>New access token and refresh token</returns>
         [HttpPost("refresh-token")]
         [AllowAnonymous]
+        [EnableRateLimiting("refresh")]
         [ProducesResponseType(typeof(LoginResponseDto), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(401)]

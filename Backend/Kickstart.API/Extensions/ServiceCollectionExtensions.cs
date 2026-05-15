@@ -104,6 +104,7 @@ namespace Kickstart.API.Extensions
             // Production/Staging keep the strict limits that protect against abuse.
             var loginLimit = environment.IsDevelopment() ? 50 : 5;
             var sensitiveLimit = environment.IsDevelopment() ? 30 : 3;
+            var refreshLimit = environment.IsDevelopment() ? 200 : 20;
             var globalLimit = environment.IsDevelopment() ? 1000 : 100;
 
             services.AddRateLimiter(options =>
@@ -149,6 +150,18 @@ namespace Kickstart.API.Extensions
                         factory: _ => new SlidingWindowRateLimiterOptions
                         {
                             PermitLimit = loginLimit,
+                            Window = TimeSpan.FromMinutes(1),
+                            SegmentsPerWindow = 6,
+                            QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                            QueueLimit = 0
+                        }));
+
+                options.AddPolicy("refresh", httpContext =>
+                    RateLimitPartition.GetSlidingWindowLimiter(
+                        partitionKey: GetClientIp(httpContext),
+                        factory: _ => new SlidingWindowRateLimiterOptions
+                        {
+                            PermitLimit = refreshLimit,
                             Window = TimeSpan.FromMinutes(1),
                             SegmentsPerWindow = 6,
                             QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
