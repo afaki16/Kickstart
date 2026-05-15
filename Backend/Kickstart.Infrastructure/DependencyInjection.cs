@@ -13,6 +13,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
 using System.Text;
@@ -21,8 +22,8 @@ namespace Kickstart.Infrastructure
 {
     public static class DependencyInjection
     {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
-    {
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
+        {
         // Add DbContext
         services.AddDbContext<ApplicationDbContext>(options =>
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
@@ -47,9 +48,9 @@ namespace Kickstart.Infrastructure
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
         // Add JWT Authentication
-        AddJwtAuthentication(services, configuration);
+        AddJwtAuthentication(services, configuration, environment);
 
-        return services;
+            return services;
     }
 
     public static void AddRepositories(this IServiceCollection services, Assembly assembly)
@@ -64,7 +65,7 @@ namespace Kickstart.Infrastructure
         }
     }
 
-    private static void AddJwtAuthentication(IServiceCollection services, IConfiguration configuration)
+        private static void AddJwtAuthentication(IServiceCollection services, IConfiguration configuration, IHostEnvironment environment)
         {
             var jwtSettings = configuration.GetSection("JwtSettings");
             var key = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
@@ -77,7 +78,7 @@ namespace Kickstart.Infrastructure
             })
             .AddJwtBearer(options =>
             {
-                options.RequireHttpsMetadata = false; // Set to true in production
+                options.RequireHttpsMetadata = !environment.IsDevelopment();
                 options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {

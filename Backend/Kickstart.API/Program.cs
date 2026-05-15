@@ -46,7 +46,7 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 builder.Services.AddApplication();
 
 // Add Infrastructure services
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 builder.Services.AddApiServices(builder.Configuration);
 
