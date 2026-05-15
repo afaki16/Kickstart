@@ -47,11 +47,6 @@ namespace Kickstart.Infrastructure.Identity
             return _httpContextAccessor.HttpContext?.User?.IsInRole(role) ?? false;
         }
 
-        public bool HasPermission(string permission)
-        {
-            var permissions = _httpContextAccessor.HttpContext?.User?.FindAll("permission")?.Select(c => c.Value);
-            return permissions?.Contains(permission) ?? false;
-        }
 
         public bool CanAccessAllTenants => IsInRole(RoleNames.SuperAdmin);
     }

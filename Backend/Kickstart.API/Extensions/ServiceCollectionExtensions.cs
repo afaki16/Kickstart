@@ -198,71 +198,19 @@ namespace Kickstart.API.Extensions
         {
             services.AddAuthorization(options =>
             {
-                // Resource-based permission policies
-                AddResourcePermissionPolicies(options);
-                
+                // Permission policies are handled dynamically by PermissionPolicyProvider
+                // (registered in Infrastructure.DependencyInjection) which evaluates them
+                // against the database via PermissionAuthorizationHandler.
+
                 // Role-based policies
                 AddRoleBasedPolicies(options);
-                
+
                 // Custom policies
                 AddCustomPolicies(options);
             });
         }
 
-        private static void AddResourcePermissionPolicies(AuthorizationOptions options)
-        {
-            // Get all permissions from static constants
-            var allPermissions = Kickstart.Domain.Constants.Permissions.Helper.GetAllPermissions();
-            
-            // Generate simplified policy names (e.g., "users.read", "roles.create")
-            foreach (var permission in allPermissions)
-            {
-                var parts = permission.Split('.');
-                if (parts.Length == 2)
-                {
-                    var resource = parts[0].ToLower();
-                    var action = parts[1].ToLower();
-                    var policyName = $"{resource}.{action}";
-                    
-                    options.AddPolicy(policyName, policy =>
-                        policy.RequireClaim("permission", permission));
-                }
-            }
-
-            // Add combined permission policies
-            AddCombinedPermissionPolicies(options);
-        }
-
-        private static void AddCombinedPermissionPolicies(AuthorizationOptions options)
-        {
-            // Read-Write policies (Read + Create + Update)
-            var readWriteResources = new[] { "Users", "Roles", "Permissions" };
-            foreach (var resource in readWriteResources)
-            {
-                var resourceLower = resource.ToLower();
-                options.AddPolicy($"{resourceLower}.readwrite", policy =>
-                {
-                    policy.RequireClaim("permission", $"{resource}.Read");
-                    policy.RequireClaim("permission", $"{resource}.Create");
-                    policy.RequireClaim("permission", $"{resource}.Update");
-                });
-            }
-
-            // Full Access policies (Read + Create + Update + Delete)
-            var fullAccessResources = new[] { "Users", "Roles", "Permissions" };
-            foreach (var resource in fullAccessResources)
-            {
-                var resourceLower = resource.ToLower();
-                options.AddPolicy($"{resourceLower}.fullaccess", policy =>
-                {
-                    policy.RequireClaim("permission", $"{resource}.Read");
-                    policy.RequireClaim("permission", $"{resource}.Create");
-                    policy.RequireClaim("permission", $"{resource}.Update");
-                    policy.RequireClaim("permission", $"{resource}.Delete");
-                });
-            }
-        }
-
+        
         private static void AddRoleBasedPolicies(AuthorizationOptions options)
         {
             // Admin role requirement
