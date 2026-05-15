@@ -49,6 +49,10 @@ builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
 
 builder.Services.AddApiServices(builder.Configuration);
+// Global exception handlers - specific first, generic last.
+builder.Services.AddExceptionHandler<ValidationExceptionHandler>();
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // Rate limiting (memory-based, per-IP). Limits are looser in Development
 // to keep manual testing painless; Staging/Production stay strict.
@@ -67,8 +71,13 @@ var app = builder.Build();
 // before any downstream middleware (logging, auth, rate-limiting) reads them.
 app.UseForwardedHeaders();
 
+// Exception handlers come right after forwarded headers so they can log
+// the correct client IP, but before anything that might throw.
+app.UseExceptionHandler();
+
 // Configure the HTTP request pipeline.
 // Swagger is exposed in Development and Staging only. Production keeps the API surface hidden.
+
 if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
 {
     app.UseSwagger();
