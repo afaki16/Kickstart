@@ -43,6 +43,7 @@ namespace Kickstart.Application.Features.Auth.Commands.VerifyEmail
             }
 
             token.User.EmailConfirmed = true;
+            token.User.Status = UserStatus.Active;
             token.MarkAsUsed();
 
             _unitOfWork.Users.Update(token.User);

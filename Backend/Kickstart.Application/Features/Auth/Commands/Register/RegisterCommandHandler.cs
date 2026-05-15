@@ -92,7 +92,7 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
                 Email = normalizedEmail,
                 PasswordHash = passwordResult.Value,
                 PhoneNumber = request.PhoneNumber,
-                Status = UserStatus.Active,
+                Status = UserStatus.PendingVerification,
                 EmailConfirmed = false
             };
 
