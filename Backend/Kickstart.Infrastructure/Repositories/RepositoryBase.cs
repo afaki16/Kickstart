@@ -15,13 +15,21 @@ where T : class
 {
     protected readonly ApplicationDbContext _context = context;
     public IQueryable<T> GetQueryable()
-        => _context.Set<T>();
+    => _context.Set<T>();
+
+    /// <summary>
+    /// Returns a no-tracking IQueryable for read-only scenarios (Query handlers).
+    /// Use GetQueryable when you intend to modify the entity later (Command handlers),
+    /// otherwise prefer this for ~%15-30 less memory and lower CPU.
+    /// </summary>
+    public IQueryable<T> GetReadOnlyQueryable()
+        => _context.Set<T>().AsNoTracking();
 
     public async Task<T?> GetByIdAsync(TKey id)
         => await _context.Set<T>().FindAsync(id);
 
-    public async Task<IReadOnlyList<T>> GetAllAsync()
-        => await _context.Set<T>().ToListAsync();
+    public virtual async Task<IReadOnlyList<T>> GetAllAsync()
+    => await _context.Set<T>().ToListAsync();
 
     public async Task<T> AddAsync(T entity)
     {

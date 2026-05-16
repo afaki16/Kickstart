@@ -84,7 +84,8 @@ namespace Kickstart.Infrastructure.Repositories
                 .Distinct();
 
             var userQuery = _context.Set<User>()
-                .Where(u => activeUserIds.Contains(u.Id));
+                 .AsNoTracking()
+                 .Where(u => activeUserIds.Contains(u.Id));
 
             if (tenantId.HasValue)
                 userQuery = userQuery.Where(u => u.TenantId == tenantId.Value);
@@ -103,6 +104,7 @@ namespace Kickstart.Infrastructure.Repositories
                 .Distinct();
 
             var userQuery = _context.Set<User>()
+                .AsNoTracking()
                 .Where(u => activeUserIds.Contains(u.Id));
 
             if (tenantId.HasValue)

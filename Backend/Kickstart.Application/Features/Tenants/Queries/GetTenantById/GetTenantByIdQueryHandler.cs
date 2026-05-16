@@ -23,8 +23,8 @@ namespace Kickstart.Application.Features.Tenants.Queries.GetTenantById
 
         public async Task<Result<TenantDto>> Handle(GetTenantByIdQuery request, CancellationToken cancellationToken)
         {
-            var tenant = await _unitOfWork.Tenants.GetTenantWithUsersAsync(request.Id);
-            
+            var tenant = await _unitOfWork.Tenants.GetTenantWithUsersReadOnlyAsync(request.Id);
+
             if (tenant == null)
             {
                 return Result<TenantDto>.Failure(Error.Failure(

@@ -11,6 +11,13 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
         Task<IReadOnlyList<User>> GetUsersByEmailAsync(string email);
         Task<IReadOnlyList<User>> GetUsersByEmailWithPermissionsAsync(string email);
         Task<User> GetUserWithRolesAsync(int userId);
+
+        /// <summary>
+        /// Read-only variant of GetUserWithRolesAsync - returns the user with no change tracking.
+        /// Use this from Query handlers; use GetUserWithRolesAsync from Command handlers that
+        /// will modify the returned entity.
+        /// </summary>
+        Task<User> GetUserWithRolesReadOnlyAsync(int userId);
         Task<User> GetUserWithPermissionsAsync(int userId);
         Task<bool> EmailExistsAsync(string email, int? tenantId);
         /// <param name="excludeUserId">If set, that user is ignored (for updates).</param>

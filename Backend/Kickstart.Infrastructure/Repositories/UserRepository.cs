@@ -50,10 +50,20 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
             .ThenInclude(ur => ur.Role)
             .FirstOrDefaultAsync(u => u.Id == userId);
     }
+    public async Task<User> GetUserWithRolesReadOnlyAsync(int userId)
+    {
+        return await _context.Set<User>()
+            .AsNoTracking()
+            .Include(u => u.Tenant)
+            .Include(u => u.UserRoles)
+            .ThenInclude(ur => ur.Role)
+            .FirstOrDefaultAsync(u => u.Id == userId);
+    }
 
     public async Task<User> GetUserWithPermissionsAsync(int userId)
     {
         return await _context.Set<User>()
+            .AsNoTracking()
             .Include(u => u.Tenant)
             .Include(u => u.UserRoles)
             .ThenInclude(ur => ur.Role)
@@ -93,7 +103,7 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
 
     public async Task<(IEnumerable<User> Users, int TotalCount)> GetUsersPagedAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false)
     {
-        var baseQuery = BuildUsersQuery(searchTerm, tenantId, excludeUsersWithSuperAdminRole);
+        var baseQuery = BuildUsersQuery(searchTerm, tenantId, excludeUsersWithSuperAdminRole).AsNoTracking();
         var totalCount = await baseQuery.CountAsync();
 
         var users = await baseQuery

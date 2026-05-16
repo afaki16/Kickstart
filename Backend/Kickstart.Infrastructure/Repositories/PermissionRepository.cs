@@ -41,10 +41,15 @@ namespace Kickstart.Infrastructure.Repositories
                 .Distinct()
                 .ToListAsync();
         }
-
-    public async Task<bool> PermissionExistsAsync(string name)
-    {
-        return await _context.Set<Permission>().AnyAsync(p => p.Name == name);
-    }
+        public override async Task<IReadOnlyList<Permission>> GetAllAsync()
+        {
+            return await _context.Set<Permission>()
+                .AsNoTracking()
+                .ToListAsync();
+        }
+        public async Task<bool> PermissionExistsAsync(string name)
+        {
+             return await _context.Set<Permission>().AnyAsync(p => p.Name == name);
+        }
 }
 } 

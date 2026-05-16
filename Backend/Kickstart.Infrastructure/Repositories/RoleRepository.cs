@@ -39,6 +39,15 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
             .FirstOrDefaultAsync(r => r.Id == roleId);
     }
 
+    public async Task<Role> GetRoleWithPermissionsReadOnlyAsync(int roleId)
+    {
+        return await _context.Set<Role>()
+            .AsNoTracking()
+            .Include(r => r.RolePermissions)
+            .ThenInclude(rp => rp.Permission)
+            .FirstOrDefaultAsync(r => r.Id == roleId);
+    }
+
     public async Task<IEnumerable<Role>> GetAllWithPermissionsAsync()
     {
         return await _context.Set<Role>()
@@ -49,7 +58,7 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
 
     public async Task<(IEnumerable<Role> Roles, int TotalCount)> GetRolesPagedAsync(int page, int pageSize, string searchTerm = null, bool excludeSuperAdminRole = false)
     {
-        var baseQuery = BuildRolesQuery(searchTerm, excludeSuperAdminRole);
+        var baseQuery = BuildRolesQuery(searchTerm, excludeSuperAdminRole).AsNoTracking();
         var totalCount = await baseQuery.CountAsync();
 
         var roles = await baseQuery

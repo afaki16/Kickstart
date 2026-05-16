@@ -9,6 +9,13 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
     {
         Task<Role> GetByNameAsync(string name);
         Task<Role> GetRoleWithPermissionsAsync(int roleId);
+
+        /// <summary>
+        /// Read-only variant of GetRoleWithPermissionsAsync - returns the role with no change tracking.
+        /// Use this from Query handlers; use GetRoleWithPermissionsAsync from Command handlers that
+        /// will modify the returned entity.
+        /// </summary>
+        Task<Role> GetRoleWithPermissionsReadOnlyAsync(int roleId);
         Task<int> GetByIdWithNameAsync(string name);
         Task<IEnumerable<Role>> GetAllWithPermissionsAsync();
         Task<(IEnumerable<Role> Roles, int TotalCount)> GetRolesPagedAsync(int page, int pageSize, string searchTerm = null, bool excludeSuperAdminRole = false);

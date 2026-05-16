@@ -33,7 +33,7 @@ namespace Kickstart.Application.Features.Users.Queries.GetUserById
 
         public async Task<Result<UserListDto>> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
         {
-            var user = await _unitOfWork.Users.GetUserWithRolesAsync(request.Id);
+            var user = await _unitOfWork.Users.GetUserWithRolesReadOnlyAsync(request.Id);
 
             if (user == null)
                 return Result<UserListDto>.Failure(Error.Failure(

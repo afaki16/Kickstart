@@ -33,8 +33,8 @@ namespace Kickstart.Application.Features.Roles.Queries.GetRoleById
 
         public async Task<Result<RoleDto>> Handle(GetRoleByIdQuery request, CancellationToken cancellationToken)
         {
-            var role = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(request.Id);
-            
+            var role = await _unitOfWork.Roles.GetRoleWithPermissionsReadOnlyAsync(request.Id);
+
             if (role == null)
             return Result<RoleDto>.Failure(Error.Failure(
                        ErrorCode.NotFound,
