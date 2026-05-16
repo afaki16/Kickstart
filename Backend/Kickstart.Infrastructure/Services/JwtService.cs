@@ -559,7 +559,7 @@ namespace Kickstart.Infrastructure.Services
                     ValidIssuer = jwtSettings["Issuer"],
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = key,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.FromSeconds(30)
                 };
 
                 var tokenHandler = new JwtSecurityTokenHandler();
@@ -588,7 +588,7 @@ namespace Kickstart.Infrastructure.Services
                     ValidIssuer = jwtSettings["Issuer"],
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = key,
-                    ClockSkew = TimeSpan.Zero
+                    ClockSkew = TimeSpan.FromSeconds(30)
                 };
 
                 var tokenHandler = new JwtSecurityTokenHandler();
