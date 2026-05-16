@@ -27,9 +27,10 @@ export default defineNuxtConfig({
     '@vueuse/nuxt',
     '@nuxtjs/google-fonts',
     '@nuxtjs/tailwindcss',
-    '@nuxt/icon'
+    '@nuxt/icon',
+    '@nuxtjs/i18n'
   ],
-  
+
   googleFonts: {
     families: {
       Inter: [300, 400, 500, 600, 700],
@@ -37,7 +38,24 @@ export default defineNuxtConfig({
       'Material+Icons': true
     }
   },
-  
+
+  i18n: {
+    locales: [
+      { code: 'tr', name: 'Türkçe', file: 'tr.json' },
+      { code: 'en', name: 'English', file: 'en.json' }
+    ],
+    defaultLocale: 'tr',
+    strategy: 'no_prefix',
+    lazy: true,
+    langDir: 'locales/',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      redirectOn: 'root',
+      alwaysRedirect: false
+    }
+  },
+
   runtimeConfig: {
     public: {
       apiBase: process.env.API_BASE_URL || 'https://localhost:44333',

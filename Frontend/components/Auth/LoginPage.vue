@@ -12,18 +12,13 @@
       <div class="left-content">
         <div class="brand-badge">
           <v-icon size="16" color="white">mdi-lightning-bolt</v-icon>
-          <span>{{ loginConfig?.texts?.brandBadge || "Secure Platform" }}</span>
+          <span>{{ t("auth.brandBadge") }}</span>
         </div>
         <h2 class="left-title">
-          {{
-            loginConfig?.texts?.heroTitle || "Manage everything in one place."
-          }}
+          {{ t("auth.heroTitle") }}
         </h2>
         <p class="left-subtitle">
-          {{
-            loginConfig?.texts?.heroSubtitle ||
-            "Fast, reliable, and built for the way you work."
-          }}
+          {{ t("auth.heroSubtitle") }}
         </p>
         <div class="carousel-dots">
           <div
@@ -43,12 +38,9 @@
           <div class="form-header-logo">
             <img :src="logoSrc" :alt="logoAlt" class="form-header-logo-img" />
           </div>
-          <h1>{{ loginConfig?.texts?.welcome || "Welcome back" }}</h1>
+          <h1>{{ t("auth.welcomeBack") }}</h1>
           <p>
-            {{
-              loginConfig?.texts?.subtitle ||
-              "Sign in to your account to continue"
-            }}
+            {{ t("auth.signInSubtitle") }}
           </p>
         </div>
 
@@ -61,7 +53,7 @@
           closable
           density="compact"
         >
-          Your session has expired. Please sign in again.
+          {{ t("auth.sessionExpired") }}
         </v-alert>
 
         <!-- Login API errors (from /api/auth/login) -->
@@ -114,15 +106,11 @@
           @submit.prevent="handleLogin"
         >
           <div class="input-group">
-            <label>{{
-              loginConfig?.texts?.emailLabel || "Email Address"
-            }}</label>
+            <label>{{ t("auth.email") }}</label>
             <v-text-field
               v-model="form.email"
               type="email"
-              :placeholder="
-                loginConfig?.texts?.emailPlaceholder || 'you@example.com'
-              "
+              :placeholder="t('auth.emailPlaceholder')"
               prepend-inner-icon="mdi-email-outline"
               :rules="[validationRules.required, validationRules.email]"
               variant="outlined"
@@ -134,13 +122,11 @@
           </div>
 
           <div class="input-group">
-            <label>{{ loginConfig?.texts?.passwordLabel || "Password" }}</label>
+            <label>{{ t("auth.password") }}</label>
             <v-text-field
               v-model="form.password"
               :type="showPassword ? 'text' : 'password'"
-              :placeholder="
-                loginConfig?.texts?.passwordPlaceholder || 'Enter your password'
-              "
+              :placeholder="t('auth.passwordPlaceholder')"
               prepend-inner-icon="mdi-lock-outline"
               :append-inner-icon="
                 showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'
@@ -160,7 +146,7 @@
           >
             <v-checkbox
               v-model="form.rememberMe"
-              :label="loginConfig?.texts?.rememberMe || 'Remember me'"
+              :label="t('auth.rememberMe')"
               density="compact"
               hide-details
               class="remember-checkbox"
@@ -170,7 +156,7 @@
               class="forgot-link"
               @click.prevent="$router.push('/auth/forgot-password')"
             >
-              {{ loginConfig?.texts?.forgotPassword || "Forgot password?" }}
+              {{ t("auth.forgotPassword") }}
             </a>
           </div>
 
@@ -182,19 +168,19 @@
             :disabled="!isFormValid"
             class="login-btn"
           >
-            {{ loginConfig?.texts?.signIn || "Sign In" }}
+            {{ t("auth.login") }}
           </v-btn>
         </v-form>
 
         <!-- Register Section (controlled by showRegister prop) -->
         <template v-if="showRegister">
           <div class="divider">
-            <span>{{ loginConfig?.texts?.divider || "or" }}</span>
+            <span>{{ t("auth.or") }}</span>
           </div>
 
           <div class="register-section">
             <p>
-              {{ loginConfig?.texts?.noAccount || "Don't have an account?" }}
+              {{ t("auth.noAccount") }}
             </p>
             <v-btn
               variant="outlined"
@@ -202,7 +188,7 @@
               @click="$router.push('/auth/register')"
             >
               <v-icon start size="18">mdi-account-plus-outline</v-icon>
-              {{ loginConfig?.texts?.createAccount || "Create Account" }}
+              {{ t("auth.createAccount") }}
             </v-btn>
           </div>
         </template>
@@ -222,10 +208,11 @@ const props = withDefaults(
   }>(),
   {
     showRegister: true, // false: register gizli, true yapınca açılır
-    showForgotPassword: false, // false: forgot password linki gizli, true: gösterilir
+    showForgotPassword: true, // false: forgot password linki gizli, true: gösterilir
   },
 );
 
+const { t } = useI18n();
 const route = useRoute();
 const authStore = useAuthStore();
 const { validationRules } = useValidators();
@@ -267,12 +254,12 @@ const resendAlertType = computed<"warning" | "success" | "error">(() => {
 
 const resendAlertMessage = computed(() => {
   if (resendState.value === "sent") {
-    return "Doğrulama bağlantısı email adresinize tekrar gönderildi. Lütfen email kutunuzu kontrol edin (spam klasörü dahil).";
+    return t("auth.resendEmailSent");
   }
   if (resendState.value === "error") {
-    return "Email gönderilemedi, lütfen birkaç saniye sonra tekrar deneyin.";
+    return t("auth.resendEmailError");
   }
-  return loginApiErrors.value[0] || "Email adresiniz doğrulanmamış.";
+  return loginApiErrors.value[0] || t("auth.emailNotConfirmed");
 });
 
 const resendButtonDisabled = computed(
@@ -281,9 +268,9 @@ const resendButtonDisabled = computed(
 
 const resendButtonText = computed(() => {
   if (resendState.value === "sent" && resendCooldown.value > 0) {
-    return `Gönderildi ✓ (${resendCooldown.value}s)`;
+    return `${t("auth.resendButtonSent")} (${resendCooldown.value}s)`;
   }
-  return "Doğrulama emailini tekrar gönder";
+  return t("auth.resendButton");
 });
 
 const resendButtonIcon = computed(() =>

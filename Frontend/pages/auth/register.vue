@@ -31,8 +31,8 @@
             <div class="logo-icon">
               <v-icon size="64" color="white">mdi-account-plus</v-icon>
             </div>
-            <h1 class="welcome-text">{{ registerConfig?.texts?.welcome || 'Create Account' }}</h1>
-            <p class="subtitle-text">{{ registerConfig?.texts?.subtitle || 'Join us today and get started' }}</p>
+            <h1 class="welcome-text">{{ t('auth.createAccountTitle') }}</h1>
+            <p class="subtitle-text">{{ t('auth.createAccountSubtitle') }}</p>
           </div>
 
           <!-- Register Form Component -->
@@ -53,10 +53,10 @@
                 >
                   <template #label>
                     <span class="terms-text">
-                      {{ registerConfig?.texts?.agreeTo || 'I agree to the' }}
-                      <a href="/terms" target="_blank" class="terms-link">{{ registerConfig?.texts?.terms || 'Terms of Service' }}</a>
-                      {{ registerConfig?.texts?.and || 'and' }}
-                      <a href="/privacy" target="_blank" class="terms-link">{{ registerConfig?.texts?.privacy || 'Privacy Policy' }}</a>
+                      {{ t('auth.agreeTo') }}
+                      <a href="/terms" target="_blank" class="terms-link">{{ t('auth.termsOfService') }}</a>
+                      {{ t('auth.and') }}
+                      <a href="/privacy" target="_blank" class="terms-link">{{ t('auth.privacyPolicy') }}</a>
                     </span>
                   </template>
                 </v-checkbox>
@@ -64,19 +64,19 @@
             </template>
 
             <template #submit-text>
-              <span class="btn-text">{{ registerConfig?.texts?.createAccount || 'Create Account' }}</span>
+              <span class="btn-text">{{ t('auth.createAccountTitle') }}</span>
             </template>
           </AuthRegisterForm>
 
           <div class="divider-section">
             <div class="divider-line"></div>
-            <span class="divider-text">{{ registerConfig?.texts?.divider || 'or' }}</span>
+            <span class="divider-text">{{ t('auth.or') }}</span>
             <div class="divider-line"></div>
           </div>
 
           <div class="login-section">
             <p class="login-text">
-              {{ registerConfig?.texts?.alreadyHaveAccount || 'Already have an account?' }}
+              {{ t('auth.alreadyHaveAccount') }}
             </p>
             <v-btn
               variant="outlined"
@@ -84,7 +84,7 @@
               @click="$router.push('/')"
               class="login-btn"
             >
-              {{ registerConfig?.texts?.signIn || 'Sign In' }}
+              {{ t('auth.signIn') }}
             </v-btn>
           </div>
         </div>
@@ -109,6 +109,7 @@ definePageMeta({
 })
 
 // Composables
+const { t } = useI18n()
 const authStore = useAuthStore()
 const auth = useAuth()
 
@@ -174,7 +175,7 @@ onUnmounted(() => {
 
 // SEO
 useHead({
-  title: 'Create Account - Kickstart',
+  title: 'Hesap Oluştur - Kickstart',
   meta: [
     { name: 'description', content: 'Create your Kickstart account' }
   ]

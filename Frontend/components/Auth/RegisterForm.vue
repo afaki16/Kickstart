@@ -3,7 +3,7 @@
       <div class="input-group">
         <BaseTextBox
           v-model="formData.firstName"
-          :label="config?.texts?.firstNameLabel || 'First Name'"
+          :label="t('auth.firstNameLabel')"
           prepend-inner-icon="mdi-account"
           :rules="[rules.required, rules.minLength(2)]"
           type="text"
@@ -16,7 +16,7 @@
       <div class="input-group">
         <BaseTextBox
           v-model="formData.lastName"
-          :label="config?.texts?.lastNameLabel || 'Last Name'"
+          :label="t('auth.lastNameLabel')"
           :rules="[rules.required, rules.minLength(2)]"
           type="text"
           required
@@ -29,7 +29,7 @@
     <div class="input-group">
       <BaseTextBox
         v-model="formData.email"
-        :label="config?.texts?.emailLabel || 'Email Address'"
+        :label="t('auth.email')"
         type="email"
         prepend-inner-icon="mdi-email"
         :rules="[rules.required, rules.email]"
@@ -42,7 +42,7 @@
     <div class="input-group">
       <BaseTextBox
         v-model="formData.phoneNumber"
-        :label="config?.texts?.phoneLabel || 'Phone Number (Optional)'"
+        :label="t('auth.phoneLabel')"
         type="tel"
         prepend-inner-icon="mdi-phone"
         :rules="[rules.phone]"
@@ -55,7 +55,7 @@
     <div class="input-group">
         <BaseTextBox
           v-model="formData.password"
-          :label="config?.texts?.passwordLabel || 'Password'"
+          :label="t('auth.password')"
           type="password"
           prepend-inner-icon="mdi-lock"
           :rules="[rules.password]"
@@ -73,7 +73,7 @@
     <div class="input-group">
       <BaseTextBox
         v-model="formData.confirmPassword"
-        :label="config?.texts?.confirmPasswordLabel || 'Confirm Password'"
+        :label="t('auth.confirmPasswordLabel')"
         type="password"
         prepend-inner-icon="mdi-lock-check"
         :rules="[rules.required, rules.confirmPassword(formData.password)]"
@@ -86,7 +86,7 @@
     <!-- Password strength indicator -->
     <div class="password-strength mb-4">
       <div class="strength-header">
-        <span class="strength-label">{{ config?.texts?.passwordStrength || 'Password Strength' }}:</span>
+        <span class="strength-label">{{ t('auth.passwordStrength') }}:</span>
         <span class="strength-text" :class="passwordStrengthColor">
           {{ passwordStrengthText }}
         </span>
@@ -112,7 +112,7 @@
       :class="submitButtonClass"
       elevation="8"
     >
-      <slot name="submit-text">Create Account</slot>
+      <slot name="submit-text">{{ t('auth.createAccountTitle') }}</slot>
     </v-btn>
   </v-form>
 </template>
@@ -136,6 +136,7 @@ const emit = defineEmits<{
 }>()
 
 // Composables
+const { t } = useI18n()
 const { validationRules: rules } = useValidators()
 
 // Reactive data
@@ -172,10 +173,10 @@ const passwordStrength = computed(() => {
 
 const passwordStrengthText = computed(() => {
   const strength = passwordStrength.value
-  if (strength < 25) return 'Weak'
-  if (strength < 50) return 'Fair'
-  if (strength < 75) return 'Good'
-  return 'Strong'
+  if (strength < 25) return t('auth.strengthWeak')
+  if (strength < 50) return t('auth.strengthFair')
+  if (strength < 75) return t('auth.strengthGood')
+  return t('auth.strengthStrong')
 })
 
 const passwordStrengthColor = computed(() => {

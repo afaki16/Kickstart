@@ -62,18 +62,6 @@ interface AppData {
       border: string
       shadow: string
     }
-    texts: {
-      welcome: string
-      subtitle: string
-      emailLabel: string
-      passwordLabel: string
-      rememberMe: string
-      forgotPassword: string
-      signIn: string
-      divider: string
-      noAccount: string
-      createAccount: string
-    }
   }
   register: {
     backgroundImages: string[]
@@ -88,25 +76,6 @@ interface AppData {
       borderRadius: string
       border: string
       shadow: string
-    }
-    texts: {
-      welcome: string
-      subtitle: string
-      firstNameLabel: string
-      lastNameLabel: string
-      emailLabel: string
-      phoneLabel: string
-      passwordLabel: string
-      confirmPasswordLabel: string
-      passwordStrength: string
-      agreeTo: string
-      terms: string
-      and: string
-      privacy: string
-      createAccount: string
-      divider: string
-      alreadyHaveAccount: string
-      signIn: string
     }
   }
   navigation: {

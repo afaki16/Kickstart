@@ -43,18 +43,6 @@
       "borderRadius": "20px",
       "border": "1px solid rgba(255, 255, 255, 0.3)",
       "shadow": "0 25px 45px rgba(0, 0, 0, 0.2)"
-    },
-    "texts": {
-      "welcome": "Welcome",
-      "subtitle": "Sign in to your account",
-      "emailLabel": "Email Address",
-      "passwordLabel": "Password",
-      "rememberMe": "Remember me",
-      "forgotPassword": "Forgot password?",
-      "signIn": "Sign In",
-      "divider": "or",
-      "noAccount": "Don't have an account?",
-      "createAccount": "Create Account"
     }
   },
   "register": {
@@ -76,25 +64,6 @@
       "borderRadius": "20px",
       "border": "1px solid rgba(255, 255, 255, 0.2)",
       "shadow": "0 25px 45px rgba(0, 0, 0, 0.2)"
-    },
-    "texts": {
-      "welcome": "Create Account",
-      "subtitle": "Join us today and get started",
-      "firstNameLabel": "First Name",
-      "lastNameLabel": "Last Name",
-      "emailLabel": "Email Address",
-      "phoneLabel": "Phone Number (Optional)",
-      "passwordLabel": "Password",
-      "confirmPasswordLabel": "Confirm Password",
-      "passwordStrength": "Password Strength",
-      "agreeTo": "I agree to the",
-      "terms": "Terms of Service",
-      "and": "and",
-      "privacy": "Privacy Policy",
-      "createAccount": "Create Account",
-      "divider": "or",
-      "alreadyHaveAccount": "Already have an account?",
-      "signIn": "Sign In"
     }
   },
   "navigation": {
