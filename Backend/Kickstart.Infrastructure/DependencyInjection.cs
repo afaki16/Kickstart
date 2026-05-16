@@ -89,7 +89,7 @@ namespace Kickstart.Infrastructure
                     ValidIssuer = jwtSettings["Issuer"],
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ClockSkew = TimeSpan.Zero // Remove delay of token when expire
+                    ClockSkew = TimeSpan.FromSeconds(30) // Tolerate small clock drift between server instances
                 };
 
                 options.Events = new JwtBearerEvents
