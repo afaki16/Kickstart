@@ -15,13 +15,21 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
     {
         public RegisterCommandValidator()
         {
+            // Allow Unicode letters (Türkçe ç, þ, ð, ü, ö, ý dahil), spaces, apostrophes, hyphens, dots.
+            // Explicitly rejects HTML characters (<, >, &, ", '), URLs (://) and any digit/punctuation
+            // that doesn't belong in a real name. Examples allowed: "Ahmet", "Mary-Jane", "O'Brien", "Dr. Smith".
+            const string NameRegex = @"^[\p{L}\p{M}\s.'\-]+$";
+            const string NameError = "Name can only contain letters, spaces, apostrophes, hyphens and dots.";
+
             RuleFor(x => x.FirstName)
                 .NotEmpty().WithMessage("First name is required.")
-                .MaximumLength(50).WithMessage("First name cannot exceed 50 characters.");
+                .MaximumLength(50).WithMessage("First name cannot exceed 50 characters.")
+                .Matches(NameRegex).WithMessage(NameError);
 
             RuleFor(x => x.LastName)
                 .NotEmpty().WithMessage("Last name is required.")
-                .MaximumLength(50).WithMessage("Last name cannot exceed 50 characters.");
+                .MaximumLength(50).WithMessage("Last name cannot exceed 50 characters.")
+                .Matches(NameRegex).WithMessage(NameError);
 
             RuleFor(x => x.Email)
                 .NotEmpty().WithMessage("Email is required.")
