@@ -57,6 +57,16 @@ namespace Kickstart.API.Controllers
             };
 
             var result = await _mediator.Send(command);
+
+            // On success, also drop an HttpOnly cookie so web clients can stop storing the
+            // refresh token in JS-accessible places (localStorage / non-HttpOnly cookie).
+            // The body still contains the token for backwards compatibility with mobile/CLI
+            // clients that don't have a cookie jar - they'll keep working unchanged.
+            if (result.IsSuccess && result.Value is not null)
+            {
+                WriteRefreshTokenCookie(result.Value.RefreshToken, result.Value.ExpiresAt);
+            }
+
             return HandleResult(result);
         }
 
@@ -105,15 +115,26 @@ namespace Kickstart.API.Controllers
         [ProducesResponseType(401)]
         public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequestDto request)
         {
+            // Cookie takes priority over body. Mobile/CLI clients without a cookie jar
+            // can still pass refreshToken in the body.
+            var refreshToken = ReadRefreshToken(request.RefreshToken);
+
             var command = new RefreshTokenCommand
             {
                 AccessToken = request.AccessToken,
-                RefreshToken = request.RefreshToken,
+                RefreshToken = refreshToken,
                 IpAddress = GetIpAddress(),
                 UserAgent = GetUserAgent()
             };
 
             var result = await _mediator.Send(command);
+
+            // Rotate the cookie too so the new refresh token replaces the old one.
+            if (result.IsSuccess && result.Value is not null)
+            {
+                WriteRefreshTokenCookie(result.Value.RefreshToken, result.Value.ExpiresAt);
+            }
+
             return HandleResult(result);
         }
 
@@ -129,15 +150,23 @@ namespace Kickstart.API.Controllers
         [ProducesResponseType(401)]
         public async Task<IActionResult> Logout([FromBody] LogoutRequestDto request)
         {
+            // Same dual-mode read as refresh.
+            var refreshToken = ReadRefreshToken(request.RefreshToken);
+
             var command = new LogoutCommand
             {
-                RefreshToken = request.RefreshToken,
+                RefreshToken = refreshToken,
                 IpAddress = GetIpAddress(),
                 UserAgent = GetUserAgent(),
                 Reason = request.Reason
             };
 
             var result = await _mediator.Send(command);
+
+            // Always clear the cookie on logout, even if the command failed - the user's
+            // intent is clear and a stale cookie left behind is a footgun.
+            ClearRefreshTokenCookie();
+
             return HandleResult(result);
         }
 
@@ -368,6 +397,60 @@ namespace Kickstart.API.Controllers
 
             var result = await _mediator.Send(command);
             return HandleResult(result);
+        }
+
+        // ??? Refresh-token cookie helpers ?????????????????????????????????????
+        // We support both modes simultaneously to allow zero-downtime frontend migration:
+        //   - Web clients should rely on the HttpOnly cookie (set by Login/Refresh, sent
+        //     automatically by browser, never readable from JS so XSS can't steal it).
+        //   - Mobile/CLI clients (no cookie jar) keep sending the token in the body.
+        // The body always wins as a fallback so old clients keep working until they switch.
+
+        private const string RefreshCookieName = "refresh_token";
+
+        private void WriteRefreshTokenCookie(string token, DateTime expiresAtUtc)
+        {
+            // Secure=true requires HTTPS; allow HTTP only in Development.
+            var isDev = HttpContext.RequestServices
+                .GetRequiredService<IHostEnvironment>()
+                .IsDevelopment();
+
+            Response.Cookies.Append(RefreshCookieName, token, new CookieOptions
+            {
+                HttpOnly = true,                            // JS can't read it - XSS protection
+                Secure = !isDev,                            // HTTPS-only in prod
+                SameSite = SameSiteMode.Strict,             // CSRF protection
+                Path = "/api/auth",                         // scoped to auth endpoints
+                Expires = expiresAtUtc                      // matches token lifetime
+            });
+        }
+
+        private void ClearRefreshTokenCookie()
+        {
+            // Same options as Append so the browser actually overwrites the existing cookie.
+            // Missing options here would make this no-op for some browsers.
+            var isDev = HttpContext.RequestServices
+                .GetRequiredService<IHostEnvironment>()
+                .IsDevelopment();
+
+            Response.Cookies.Append(RefreshCookieName, string.Empty, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !isDev,
+                SameSite = SameSiteMode.Strict,
+                Path = "/api/auth",
+                Expires = DateTimeOffset.UnixEpoch          // immediately expired
+            });
+        }
+
+        private string? ReadRefreshToken(string? bodyValue)
+        {
+            // Cookie wins for web clients; body is the fallback for clients without a cookie jar.
+            if (Request.Cookies.TryGetValue(RefreshCookieName, out var cookieValue)
+                && !string.IsNullOrEmpty(cookieValue))
+                return cookieValue;
+
+            return bodyValue;
         }
     }
 }
