@@ -70,7 +70,7 @@ namespace Kickstart.Application.Features.Auth.Commands.ForgotPassword
             {
                 UserId = targetUser.Id,
                 Token = hashedToken,
-                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                ExpiresAt = DateTime.UtcNow.AddMinutes(30),
                 RequestIpAddress = request.IpAddress
             };
 

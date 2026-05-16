@@ -81,7 +81,7 @@ namespace Kickstart.Application.Features.Auth.Commands.ResendVerificationEmail
                 Channel = VerificationChannel.Email,
                 Purpose = VerificationPurpose.Registration,
                 Destination = targetUser.Email,
-                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                ExpiresAt = DateTime.UtcNow.AddHours(2),
                 RequestIpAddress = request.IpAddress
             };
 

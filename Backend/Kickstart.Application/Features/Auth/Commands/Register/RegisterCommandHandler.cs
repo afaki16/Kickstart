@@ -128,7 +128,7 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
                 Channel = VerificationChannel.Email,
                 Purpose = VerificationPurpose.Registration,
                 Destination = user.Email,
-                ExpiresAt = DateTime.UtcNow.AddHours(24),
+                ExpiresAt = DateTime.UtcNow.AddHours(2),
                 RequestIpAddress = ipAddress
             };
 
