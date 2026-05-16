@@ -32,7 +32,11 @@ namespace Kickstart.Infrastructure.Services
             );
 
             cache.Set(RolePermCacheKey, map,
-                new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(RoleCacheMinutes)));
+               new MemoryCacheEntryOptions
+               {
+                   SlidingExpiration = TimeSpan.FromMinutes(RoleCacheMinutes),
+                   AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(4)  // worst-case ceiling
+               });
 
             return map;
         }
@@ -57,8 +61,12 @@ namespace Kickstart.Infrastructure.Services
                 .ToList();
 
             cache.Set(cacheKey, permissions,
-                new MemoryCacheEntryOptions().SetAbsoluteExpiration(TimeSpan.FromMinutes(UserCacheMinutes)));
-
+                new MemoryCacheEntryOptions
+               {
+                   SlidingExpiration = TimeSpan.FromMinutes(UserCacheMinutes),
+                   AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)  // worst-case ceiling
+               });
+        
             return Result<List<string>>.Success(permissions);
         }
 
