@@ -1,10 +1,9 @@
 <template>
   <!-- Breadcrumb -->
   <div class="mb-6">
-    <BreadCrumb :items="[
-      { text: 'Ana Sayfa', to: '/' },
-      { text: 'Tenant\'lar' }
-    ]" />
+    <BreadCrumb
+      :items="[{ text: 'Ana Sayfa', to: '/' }, { text: 'Tenant\'lar' }]"
+    />
   </div>
 
   <BaseDataTable
@@ -44,12 +43,8 @@
     </template>
 
     <template #cell-isActive="{ value }">
-      <v-chip
-        :color="value ? 'success' : 'error'"
-        size="small"
-        variant="tonal"
-      >
-        {{ value ? 'Aktif' : 'Pasif' }}
+      <v-chip :color="value ? 'success' : 'error'" size="small" variant="tonal">
+        {{ value ? "Aktif" : "Pasif" }}
       </v-chip>
     </template>
 
@@ -90,70 +85,70 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
-import BaseDataTable from '~/components/UI/BaseDataTable.vue'
-import TenantForm from '~/components/Tenants/TenantForm.vue'
-import ResizableDrawer from '~/components/UI/ResizableDrawer.vue'
-import ConfirmDialog from '~/components/UI/ConfirmDialog.vue'
+import { onMounted } from "vue";
+import BaseDataTable from "~/components/UI/BaseDataTable.vue";
+import TenantForm from "~/components/Tenants/TenantForm.vue";
+import ResizableDrawer from "~/components/UI/ResizableDrawer.vue";
+import ConfirmDialog from "~/components/UI/ConfirmDialog.vue";
 
 //#region Page Metadata
 definePageMeta({
-  title: 'Tenant\'lar',
+  title: "Tenant'lar",
   requiresAuth: true,
-  middleware: ['auth', 'permission'],
-  roles: ['SuperAdmin']
-})
+  middleware: ["permission"],
+  roles: ["SuperAdmin"],
+});
 
 useHead({
-  title: 'Tenant\'lar',
-})
+  title: "Tenant'lar",
+});
 //#endregion
 
 //#region DataTable Columns
 const tableColumns = [
   {
-    label: 'Tenant Adı',
-    key: 'name',
+    label: "Tenant Adı",
+    key: "name",
     sortable: true,
     filterable: true,
-    filterType: 'text',
-    width: '250px',
+    filterType: "text",
+    width: "250px",
   },
   {
-    label: 'Domain',
-    key: 'domain',
+    label: "Domain",
+    key: "domain",
     sortable: true,
     filterable: true,
-    filterType: 'text',
-    width: '200px',
+    filterType: "text",
+    width: "200px",
   },
   {
-    label: 'İletişim E-postası',
-    key: 'contactEmail',
+    label: "İletişim E-postası",
+    key: "contactEmail",
     sortable: true,
     filterable: true,
-    filterType: 'text',
-    width: '250px',
+    filterType: "text",
+    width: "250px",
   },
   {
-    label: 'Kullanıcı Sayısı',
-    key: 'userCount',
+    label: "Kullanıcı Sayısı",
+    key: "userCount",
     sortable: true,
-    width: '120px',
+    width: "120px",
   },
   {
-    label: 'Durum',
-    key: 'isActive',
+    label: "Durum",
+    key: "isActive",
     sortable: true,
     filterable: true,
-    filterType: 'select',
-    width: '100px',
+    filterType: "select",
+    width: "100px",
   },
-]
+];
 //#endregion
 
 //#region Composables
-const { getTenants, createTenant, updateTenant, deleteTenant } = useTenants()
+const { getTenants, createTenant, updateTenant, deleteTenant } = useTenants();
 
 const {
   items,
@@ -174,21 +169,21 @@ const {
   confirmDelete,
   handleSearch,
   refreshData,
-  loadItemsData
+  loadItemsData,
 } = useCrudOperations({
   loadItems: getTenants,
   createItem: createTenant,
   updateItem: updateTenant,
   deleteItem: deleteTenant,
-  itemName: 'tenant',
+  itemName: "tenant",
   serverSidePagination: false,
   initialPageSize: 10,
-})
+});
 //#endregion
 
 //#region Lifecycle
 onMounted(async () => {
-  await loadItemsData()
-})
+  await loadItemsData();
+});
 //#endregion
 </script>

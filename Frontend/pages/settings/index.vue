@@ -2,10 +2,9 @@
   <div class="settings-container">
     <!-- Breadcrumb -->
     <div class="mb-6">
-      <BreadCrumb :items="[
-        { text: 'Ana Sayfa', to: '/dashboard' },
-        { text: 'Ayarlar' }
-      ]" />
+      <BreadCrumb
+        :items="[{ text: 'Ana Sayfa', to: '/dashboard' }, { text: 'Ayarlar' }]"
+      />
     </div>
 
     <!-- Page Header -->
@@ -54,40 +53,46 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import BreadCrumb from '~/components/BreadCrumb.vue'
-import SettingsAdminSection from '~/components/Settings/SettingsAdminSection.vue'
-import SettingsSuperAdminSection from '~/components/Settings/SettingsSuperAdminSection.vue'
+import { ref, computed, watch } from "vue";
+import BreadCrumb from "~/components/BreadCrumb.vue";
+import SettingsAdminSection from "~/components/Settings/SettingsAdminSection.vue";
+import SettingsSuperAdminSection from "~/components/Settings/SettingsSuperAdminSection.vue";
 
 //#region Page Metadata
 definePageMeta({
-  title: 'Ayarlar',
+  title: "Ayarlar",
   requiresAuth: true,
-  middleware: ['auth', 'permission'],
-  roles: ['Admin', 'SuperAdmin']
-})
+  middleware: ["permission"],
+  roles: ["Admin", "SuperAdmin"],
+});
 
 useHead({
-  title: 'Ayarlar - Kickstart',
-})
+  title: "Ayarlar - Kickstart",
+});
 //#endregion
 
 //#region Auth & Tabs
-const authStore = useAuthStore()
+const authStore = useAuthStore();
 
 // Tenant Ayarları: sadece Admin rolü (SuperAdmin ayrı sekme; yoksa yanlışlıkla tenant-scope UI görünür)
-const showAdminTab = computed(() => authStore.hasRole('Admin'))
-const showSuperAdminTab = computed(() => authStore.hasRole('SuperAdmin'))
+const showAdminTab = computed(() => authStore.hasRole("Admin"));
+const showSuperAdminTab = computed(() => authStore.hasRole("SuperAdmin"));
 
 // Hem Admin hem SuperAdmin atanmış kullanıcıda iki sekme
-const hasMultipleTabs = computed(() => showAdminTab.value && showSuperAdminTab.value)
+const hasMultipleTabs = computed(
+  () => showAdminTab.value && showSuperAdminTab.value,
+);
 
-const activeTab = ref<'admin' | 'superadmin'>('admin')
+const activeTab = ref<"admin" | "superadmin">("admin");
 
-watch([showAdminTab, showSuperAdminTab], ([admin, superAdmin]) => {
-  if (superAdmin) activeTab.value = 'superadmin'
-  else if (admin) activeTab.value = 'admin'
-}, { immediate: true })
+watch(
+  [showAdminTab, showSuperAdminTab],
+  ([admin, superAdmin]) => {
+    if (superAdmin) activeTab.value = "superadmin";
+    else if (admin) activeTab.value = "admin";
+  },
+  { immediate: true },
+);
 //#endregion
 </script>
 

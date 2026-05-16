@@ -7,7 +7,11 @@
         <h1 class="dashboard-subtitle">Hoş Geldiniz</h1>
       </div>
       <div class="header-actions">
-        <v-chip color="primary" variant="elevated" prepend-icon="mdi-calendar-check">
+        <v-chip
+          color="primary"
+          variant="elevated"
+          prepend-icon="mdi-calendar-check"
+        >
           Bugün: {{ todayDate }}
         </v-chip>
       </div>
@@ -32,90 +36,95 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import { Chart, registerables } from 'chart.js'
-import { useAuth } from '~/composables/useAuth'
-import { useAuthStore } from '~/stores/auth'
+import { ref, onMounted, computed } from "vue";
+import { Chart, registerables } from "chart.js";
+import { useAuth } from "~/composables/useAuth";
+import { useAuthStore } from "~/stores/auth";
 
-Chart.register(...registerables)
+Chart.register(...registerables);
 
 definePageMeta({
-  middleware: ['auth', 'permission'],
-})
+  middleware: ["permission"],
+});
 
-const authStore = useAuthStore()
-const { hasRole } = useAuth()
+const authStore = useAuthStore();
+const { hasRole } = useAuth();
 
 const isAdminOrSuperAdmin = computed(() => {
-  return hasRole('Admin') || hasRole('SuperAdmin')
-})
+  return hasRole("Admin") || hasRole("SuperAdmin");
+});
 
-const revenueChart = ref<HTMLCanvasElement>()
+const revenueChart = ref<HTMLCanvasElement>();
 
 const stats = ref({
   todayAppointments: 24,
   todayRevenue: 45750,
   totalPatients: 1248,
-  activeDoctors: 8
-})
+  activeDoctors: 8,
+});
 
 const todayDate = computed(() => {
-  return new Date().toLocaleDateString('tr-TR', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
-  })
-})
+  return new Date().toLocaleDateString("tr-TR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+});
 
 const initRevenueChart = () => {
-  if (!revenueChart.value) return
+  if (!revenueChart.value) return;
 
   new Chart(revenueChart.value, {
-    type: 'line',
+    type: "line",
     data: {
-      labels: ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'],
-      datasets: [{
-        label: 'Gelir (₺)',
-        data: [12500, 19800, 15200, 21300, 18900, 25400, 22100],
-        borderColor: getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#2563eb',
-        backgroundColor: `rgba(${getComputedStyle(document.documentElement).getPropertyValue('--theme-primary-rgb').trim() || '37, 99, 235'}, 0.1)`,
-        tension: 0.4,
-        fill: true
-      }]
+      labels: ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
+      datasets: [
+        {
+          label: "Gelir (₺)",
+          data: [12500, 19800, 15200, 21300, 18900, 25400, 22100],
+          borderColor:
+            getComputedStyle(document.documentElement)
+              .getPropertyValue("--theme-primary")
+              .trim() || "#2563eb",
+          backgroundColor: `rgba(${getComputedStyle(document.documentElement).getPropertyValue("--theme-primary-rgb").trim() || "37, 99, 235"}, 0.1)`,
+          tension: 0.4,
+          fill: true,
+        },
+      ],
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
         legend: {
-          display: false
-        }
+          display: false,
+        },
       },
       scales: {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: function(value) {
-              return '₺' + value.toLocaleString()
-            }
-          }
-        }
-      }
-    }
-  })
-}
+            callback: function (value) {
+              return "₺" + value.toLocaleString();
+            },
+          },
+        },
+      },
+    },
+  });
+};
 
 onMounted(() => {
   if (isAdminOrSuperAdmin.value) {
     setTimeout(() => {
-      initRevenueChart()
-    }, 100)
+      initRevenueChart();
+    }, 100);
   }
-})
+});
 
 useHead({
-  title: 'Dashboard - Kickstart'
-})
+  title: "Dashboard - Kickstart",
+});
 </script>
 
 <style scoped>
@@ -160,7 +169,9 @@ useHead({
 
 .stat-card {
   border-radius: 16px !important;
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
   overflow: hidden;
 }
 
@@ -279,5 +290,4 @@ useHead({
     font-size: 2rem;
   }
 }
-
 </style>

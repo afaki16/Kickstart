@@ -144,7 +144,9 @@ export const useAuthStore = defineStore("auth", {
           localStorage.setItem("deviceId", deviceIdCookie.value);
         }
 
-        // Restore user from localStorage
+        // Stale-while-revalidate: show cached user immediately for snappy UX,
+        // then fetch the latest from the API to pick up any permission changes
+        // made on the backend since the last login.
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           try {
@@ -152,12 +154,12 @@ export const useAuthStore = defineStore("auth", {
             this.setUser(user);
           } catch (error) {
             console.error("Error parsing stored user:", error);
-            await this.fetchUserFromApi();
           }
-        } else {
-          // User yoksa API'den al (sidebar permissions için gerekli)
-          await this.fetchUserFromApi();
         }
+
+        // Always refresh from API to ensure permissions are up-to-date.
+        // Backend permission cache (15min sliding) makes this cheap.
+        await this.fetchUserFromApi();
       } else {
         // No tokens found, ensure we're logged out
         this.isAuthenticated = false;

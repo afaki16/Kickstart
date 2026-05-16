@@ -99,15 +99,8 @@ export const useAuth = () => {
       if (loginData && loginData.accessToken) {
         const deviceId = credentials.deviceId || generateDeviceId();
         await authStore.setAuth(loginData, deviceId);
-        // Login response'da permissions/roles eksik olabilir - /me ile tam kullanıcı bilgisi al (sidebar menü için)
-        try {
-          await authStore.fetchUserFromApi(false);
-        } catch (e) {
-          console.warn(
-            "Could not fetch full user after login, using login response:",
-            e,
-          );
-        }
+        // Middleware will call fetchUserFromApi via initializeAuth on next route,
+        // so we don't need to do it here.
         await router.push("/dashboard");
         return loginData;
       } else {
