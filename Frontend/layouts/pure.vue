@@ -22,7 +22,7 @@
             {{ appData?.app?.brand?.text || 'Kickstart' }}
           </h1>
           <p class="text-xs text-slate-500 font-medium tracking-wide truncate">
-            {{ appData?.app?.brand?.tagline || '' }}
+            {{ $t('sidebar.brand.tagline') }}
           </p>
         </div>
       </div>
@@ -46,18 +46,21 @@
             class="w-5 h-5 flex-shrink-0"
             :style="isActive(item.to) ? { color: 'var(--theme-primary)' } : {}"
           />
-          <span class="truncate">{{ item.title }}</span>
+          <span class="truncate">{{ $t(item.title) }}</span>
         </NuxtLink>
       </nav>
 
       <!-- Alt Kısım / Footer -->
       <div class="pt-4 border-t border-slate-200 space-y-1">
+        <div class="px-2 pb-2">
+          <LanguageSwitcher class="lang-switcher-pure" />
+        </div>
         <button
           type="button"
           class="w-full flex items-center space-x-3 px-4 py-3 text-slate-600 hover:bg-slate-100 rounded-lg transition-all text-sm font-semibold group"
         >
           <Icon name="mdi:help-circle-outline" class="w-5 h-5 flex-shrink-0" />
-          <span>Support</span>
+          <span>{{ $t('sidebar.actions.support') }}</span>
         </button>
         <button
           type="button"
@@ -65,7 +68,7 @@
           class="w-full flex items-center space-x-3 px-4 py-3 text-slate-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-all text-sm font-semibold group"
         >
           <Icon name="mdi:logout" class="w-5 h-5 flex-shrink-0 group-hover:text-red-600" />
-          <span>Logout</span>
+          <span>{{ $t('sidebar.actions.logout') }}</span>
         </button>
       </div>
     </aside>
@@ -131,3 +134,17 @@ onMounted(async () => {
   await loadAppData()
 })
 </script>
+
+<style scoped>
+.lang-switcher-pure :deep(.lang-switcher-btn) {
+  width: 100%;
+  justify-content: flex-start;
+  background: transparent;
+  border-color: rgb(226 232 240);
+  color: rgb(71 85 105);
+}
+
+.lang-switcher-pure :deep(.lang-switcher-btn:hover) {
+  background: rgb(241 245 249);
+}
+</style>

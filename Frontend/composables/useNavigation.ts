@@ -2,51 +2,51 @@
 
   export const navigationItems: NavigationItem[] = [
     {
-      title: 'Dashboard',
+      title: 'sidebar.menu.dashboard',
       icon: 'mdi-view-dashboard',
       children: [
         {
-           title: 'Dashboard',
+           title: 'sidebar.menu.dashboard',
       icon: 'mdi-view-dashboard',
       to: '/dashboard',
         }
-        
+
       ]
     },
-    
+
     {
-      title: 'User Management',
+      title: 'sidebar.menu.userManagement',
       icon: 'mdi-account-group',
       children: [
         {
-          title: 'Users',
+          title: 'sidebar.menu.users',
           icon: 'mdi-account-multiple',
           to: '/users',
           permission: 'Users.Read'
         },
         {
-          title: 'Tenants',
+          title: 'sidebar.menu.tenants',
           icon: 'mdi-domain',
           to: '/tenants',
           roles: ['SuperAdmin']
         },
         {
-          title: 'Roles',
+          title: 'sidebar.menu.roles',
           icon: 'mdi-shield-account',
           to: '/roles',
           permission: 'Roles.Read'
         },
         {
-          title: 'Permissions',
+          title: 'sidebar.menu.permissions',
           icon: 'mdi-key',
           to: '/permissions',
           permission: 'Permissions.Read'
         }
       ]
     },
-    
+
     {
-      title: 'Settings',
+      title: 'sidebar.menu.settings',
       icon: 'mdi-cog',
       to: '/settings',
       roles: ['Admin', 'SuperAdmin']

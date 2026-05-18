@@ -1,5 +1,8 @@
 <template>
   <div class="login-page">
+    <div class="lang-switcher-wrapper">
+      <LanguageSwitcher />
+    </div>
     <!-- LEFT: Image Carousel -->
     <div class="left-panel">
       <div
@@ -788,5 +791,12 @@ onUnmounted(() => {
   .form-header h1 {
     font-size: 1.4rem;
   }
+}
+
+.lang-switcher-wrapper {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 100;
 }
 </style>

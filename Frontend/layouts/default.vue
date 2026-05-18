@@ -42,12 +42,12 @@
             :title="!isSidebarOpen ? item.title : undefined"
           >
             <Icon :name="item.icon" class="h-5 w-5 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
-            <span v-if="isSidebarOpen">{{ item.title }}</span>
+            <span v-if="isSidebarOpen">{{ $t(item.title) }}</span>
           </NuxtLink>
 
           <div v-else-if="item.children">
             <h3 v-if="isSidebarOpen" class="px-3 pt-4 pb-1 text-xs font-semibold text-white/50 uppercase tracking-wider">
-              {{ item.title }}
+              {{ $t(item.title) }}
             </h3>
             <div v-else class="sidebar-divider my-2"></div>
             <template v-for="child in item.children" :key="child.title">
@@ -63,7 +63,7 @@
                 :title="!isSidebarOpen ? child.title : undefined"
               >
                 <Icon :name="child.icon" class="h-5 w-5 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
-                <span v-if="isSidebarOpen">{{ child.title }}</span>
+                <span v-if="isSidebarOpen">{{ $t(child.title) }}</span>
               </NuxtLink>
             </template>
           </div>

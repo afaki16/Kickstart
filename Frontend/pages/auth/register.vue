@@ -1,5 +1,8 @@
 <template>
   <div class="register-container" :style="{ background: 'var(--theme-gradient-sidebar)' }">
+    <div class="lang-switcher-wrapper">
+      <LanguageSwitcher />
+    </div>
     <!-- 3D Background with rotating images -->
     <div class="background-container">
       <div
@@ -417,5 +420,12 @@ useHead({
 
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.5);
+}
+
+.lang-switcher-wrapper {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  z-index: 100;
 }
 </style>

@@ -7,7 +7,8 @@
     "cancel": "İptal",
     "delete": "Sil",
     "edit": "Düzenle",
-    "search": "Ara"
+    "search": "Ara",
+    "changeLanguage": "Dili değiştir"
   },
   "auth": {
     "login": "Giriş Yap",
@@ -50,5 +51,23 @@
     "strengthFair": "Orta",
     "strengthGood": "İyi",
     "strengthStrong": "Güçlü"
+  },
+  "sidebar": {
+    "menu": {
+      "dashboard": "Anasayfa",
+      "userManagement": "Kullanıcı Yönetimi",
+      "users": "Kullanıcılar",
+      "tenants": "Kiracılar",
+      "roles": "Roller",
+      "permissions": "İzinler",
+      "settings": "Ayarlar"
+    },
+    "actions": {
+      "support": "Destek",
+      "logout": "Çıkış Yap"
+    },
+    "brand": {
+      "tagline": "Güvenli Kimlik Doğrulama Sistemi"
+    }
   }
 }
