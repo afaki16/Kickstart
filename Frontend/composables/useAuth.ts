@@ -11,56 +11,63 @@ import { useAuthStore } from "~/stores/auth";
 import { useApi } from "./useApi";
 import { useToast } from "./useToast";
 
+/**
+ * Login response normalizer.
+ * Backend tek formatta dönmeli; bu fonksiyon defensive katmandır.
+ * Geçici — backend response shape'i tek formata sabitlendiğinde basitleştirilecek.
+ */
+function extractLoginData(response: any): LoginResponse | null {
+  if (!response) return null;
+
+  // Backend BaseController formatı: { success: true, data: {...} }
+  if (response.success && response.data?.accessToken) return response.data;
+
+  // Result<T> formatı: { isSuccess: true, value: {...} }
+  if (response.isSuccess && response.value?.accessToken) return response.value;
+
+  // Düz format (eski clientlar)
+  if (response.accessToken) return response;
+
+  return null;
+}
+
 export const useAuth = () => {
   const api = useApi();
   const authStore = useAuthStore();
   const router = useRouter();
   const toast = useToast();
 
-  // Device ID oluştur
+  /**
+   * Device ID — cihazı tanımak için (refresh token rotation kontrolünde
+   * backend tarafından kullanılır). Hassas değil; XSS endişesi yok.
+   * Cookie'de tutulur (clearAuth'da temizlenir).
+   */
   const generateDeviceId = (): string => {
-    // Client-side kontrolü
-    if (process.client) {
-      // Local storage'dan mevcut device ID'yi al veya yeni oluştur
-      let deviceId = localStorage.getItem("deviceId");
-      if (!deviceId) {
-        deviceId =
-          "device_" +
-          Date.now() +
-          "_" +
-          Math.random().toString(36).substr(2, 9);
-        localStorage.setItem("deviceId", deviceId);
-      }
-      return deviceId;
+    if (!process.client) {
+      return `device_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
     }
-    // Server-side için fallback
-    return (
-      "device_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9)
-    );
+
+    const deviceIdCookie = useCookie("device_id", {
+      maxAge: 60 * 60 * 24 * 30, // 30 gün
+      secure: true,
+      sameSite: "strict",
+    });
+
+    if (!deviceIdCookie.value) {
+      deviceIdCookie.value = `device_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
+    }
+    return deviceIdCookie.value;
   };
 
-  // Device name al
   const getDeviceName = (): string => {
-    // Client-side kontrolü
-    if (process.client) {
-      const userAgent = navigator.userAgent;
-      const platform = navigator.platform;
+    if (!process.client) return "Unknown Device";
 
-      if (userAgent.includes("Windows")) {
-        return "Windows Device";
-      } else if (userAgent.includes("Mac")) {
-        return "Mac Device";
-      } else if (userAgent.includes("Linux")) {
-        return "Linux Device";
-      } else if (userAgent.includes("Android")) {
-        return "Android Device";
-      } else if (userAgent.includes("iOS")) {
-        return "iOS Device";
-      } else {
-        return "Unknown Device";
-      }
-    }
-    // Server-side için fallback
+    const ua = navigator.userAgent;
+    if (ua.includes("Windows")) return "Windows Device";
+    if (ua.includes("Mac")) return "Mac Device";
+    if (ua.includes("Linux")) return "Linux Device";
+    if (ua.includes("Android")) return "Android Device";
+    if (ua.includes("iOS") || /iPhone|iPad|iPod/.test(ua)) return "iOS Device";
     return "Unknown Device";
   };
 
@@ -68,7 +75,6 @@ export const useAuth = () => {
     try {
       authStore.setLoading(true);
 
-      // Device bilgilerini ekle
       const requestData = {
         ...credentials,
         deviceId: credentials.deviceId || generateDeviceId(),
@@ -81,33 +87,18 @@ export const useAuth = () => {
         { silent: true },
       );
 
-      // Farklı response formatlarını destekle
-      let loginData = null;
+      const loginData = extractLoginData(response);
 
-      if (response.isSuccess && response.value) {
-        loginData = response.value;
-      } else if (response.success && response.data) {
-        loginData = response.data;
-      } else if (response.accessToken) {
-        loginData = response;
-      } else if (response.value && response.value.accessToken) {
-        loginData = response.value;
-      } else if (response.data && response.data.accessToken) {
-        loginData = response.data;
-      }
-
-      if (loginData && loginData.accessToken) {
-        const deviceId = credentials.deviceId || generateDeviceId();
-        await authStore.setAuth(loginData, deviceId);
-        // Middleware will call fetchUserFromApi via initializeAuth on next route,
-        // so we don't need to do it here.
-        await router.push("/dashboard");
-        return loginData;
-      } else {
+      if (!loginData?.accessToken) {
         throw new Error("Invalid login response format");
       }
+
+      const deviceId = credentials.deviceId || generateDeviceId();
+      await authStore.setAuth(loginData, deviceId);
+
+      await router.push("/dashboard");
+      return loginData;
     } catch (error) {
-      console.error("Login error:", error);
       throw error;
     } finally {
       authStore.setLoading(false);
@@ -129,7 +120,6 @@ export const useAuth = () => {
         return response.data;
       }
     } catch (error) {
-      console.error("Registration error:", error);
       throw error;
     } finally {
       authStore.setLoading(false);
@@ -154,52 +144,24 @@ export const useAuth = () => {
 
   const logout = async () => {
     try {
-      // Refresh token comes from HttpOnly cookie, no need to send it explicitly.
-      // Backend reads the cookie, revokes the token, and clears the cookie.
+      // Refresh token HttpOnly cookie'de — backend okuyup revoke eder
       await api.post(API_ENDPOINTS.AUTH.LOGOUT, {});
-    } catch (error) {
-      console.error("Logout error:", error);
+    } catch {
+      // Logout her zaman client tarafında temizlik yapılmalı
     } finally {
       authStore.clearAuth();
       await router.push("/");
     }
   };
 
+  /**
+   * Manuel refresh — çoğu zaman gerek yok (axios interceptor otomatik yapıyor).
+   * Sadece özel durumlar için (örn: kullanıcı "session'ı yenile" butonuna basarsa).
+   */
   const refreshToken = async () => {
-    try {
-      const accessToken = authStore.accessToken;
-
-      if (!accessToken) {
-        throw new Error("No access token available");
-      }
-
-      const response = await api.post<LoginResponse>(
-        API_ENDPOINTS.AUTH.REFRESH_TOKEN,
-        {
-          accessToken,
-        },
-      );
-
-      // Farklı response formatlarını destekle (login ile aynı)
-      const loginData =
-        response.success && response.data
-          ? response.data
-          : response.value
-            ? response.value
-            : response.data?.accessToken
-              ? response.data
-              : null;
-
-      if (loginData?.accessToken) {
-        await authStore.setAuth(loginData);
-        return loginData;
-      }
-
-      throw new Error("Invalid refresh response");
-    } catch (error) {
-      console.error("Token refresh error:", error);
-      authStore.clearAuth();
-      throw error;
+    const success = await authStore.silentRefresh();
+    if (!success) {
+      throw new Error("Token refresh failed");
     }
   };
 
@@ -211,7 +173,6 @@ export const useAuth = () => {
         return response.data;
       }
     } catch (error) {
-      console.error("Get current user error:", error);
       throw error;
     }
   };
@@ -225,11 +186,11 @@ export const useAuth = () => {
   };
 
   const hasAnyPermission = (permissions: string[]): boolean => {
-    return permissions.some((permission) => hasPermission(permission));
+    return permissions.some((p) => hasPermission(p));
   };
 
   const hasAllPermissions = (permissions: string[]): boolean => {
-    return permissions.every((permission) => hasPermission(permission));
+    return permissions.every((p) => hasPermission(p));
   };
 
   const hasSystemRole = (): boolean => {
@@ -239,23 +200,16 @@ export const useAuth = () => {
   const getUserSessions = async (): Promise<Session[]> => {
     try {
       const response = await api.get<Session[]>(API_ENDPOINTS.AUTH.SESSIONS);
-      // useApi.get returns response.data → ApiResponse shape: { success, data: [...] }
       const list =
         (response as any)?.data ?? (response as any)?.value ?? response ?? [];
       return Array.isArray(list) ? list : [];
-    } catch (error) {
-      console.error("Get sessions error:", error);
+    } catch {
       return [];
     }
   };
 
   const logoutDevice = async (deviceId: string): Promise<void> => {
-    try {
-      await api.post(API_ENDPOINTS.AUTH.LOGOUT_DEVICE(deviceId), {});
-    } catch (error) {
-      console.error("Logout device error:", error);
-      throw error;
-    }
+    await api.post(API_ENDPOINTS.AUTH.LOGOUT_DEVICE(deviceId), {});
   };
 
   const revokeSessionById = async (sessionId: number): Promise<void> => {
@@ -276,11 +230,9 @@ export const useAuth = () => {
   const logoutAllDevices = async (): Promise<void> => {
     try {
       await api.post(API_ENDPOINTS.AUTH.LOGOUT_ALL, {});
+    } finally {
       authStore.clearAuth();
       await router.push("/");
-    } catch (error) {
-      console.error("Logout all devices error:", error);
-      throw error;
     }
   };
 

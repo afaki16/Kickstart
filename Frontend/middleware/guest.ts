@@ -1,13 +1,16 @@
+/**
+ * Guest middleware — sadece login olmamış kullanıcılar erişebilir.
+ * Login/register sayfalarında kullanılır.
+ */
 export default defineNuxtRouteMiddleware(async () => {
   const authStore = useAuthStore()
-  
-  // Initialize auth state (await - cookie/localStorage senkronizasyonu için)
+
+  // Henüz initialize olmamışsa silent refresh dene
   if (!authStore.isAuthenticated) {
     await authStore.initializeAuth()
   }
 
-  // If user is authenticated, redirect to dashboard
   if (authStore.isAuthenticated) {
     return navigateTo('/dashboard')
   }
-}) 
+})

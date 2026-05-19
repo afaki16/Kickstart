@@ -1,3 +1,5 @@
+import type { User } from './user'
+
 export interface LoginRequest {
   email: string
   password: string
@@ -17,14 +19,23 @@ export interface RegisterRequest {
 
 export interface LoginResponse {
   accessToken: string
-  refreshToken: string
+  /**
+   * @deprecated Backend artık refresh token'ı HttpOnly cookie'ye yazıyor.
+   * Bu alan eski clientlar için geriye dönük uyumluluk amacıyla bırakılmıştır.
+   * Frontend'de KULLANILMAMALI ve persist EDİLMEMELİDİR.
+   */
+  refreshToken?: string
   expiresAt: string
-  user: any
+  user: User
 }
 
+/**
+ * @deprecated Refresh token artık body'de gönderilmiyor — HttpOnly cookie ile gidiyor.
+ * Bu tip backend kontratının güncellenmesi için referans olarak duruyor.
+ */
 export interface RefreshTokenRequest {
-  accessToken: string
-  refreshToken: string
+  accessToken?: string
+  refreshToken?: string
 }
 
 export interface Session {
@@ -41,4 +52,16 @@ export interface Session {
   location: string
   remainingTime: string
   isCurrentSession: boolean
+}
+
+/**
+ * JWT payload — sadece güvenli kullanım için tipi belirtildi.
+ * Bu sadece UX amaçlı (token expired mı?) — güvenlik kararı için backend imzayı doğrulamalı.
+ */
+export interface JwtPayload {
+  exp: number
+  iat?: number
+  sub?: string
+  email?: string
+  [key: string]: unknown
 }

@@ -2,11 +2,38 @@ import { defineStore } from "pinia";
 import type { User, LoginResponse, AuthState } from "~/types";
 import { jwtDecode } from "jwt-decode";
 
+/**
+ * Auth store — güvenlik notları:
+ *
+ * 1) Access token SADECE memory'de (bu store'da) tutulur.
+ *    Cookie veya localStorage'a YAZILMAZ — XSS ile çalınmasını önler.
+ *
+ * 2) Refresh token backend tarafında HttpOnly cookie olarak set edilir
+ *    (AuthController.WriteRefreshTokenCookie). JS hiçbir zaman okuyamaz.
+ *
+ * 3) Sayfa refresh'inden sonra access token kaybolur. initializeAuth()
+ *    çağrıldığında refresh-token endpoint'i çağrılıp yeni access token alınır
+ *    (HttpOnly cookie tarayıcı tarafından otomatik gönderilir).
+ *
+ * 4) User data da memory'de tutulur. Sayfa refresh'inde /api/auth/me veya
+ *    refresh-token cevabından backend'den yeniden çekilir.
+ *
+ * 5) deviceId XSS açısından hassas değildir (anonim cihaz tanımlayıcı),
+ *    cookie'de tutulur (HttpOnly değil, fakat çalınmasının saldırı değeri yok).
+ */
+
+interface JwtPayload {
+  exp: number;
+  iat?: number;
+  sub?: string;
+  [key: string]: unknown;
+}
+
 export const useAuthStore = defineStore("auth", {
   state: (): AuthState => ({
     user: null,
     accessToken: null,
-    refreshToken: null,
+    refreshToken: null, // Artık kullanılmıyor — HttpOnly cookie'de saklanıyor
     isAuthenticated: false,
     isLoading: false,
     permissions: [],
@@ -15,28 +42,39 @@ export const useAuthStore = defineStore("auth", {
 
   getters: {
     isLoggedIn: (state) => state.isAuthenticated && !!state.accessToken,
+
     userFullName: (state) =>
       state.user ? `${state.user.firstName} ${state.user.lastName}` : "",
+
     userInitials: (state) => {
       if (!state.user) return "";
       return `${state.user.firstName.charAt(0)}${state.user.lastName.charAt(0)}`.toUpperCase();
     },
+
     hasPermission: (state) => (permission: string) => {
       return state.permissions.includes(permission);
     },
+
     hasRole: (state) => (role: string) => {
       return state.roles.includes(role);
     },
+
     hasAnyPermission: (state) => (permissions: string[]) => {
       return permissions.some((permission) =>
         state.permissions.includes(permission),
       );
     },
+
+    hasAllPermissions: (state) => (permissions: string[]) => {
+      return permissions.every((permission) =>
+        state.permissions.includes(permission),
+      );
+    },
+
     isTokenExpired: (state) => {
       if (!state.accessToken) return true;
-
       try {
-        const decoded: any = jwtDecode(state.accessToken);
+        const decoded = jwtDecode<JwtPayload>(state.accessToken);
         const currentTime = Date.now() / 1000;
         return decoded.exp < currentTime;
       } catch {
@@ -46,33 +84,31 @@ export const useAuthStore = defineStore("auth", {
   },
 
   actions: {
+    /**
+     * Login / refresh sonrası çağrılır.
+     * Access token MEMORY'DE tutulur — cookie/localStorage'a YAZILMAZ.
+     *
+     * NOT: async olarak kalmaya devam ediyor (çağrılan yerlerde await uyumluluğu için),
+     * fakat içinde async işlem yok.
+     */
     async setAuth(authData: LoginResponse, deviceId?: string) {
       this.user = authData.user;
       this.accessToken = authData.accessToken;
       this.isAuthenticated = true;
-      this.permissions = (authData.user.permissions ?? [])
+
+      this.permissions = (authData.user?.permissions ?? [])
         .map(
           (p: { fullPermission?: string; name?: string }) =>
             p?.fullPermission ?? p?.name,
         )
-        .filter(Boolean);
-      this.roles = authData.user.roles?.map((r) => r.name) ?? [];
+        .filter(Boolean) as string[];
 
-      // Cookie süreleri: expiresAt varsa kullan (API'den), yoksa rememberMe'ye göre
-      const accessTokenMaxAge = 60 * 60 * 2; // 2 saat (JWT süresine yakın)
+      this.roles = authData.user?.roles?.map((r) => r.name) ?? [];
 
-      const accessTokenCookie = useCookie("access_token", {
-        default: () => null,
-        maxAge: accessTokenMaxAge,
-        secure: true,
-        sameSite: "strict",
-      });
-
-      accessTokenCookie.value = authData.accessToken;
-
-      // deviceId cookie'de sakla (localStorage clear'dan etkilenmesin)
-      const cookieMaxAge = 60 * 60 * 24 * 30; // 30 gün
-      if (deviceId !== undefined) {
+      // deviceId hassas değil — cookie'de tutulması OK (cihazı tanımak için).
+      // localStorage YOK artık.
+      if (process.client && deviceId !== undefined) {
+        const cookieMaxAge = 60 * 60 * 24 * 30; // 30 gün
         const deviceIdCookie = useCookie("device_id", {
           maxAge: cookieMaxAge,
           secure: true,
@@ -80,28 +116,17 @@ export const useAuthStore = defineStore("auth", {
         });
         deviceIdCookie.value = deviceId;
       }
-
-      // Store user data in localStorage for persistence
-      if (process.client) {
-        localStorage.setItem("user", JSON.stringify(authData.user));
-        if (deviceId) localStorage.setItem("deviceId", deviceId);
-      }
     },
 
     setUser(user: User) {
       this.user = user;
-      // fullPermission veya name kullan (API formatlarına uyum için)
-      this.permissions = (user.permissions ?? [])
+      this.permissions = (user?.permissions ?? [])
         .map(
           (p: { fullPermission?: string; name?: string }) =>
             p?.fullPermission ?? p?.name,
         )
-        .filter(Boolean);
-      this.roles = user.roles?.map((r) => r.name) ?? [];
-
-      if (process.client) {
-        localStorage.setItem("user", JSON.stringify(user));
-      }
+        .filter(Boolean) as string[];
+      this.roles = user?.roles?.map((r) => r.name) ?? [];
     },
 
     clearAuth() {
@@ -112,16 +137,32 @@ export const useAuthStore = defineStore("auth", {
       this.permissions = [];
       this.roles = [];
 
-      // Clear cookies
-      const accessTokenCookie = useCookie("access_token");
-      const deviceIdCookie = useCookie("device_id");
-      accessTokenCookie.value = null;
-      deviceIdCookie.value = null;
-
-      // Clear localStorage
+      // deviceId cookie'sini de temizle (logout = cihaz unutma)
       if (process.client) {
+        const deviceIdCookie = useCookie("device_id");
+        deviceIdCookie.value = null;
+
+        // Eski versiyonlardan kalmış olabilecek hassas verileri temizle
+        this.cleanupLegacyStorage();
+      }
+    },
+
+    /**
+     * Önceki sürümlerde access_token cookie'de ve user localStorage'da
+     * tutuluyordu. Yeni sürüme güncelleme yapan kullanıcılarda bu eski
+     * veriler kalmış olabilir — temizleyelim.
+     */
+    cleanupLegacyStorage() {
+      if (!process.client) return;
+      try {
         localStorage.removeItem("user");
-        localStorage.removeItem("deviceId");
+        localStorage.removeItem("deviceId"); // deviceId cookie'ye taşındı
+        const oldAccessTokenCookie = useCookie("access_token");
+        if (oldAccessTokenCookie.value) {
+          oldAccessTokenCookie.value = null;
+        }
+      } catch (error) {
+        console.warn("Legacy storage cleanup failed:", error);
       }
     },
 
@@ -129,42 +170,80 @@ export const useAuthStore = defineStore("auth", {
       this.isLoading = loading;
     },
 
+    /**
+     * Uygulama başlangıcında / sayfa refresh sonrası çağrılır.
+     *
+     * Akış:
+     *   1. Eski versiyondan kalan veriyi temizle
+     *   2. Zaten authenticated isek atla
+     *   3. Refresh-token endpoint'ini çağır (HttpOnly cookie otomatik gider)
+     *   4. Başarılıysa yeni access token + user data state'e yazılır
+     *   5. Başarısızsa kullanıcı logged-out kabul edilir (sessizce)
+     *
+     * Bu fonksiyon HİÇBİR ZAMAN exception throw ETMEZ.
+     */
     async initializeAuth() {
       if (!process.client) return;
 
-      const accessTokenCookie = useCookie("access_token");
+      // Eski sürümden kalan veriyi temizle (idempotent)
+      this.cleanupLegacyStorage();
 
-      if (accessTokenCookie.value) {
-        this.accessToken = accessTokenCookie.value;
-        this.isAuthenticated = true;
+      // Zaten authenticated isek tekrar refresh atmaya gerek yok
+      if (this.isAuthenticated && this.accessToken && !this.isTokenExpired) {
+        return;
+      }
 
-        // Cookie'den deviceId'yi localStorage'a restore et (clear sonrası)
-        const deviceIdCookie = useCookie("device_id");
-        if (deviceIdCookie.value) {
-          localStorage.setItem("deviceId", deviceIdCookie.value);
-        }
-
-        // Stale-while-revalidate: show cached user immediately for snappy UX,
-        // then fetch the latest from the API to pick up any permission changes
-        // made on the backend since the last login.
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          try {
-            const user = JSON.parse(storedUser);
-            this.setUser(user);
-          } catch (error) {
-            console.error("Error parsing stored user:", error);
-          }
-        }
-
-        // Always refresh from API to ensure permissions are up-to-date.
-        // Backend permission cache (15min sliding) makes this cheap.
-        await this.fetchUserFromApi();
-      } else {
-        // No tokens found, ensure we're logged out
+      try {
+        await this.silentRefresh();
+      } catch {
+        // Refresh başarısız — kullanıcı authenticate olmadı,
+        // ama bu normal bir durum (ilk ziyaret, expired session vb.)
         this.isAuthenticated = false;
         this.accessToken = null;
-        this.refreshToken = null;
+      }
+    },
+
+    /**
+     * Refresh token HttpOnly cookie'sini kullanarak yeni access token alır.
+     *
+     * Doğrudan axios kullanılıyor (useApi DEĞİL) çünkü:
+     *  - useApi'nin global error toast'unu tetiklemek istemiyoruz
+     *  - axios.client.ts plugin'inin oluşturduğu axios instance ($api) interceptor'a takılır;
+     *    bu yüzden _skipAuthRefresh config flag'i ile interceptor'a "bu refresh isteğidir,
+     *    401 olursa tekrar refresh ATMA" diyoruz.
+     */
+    async silentRefresh(): Promise<boolean> {
+      const { $api } = useNuxtApp();
+      try {
+        // Refresh token HttpOnly cookie'de — withCredentials ile otomatik gider.
+        // Body BOŞ — backend cookie'den okur.
+        // accessToken artık gerekli değil (backend userId'yi refresh token'dan çıkarıyor)
+        const response = await ($api as any).post(
+          "/api/auth/refresh-token",
+          {},
+          { _skipAuthRefresh: true },
+        );
+
+        const data =
+          response?.data?.data ?? response?.data?.value ?? response?.data;
+
+        if (!data?.accessToken) {
+          return false;
+        }
+
+        this.accessToken = data.accessToken;
+        this.isAuthenticated = true;
+
+        // User data backend'den geldiyse kullan, yoksa ayrıca /me çağır
+        if (data.user) {
+          this.setUser(data.user);
+        } else {
+          await this.fetchUserFromApi(false);
+        }
+
+        return true;
+      } catch {
+        return false;
       }
     },
 
@@ -173,14 +252,13 @@ export const useAuthStore = defineStore("auth", {
       try {
         const response = await $api.get("/api/auth/me");
         const user =
-          response.data?.data || response.data?.value || response.data;
+          response.data?.data ?? response.data?.value ?? response.data;
         if (user) {
           this.setUser(user);
         } else if (clearOnError) {
           this.clearAuth();
         }
       } catch (error) {
-        console.error("Error fetching user:", error);
         if (clearOnError) this.clearAuth();
       }
     },

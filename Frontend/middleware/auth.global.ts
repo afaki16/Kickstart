@@ -1,38 +1,49 @@
+/**
+ * Global auth middleware.
+ *
+ * Çalışma akışı:
+ *  1) ssr: false olduğu için sadece client-side çalışır
+ *  2) İlk yüklemede authStore.initializeAuth() refresh-token cookie ile
+ *     yeni access token almayı dener. Başarılıysa user authenticated olur.
+ *  3) Public route'lar için authenticated kullanıcılar dashboard'a yönlendirilir
+ *  4) Protected route'larda authenticated olmayan kullanıcılar login'e yönlendirilir
+ */
 export default defineNuxtRouteMiddleware(async (to) => {
-  // Skip middleware on server-side rendering
+  // ssr: false olduğu için process.server zaten çalışmaz, ama defensive olsun
   if (process.server) return
 
   const authStore = useAuthStore()
-  
-  // Initialize auth state from cookies/localStorage (await - kritik: yeni kullanıcı girişinde menü için)
+
+  // İlk yüklemede / sayfa refresh sonrası silent refresh dene
+  // (sadece henüz initialize olmamışsa)
   if (!authStore.isAuthenticated) {
     await authStore.initializeAuth()
   }
 
-  // Verify-email her zaman erişilebilir: kullanıcı email linkine
-  // tıklayarak gelir; başka bir hesap altında authenticated olsa bile
-  // token doğrulamasının yine de çalışması gerekir.
+  // verify-email her zaman erişilebilir (email link tıklamasıyla gelinir)
   if (to.path === '/auth/verify-email') return
 
-  // Public routes that don't require authentication
   const publicRoutes = ['/auth/register', '/auth/check-email', '/']
 
   if (publicRoutes.includes(to.path)) {
-    // If user is already authenticated and trying to access auth pages, redirect to dashboard
+    // Authenticated kullanıcı login sayfasına gelirse dashboard'a at
     if (authStore.isAuthenticated && to.path.startsWith('/auth/')) {
       return navigateTo('/dashboard')
     }
     return
   }
 
-  // Protected routes - require authentication
+  // Korumalı route — authenticate olmamışsa login'e
   if (!authStore.isAuthenticated) {
     return navigateTo('/')
   }
 
-  // Check if token is expired
+  // Token expired ise silent refresh dene
   if (authStore.isTokenExpired) {
-    authStore.clearAuth()
-    return navigateTo('/?expired=true')
+    const refreshed = await authStore.silentRefresh()
+    if (!refreshed) {
+      authStore.clearAuth()
+      return navigateTo('/?expired=true')
+    }
   }
-}) 
+})

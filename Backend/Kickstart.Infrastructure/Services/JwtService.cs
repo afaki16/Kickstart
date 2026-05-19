@@ -352,23 +352,37 @@ namespace Kickstart.Infrastructure.Services
     {
         try
         {
-            var principal = GetClaimsFromExpiredToken(accessToken);
-            if (principal == null)
-                return Result<LoginResponseDto>.Failure(Error.Failure(
-                    ErrorCode.InvalidRequest,
-                    "Invalid access token"));
-
-            var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (!int.TryParse(userIdClaim, out var userId))
-                return Result<LoginResponseDto>.Failure(Error.Failure(
-                    ErrorCode.InvalidRequest,
-                    "Invalid user ID in token"));
+            // Yeni akış: UserId'yi refresh token kaydından çıkarıyoruz, access token'a İHTİYAÇ YOK.
+            // Eski akış (access token'dan userId çıkarma) backward compatibility için
+            // accessToken parametresi hala alınıyor ama artık opsiyonel olarak işleniyor.
 
             var storedRefreshToken = await _unitOfWork.RefreshTokens.GetByTokenAsync(refreshToken);
-            if (storedRefreshToken == null || storedRefreshToken.UserId != userId)
+            if (storedRefreshToken == null)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
                     "Invalid refresh token"));
+
+            var userId = storedRefreshToken.UserId;
+
+            // Eğer accessToken da gönderilmişse, refresh token'ın gerçek sahibiyle uyuşuyor mu kontrol et.
+            // (Defense-in-depth: birisi başkasının refresh token'ını kendi access token'ıyla göndermeye çalışırsa yakalanır.)
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                var principal = GetClaimsFromExpiredToken(accessToken);
+                if (principal != null)
+                {
+                    var tokenUserIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    if (int.TryParse(tokenUserIdClaim, out var tokenUserId) && tokenUserId != userId)
+                    {
+                        _logger.LogWarning(
+                            "Refresh token / access token user mismatch. Refresh.UserId: {RefreshUserId}, Token.UserId: {TokenUserId}, IP: {IpAddress}",
+                            userId, tokenUserId, ipAddress);
+                        return Result<LoginResponseDto>.Failure(Error.Failure(
+                            ErrorCode.InvalidRequest,
+                            "Invalid refresh token"));
+                    }
+                }
+            }
 
             // Reuse detection: a revoked token being presented indicates the previous holder
             // already rotated past it — the real owner is likely an attacker. Revoke everything.

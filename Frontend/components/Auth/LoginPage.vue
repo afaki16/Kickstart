@@ -375,29 +375,9 @@ onMounted(() => {
   const registeredEmail = route.query.email as string;
   if (registeredEmail) form.email = registeredEmail;
 
-  // Device info
-  if (import.meta.client) {
-    let deviceId = localStorage.getItem("deviceId");
-    if (!deviceId) {
-      deviceId =
-        "device_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
-      localStorage.setItem("deviceId", deviceId);
-    }
-    form.deviceId = deviceId;
-
-    const ua = navigator.userAgent;
-    form.deviceName = ua.includes("Windows")
-      ? "Windows Device"
-      : ua.includes("Mac")
-        ? "Mac Device"
-        : ua.includes("Linux")
-          ? "Linux Device"
-          : ua.includes("Android")
-            ? "Android Device"
-            : ua.includes("iOS")
-              ? "iOS Device"
-              : "Unknown Device";
-  }
+  // NOT: deviceId ve deviceName artık useAuth.login() içinde otomatik üretiliyor
+  // (cookie-based, localStorage'a yazmıyor). Burada manuel set etmeye gerek yok.
+  // Eski localStorage-based deviceId kodu güvenlik nedeniyle kaldırıldı.
 
   // Start carousel
   imageInterval = setInterval(
