@@ -69,5 +69,21 @@
     "brand": {
       "tagline": "Güvenli Kimlik Doğrulama Sistemi"
     }
+  },
+  "dashboard": {
+    "welcome": "Hoş Geldiniz",
+    "todayLabel": "Bugün:",
+    "weeklyRevenueAnalysis": "Haftalık Gelir Analizi",
+    "revenueLabel": "Gelir (₺)",
+    "days": {
+      "mon": "Pzt",
+      "tue": "Sal",
+      "wed": "Çar",
+      "thu": "Per",
+      "fri": "Cum",
+      "sat": "Cmt",
+      "sun": "Paz"
+    },
+    "pageTitle": "Anasayfa - Kickstart"
   }
 }

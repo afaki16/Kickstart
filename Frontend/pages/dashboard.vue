@@ -4,7 +4,7 @@
     <div class="dashboard-header">
       <div>
         <h1 class="dashboard-title">{{ authStore.user?.fullName }}</h1>
-        <h1 class="dashboard-subtitle">Hoş Geldiniz</h1>
+        <h1 class="dashboard-subtitle">{{ t('dashboard.welcome') }}</h1>
       </div>
       <div class="header-actions">
         <v-chip
@@ -12,7 +12,7 @@
           variant="elevated"
           prepend-icon="mdi-calendar-check"
         >
-          Bugün: {{ todayDate }}
+          {{ t('dashboard.todayLabel') }} {{ todayDate }}
         </v-chip>
       </div>
     </div>
@@ -24,7 +24,7 @@
         <v-card class="chart-card" elevation="4">
           <v-card-title class="card-header">
             <v-icon class="mr-2" color="primary">mdi-chart-line</v-icon>
-            Haftalık Gelir Analizi
+            {{ t('dashboard.weeklyRevenueAnalysis') }}
           </v-card-title>
           <v-card-text>
             <canvas ref="revenueChart"></canvas>
@@ -49,6 +49,7 @@ definePageMeta({
 
 const authStore = useAuthStore();
 const { hasRole } = useAuth();
+const { t, locale } = useI18n();
 
 const isAdminOrSuperAdmin = computed(() => {
   return hasRole("Admin") || hasRole("SuperAdmin");
@@ -64,7 +65,12 @@ const stats = ref({
 });
 
 const todayDate = computed(() => {
-  return new Date().toLocaleDateString("tr-TR", {
+  const localeMap: Record<string, string> = {
+    tr: 'tr-TR',
+    en: 'en-US'
+  };
+  const dateLocale = localeMap[locale.value] || 'tr-TR';
+  return new Date().toLocaleDateString(dateLocale, {
     day: "numeric",
     month: "long",
     year: "numeric",
@@ -77,10 +83,18 @@ const initRevenueChart = () => {
   new Chart(revenueChart.value, {
     type: "line",
     data: {
-      labels: ["Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"],
+      labels: [
+        t('dashboard.days.mon'),
+        t('dashboard.days.tue'),
+        t('dashboard.days.wed'),
+        t('dashboard.days.thu'),
+        t('dashboard.days.fri'),
+        t('dashboard.days.sat'),
+        t('dashboard.days.sun'),
+      ],
       datasets: [
         {
-          label: "Gelir (₺)",
+          label: t('dashboard.revenueLabel'),
           data: [12500, 19800, 15200, 21300, 18900, 25400, 22100],
           borderColor:
             getComputedStyle(document.documentElement)
@@ -123,7 +137,7 @@ onMounted(() => {
 });
 
 useHead({
-  title: "Dashboard - Kickstart",
+  title: () => t('dashboard.pageTitle'),
 });
 </script>
 

@@ -69,5 +69,21 @@
     "brand": {
       "tagline": "Secure Authentication System"
     }
+  },
+  "dashboard": {
+    "welcome": "Welcome",
+    "todayLabel": "Today:",
+    "weeklyRevenueAnalysis": "Weekly Revenue Analysis",
+    "revenueLabel": "Revenue ($)",
+    "days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "pageTitle": "Dashboard - Kickstart"
   }
 }
