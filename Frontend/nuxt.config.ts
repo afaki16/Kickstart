@@ -22,13 +22,13 @@
 function buildCsp(apiBase: string): string {
   // API URL'den sadece origin (protocol + host + port) çıkar.
   // Örnek: https://localhost:44333/api/foo → https://localhost:44333
-  let apiOrigin = ''
+  let apiOrigin = "";
   try {
-    const url = new URL(apiBase)
-    apiOrigin = url.origin
+    const url = new URL(apiBase);
+    apiOrigin = url.origin;
   } catch {
     // Eğer apiBase geçersizse, connect-src sadece 'self' olur — defensive fallback
-    apiOrigin = ''
+    apiOrigin = "";
   }
 
   const directives = [
@@ -52,10 +52,11 @@ function buildCsp(apiBase: string): string {
     // Google Fonts woff/woff2 dosyaları fonts.gstatic.com'dan
     "font-src 'self' data: https://fonts.gstatic.com",
 
-    // Connect (XHR/fetch/WebSocket): kendi origin + backend API origin
+    // Connect (XHR/fetch/WebSocket): kendi origin + backend API origin + iconify icon API
+    // api.iconify.design Nuxt Icon modülünün icon SVG'lerini çektiği resmi API.
     apiOrigin
-      ? `connect-src 'self' ${apiOrigin}`
-      : "connect-src 'self'",
+      ? `connect-src 'self' ${apiOrigin} https://api.iconify.design`
+      : "connect-src 'self' https://api.iconify.design",
 
     // Clickjacking koruması — bu sayfa hiçbir iframe içinde gömülemez
     "frame-ancestors 'none'",
@@ -68,92 +69,94 @@ function buildCsp(apiBase: string): string {
     "base-uri 'none'",
 
     // Eski plugin'ler (Flash, Java applet vb.) tamamen yasak
-    "object-src 'none'"
-  ]
+    "object-src 'none'",
+  ];
 
-  return directives.join('; ')
+  return directives.join("; ");
 }
 
 export default defineNuxtConfig({
-  devtools: { enabled: true },
-  compatibilityDate: '2025-07-26',
+  devtools: { enabled: false },
+  compatibilityDate: "2025-07-26",
 
   // TypeScript configuration - geçici olarak kapatın
   typescript: {
-    strict: false,  // ✅ Production için önerilen - true
-    typeCheck: false  // ✅ Build sırasında kontrol -true
+    strict: false, // ✅ Production için önerilen - true
+    typeCheck: false, // ✅ Build sırasında kontrol -true
   },
 
   // CSS Framework
   css: [
-    'vuetify/lib/styles/main.sass',
-    '@mdi/font/css/materialdesignicons.min.css',
-    '~/assets/scss/main.scss',
-    '~/assets/css/main.css',
-    '~/assets/css/global-admin.css',
-    'flag-icons/css/flag-icons.min.css'
+    "vuetify/lib/styles/main.sass",
+    "@mdi/font/css/materialdesignicons.min.css",
+    "~/assets/scss/main.scss",
+    "~/assets/css/main.css",
+    "~/assets/css/global-admin.css",
+    "flag-icons/css/flag-icons.min.css",
   ],
 
   build: {
-    transpile: ['vuetify']
+    transpile: ["vuetify"],
   },
 
   modules: [
-    '@pinia/nuxt',
-    '@vueuse/nuxt',
-    '@nuxtjs/google-fonts',
-    '@nuxtjs/tailwindcss',
-    '@nuxt/icon',
-    '@nuxtjs/i18n'
+    "@pinia/nuxt",
+    "@vueuse/nuxt",
+    "@nuxtjs/google-fonts",
+    "@nuxtjs/tailwindcss",
+    "@nuxt/icon",
+    "@nuxtjs/i18n",
   ],
 
   googleFonts: {
     families: {
       Inter: [300, 400, 500, 600, 700],
-      'Plus+Jakarta+Sans': [600, 700, 800],
-      'Material+Icons': true
-    }
+      "Plus+Jakarta+Sans": [600, 700, 800],
+      "Material+Icons": true,
+    },
   },
 
   i18n: {
     locales: [
-      { code: 'tr', name: 'Türkçe', file: 'tr.json' },
-      { code: 'en', name: 'English', file: 'en.json' }
+      { code: "tr", name: "Türkçe", file: "tr.json" },
+      { code: "en", name: "English", file: "en.json" },
     ],
-    defaultLocale: 'tr',
-    strategy: 'no_prefix',
+    defaultLocale: "tr",
+    strategy: "no_prefix",
     lazy: true,
-    langDir: 'locales/',
+    langDir: "locales/",
     detectBrowserLanguage: {
       useCookie: true,
-      cookieKey: 'i18n_redirected',
-      redirectOn: 'root',
-      alwaysRedirect: false
-    }
+      cookieKey: "i18n_redirected",
+      redirectOn: "root",
+      alwaysRedirect: false,
+    },
   },
 
   runtimeConfig: {
     public: {
-      apiBase: process.env.API_BASE_URL || 'https://localhost:44333',
-      appName: 'Kickstart',
-      appVersion: '1.0.0',
-      defaultLayout: process.env.NUXT_PUBLIC_DEFAULT_LAYOUT || 'default'
-    }
+      apiBase: process.env.API_BASE_URL || "https://localhost:44333",
+      appName: "Kickstart",
+      appVersion: "1.0.0",
+      defaultLayout: process.env.NUXT_PUBLIC_DEFAULT_LAYOUT || "default",
+    },
   },
 
   app: {
     head: {
-      title: 'Kickstart',
+      title: "Kickstart",
       meta: [
-        { charset: 'utf-8' },
-        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-
+        { charset: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
       ],
       link: [
-        { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' }
-      ]
-    }
+        { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",
+        },
+      ],
+    },
   },
 
   ssr: false,
@@ -162,61 +165,61 @@ export default defineNuxtConfig({
   // routeRules '/**' pattern'i mevcut ve gelecekteki tüm sayfaları kapsar.
   nitro: {
     routeRules: {
-      '/**': {
+      "/**": {
         headers: {
-          'Content-Security-Policy': buildCsp(
-            process.env.API_BASE_URL || 'https://localhost:44333'
+          "Content-Security-Policy": buildCsp(
+            process.env.API_BASE_URL || "https://localhost:44333",
           ),
           // Clickjacking koruması (CSP frame-ancestors zaten kapsıyor,
           // ama eski tarayıcılar için defense-in-depth)
-          'X-Frame-Options': 'DENY',
+          "X-Frame-Options": "DENY",
           // MIME-type sniffing engellenir
-          'X-Content-Type-Options': 'nosniff',
+          "X-Content-Type-Options": "nosniff",
           // Referer leak'ı sınırla
-          'Referrer-Policy': 'strict-origin-when-cross-origin',
+          "Referrer-Policy": "strict-origin-when-cross-origin",
           // Hassas browser API'lerini kapatır
-          'Permissions-Policy':
-            'accelerometer=(), camera=(), geolocation=(), gyroscope=(), ' +
-            'magnetometer=(), microphone=(), payment=(), usb=()'
-        }
-      }
-    }
+          "Permissions-Policy":
+            "accelerometer=(), camera=(), geolocation=(), gyroscope=(), " +
+            "magnetometer=(), microphone=(), payment=(), usb=()",
+        },
+      },
+    },
   },
 
   vite: {
     define: {
-      'process.env.DEBUG': false
+      "process.env.DEBUG": false,
     },
     css: {
       preprocessorOptions: {
         scss: {
-          additionalData: '@use "~/assets/scss/variables.scss" as *;'
-        }
-      }
+          additionalData: '@use "~/assets/scss/variables.scss" as *;',
+        },
+      },
     },
     ssr: {
-      noExternal: ['vuetify']
+      noExternal: ["vuetify"],
     },
     // HMR overlay'i kapatın
     server: {
       hmr: {
-        overlay: false
-      }
-    }
+        overlay: false,
+      },
+    },
   },
 
   imports: {
-    dirs: ['composables/**', 'stores/**', 'utils/**']
+    dirs: ["composables/**", "stores/**", "utils/**"],
   },
 
   components: {
     dirs: [
-      '~/components',
-      '~/components/UI',
-      '~/components/Auth',
-      '~/components/Users',
-      '~/components/Roles',
-      '~/components/Tenants'
-    ]
-  }
-})
+      "~/components",
+      "~/components/UI",
+      "~/components/Auth",
+      "~/components/Users",
+      "~/components/Roles",
+      "~/components/Tenants",
+    ],
+  },
+});

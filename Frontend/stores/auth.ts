@@ -15,11 +15,11 @@ import { jwtDecode } from "jwt-decode";
  *    çağrıldığında refresh-token endpoint'i çağrılıp yeni access token alınır
  *    (HttpOnly cookie tarayıcı tarafından otomatik gönderilir).
  *
- * 4) User data da memory'de tutulur. Sayfa refresh'inde /api/auth/me veya
- *    refresh-token cevabından backend'den yeniden çekilir.
+ * 4) User data da memory'de tutulur. Sayfa refresh'inde /api/auth/me ile
+ *    backend'den yeniden çekilir (single source of truth).
  *
  * 5) deviceId XSS açısından hassas değildir (anonim cihaz tanımlayıcı),
- *    cookie'de tutulur (HttpOnly değil, fakat çalınmasının saldırı değeri yok).
+ *    cookie'de tutulur.
  */
 
 interface JwtPayload {
@@ -87,9 +87,6 @@ export const useAuthStore = defineStore("auth", {
     /**
      * Login / refresh sonrası çağrılır.
      * Access token MEMORY'DE tutulur — cookie/localStorage'a YAZILMAZ.
-     *
-     * NOT: async olarak kalmaya devam ediyor (çağrılan yerlerde await uyumluluğu için),
-     * fakat içinde async işlem yok.
      */
     async setAuth(authData: LoginResponse, deviceId?: string) {
       this.user = authData.user;
@@ -205,19 +202,12 @@ export const useAuthStore = defineStore("auth", {
 
     /**
      * Refresh token HttpOnly cookie'sini kullanarak yeni access token alır.
-     *
-     * Doğrudan axios kullanılıyor (useApi DEĞİL) çünkü:
-     *  - useApi'nin global error toast'unu tetiklemek istemiyoruz
-     *  - axios.client.ts plugin'inin oluşturduğu axios instance ($api) interceptor'a takılır;
-     *    bu yüzden _skipAuthRefresh config flag'i ile interceptor'a "bu refresh isteğidir,
-     *    401 olursa tekrar refresh ATMA" diyoruz.
      */
     async silentRefresh(): Promise<boolean> {
       const { $api } = useNuxtApp();
       try {
         // Refresh token HttpOnly cookie'de — withCredentials ile otomatik gider.
         // Body BOŞ — backend cookie'den okur.
-        // accessToken artık gerekli değil (backend userId'yi refresh token'dan çıkarıyor)
         const response = await ($api as any).post(
           "/api/auth/refresh-token",
           {},
