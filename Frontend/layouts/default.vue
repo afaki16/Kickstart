@@ -1,158 +1,156 @@
 <template>
-  <div class="min-h-screen bg-gray-100">
-    <!-- Sidebar -->
-    <aside 
-      class="fixed inset-y-0 left-0 shadow-lg transition-all duration-300 ease-in-out flex flex-col z-40"
-      :class="isSidebarOpen ? 'w-64' : 'w-16'"
-      :style="{ background: sidebarGradient }"
+  <div class="flex h-screen w-full bg-background font-body-md text-on-surface antialiased overflow-hidden">
+    <!-- Sidebar Navigation -->
+    <aside
+      class="flex flex-col h-full border-r border-outline-variant bg-surface py-base z-30 transition-all duration-300"
+      :class="isSidebarOpen ? 'w-64' : 'w-20'"
     >
-      <!-- Sidebar Header: Logo + Brand + Hamburger -->
-      <div class="flex items-center h-16 flex-shrink-0 px-3" :class="isSidebarOpen ? 'justify-between' : 'justify-center'">
-        <div v-if="isSidebarOpen" class="flex items-center gap-2.5 min-w-0">
-          <img 
-            :src="appData?.app?.logo?.src" 
-            class="object-contain flex-shrink-0"
-            :style="{ height: '34px', width: 'auto' }"
-            :alt="appData?.app?.logo?.alt || 'Logo'" 
+      <!-- Logo + Brand + Toggle -->
+      <div class="px-md py-md mb-md flex items-center" :class="isSidebarOpen ? 'justify-between' : 'justify-center'">
+        <div v-if="isSidebarOpen" class="flex items-center gap-3 min-w-0">
+          <img
+            v-if="appData?.app?.logo?.src"
+            :src="appData.app.logo.src"
+            :alt="appData?.app?.logo?.alt || 'Logo'"
+            class="object-contain flex-shrink-0 h-8 w-8"
           />
-          <span class="brand-text truncate">{{ appData?.app?.brand?.text || 'Kickstart' }}</span>
+          <Icon
+            v-else
+            name="mdi:cloud"
+            class="text-primary"
+            style="font-size: 32px"
+          />
+          <h1 class="text-headline-md font-headline-md font-bold text-on-surface truncate">
+            {{ appData?.app?.brand?.text || 'Kickstart' }}
+          </h1>
         </div>
-        <button 
-          @click="toggleSidebar" 
-          class="flex-shrink-0 flex items-center justify-center w-10 h-10 rounded-lg text-white/80 hover:text-white hover:bg-white/10 transition-all duration-200"
+        <button
+          @click="toggleSidebar"
+          class="flex items-center justify-center w-10 h-10 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-all"
+          :title="isSidebarOpen ? 'Daralt' : 'Genişlet'"
         >
-          <v-icon size="x-large" class="font-weight-black">mdi-menu</v-icon>
+          <Icon name="mdi:menu" class="w-6 h-6" />
         </button>
       </div>
 
-      <div class="sidebar-divider"></div>
-      
-      <nav :key="authStore.user?.id || 'guest'" class="flex-1 mt-3 px-2 space-y-1 overflow-y-auto overflow-x-hidden">
-        <template v-for="item in visibleMenus" :key="item.title">
-          <NuxtLink 
-            v-if="!item.children && item.to" 
-            :to="item.to" 
-            class="group flex items-center py-2.5 text-sm font-medium rounded-lg whitespace-nowrap transition-all duration-200"
+      <!-- Search (opsiyonel — sadece sidebar açıkken görünür) -->
+      <div v-if="isSidebarOpen" class="px-md mb-base">
+        <div class="relative">
+          <Icon name="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant w-4 h-4" />
+          <input
+            v-model="searchQuery"
+            type="text"
+            placeholder="Ara..."
+            class="w-full bg-surface-container-low border border-outline-variant/30 rounded-xl py-2 pl-10 pr-4 text-body-sm text-on-surface focus:ring-2 focus:ring-primary focus:border-transparent transition-all placeholder-on-surface-variant/50 outline-none"
+          />
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav :key="authStore.user?.id || 'guest'" class="flex-1 overflow-y-auto space-y-1 mt-md scrollbar-thin">
+        <template v-for="item in filteredMenus" :key="item.title">
+          <!-- Top-level item (no children) -->
+          <NuxtLink
+            v-if="!item.children && item.to"
+            :to="item.to"
+            class="flex items-center gap-3 mx-4 px-4 py-3 rounded-xl transition-all"
             :class="[
-              $route.path === item.to 
-                ? 'bg-white/20 text-white shadow-sm' 
-                : 'text-white/70 hover:bg-white/10 hover:text-white',
-              isSidebarOpen ? 'px-3' : 'justify-center px-0'
+              isActive(item.to)
+                ? 'sidebar-active-pill'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high',
+              !isSidebarOpen && 'justify-center px-0'
             ]"
-            :title="!isSidebarOpen ? item.title : undefined"
+            :title="!isSidebarOpen ? $t(item.title) : undefined"
           >
-            <Icon :name="item.icon" class="h-5 w-5 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
-            <span v-if="isSidebarOpen">{{ $t(item.title) }}</span>
+            <Icon :name="item.icon" class="w-5 h-5 flex-shrink-0" />
+            <span v-if="isSidebarOpen" class="font-body-md font-semibold whitespace-nowrap">{{ $t(item.title) }}</span>
           </NuxtLink>
 
-          <div v-else-if="item.children">
-            <h3 v-if="isSidebarOpen" class="px-3 pt-4 pb-1 text-xs font-semibold text-white/50 uppercase tracking-wider">
+          <!-- Group with children -->
+          <div v-else-if="item.children" class="pt-2">
+            <p
+              v-if="isSidebarOpen"
+              class="px-md py-xs text-label-sm uppercase text-on-surface-variant/40 font-bold tracking-widest"
+            >
               {{ $t(item.title) }}
-            </h3>
-            <div v-else class="sidebar-divider my-2"></div>
-            <template v-for="child in item.children" :key="child.title">
-              <NuxtLink 
-                :to="child.to" 
-                class="group flex items-center py-2.5 text-sm font-medium rounded-lg mt-0.5 whitespace-nowrap transition-all duration-200"
-                :class="[
-                  $route.path.startsWith(child.to) 
-                    ? 'bg-white/20 text-white shadow-sm' 
-                    : 'text-white/70 hover:bg-white/10 hover:text-white',
-                  isSidebarOpen ? 'px-3' : 'justify-center px-0'
-                ]"
-                :title="!isSidebarOpen ? child.title : undefined"
-              >
-                <Icon :name="child.icon" class="h-5 w-5 flex-shrink-0" :class="{ 'mr-3': isSidebarOpen }" />
-                <span v-if="isSidebarOpen">{{ $t(child.title) }}</span>
-              </NuxtLink>
-            </template>
+            </p>
+            <div v-else class="border-t border-outline-variant/30 my-2 mx-4"></div>
+
+            <NuxtLink
+              v-for="child in item.children"
+              :key="child.title"
+              :to="child.to"
+              class="flex items-center gap-3 mx-4 px-4 py-3 rounded-xl transition-all"
+              :class="[
+                isActive(child.to)
+                  ? 'sidebar-active-pill'
+                  : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high',
+                !isSidebarOpen && 'justify-center px-0'
+              ]"
+              :title="!isSidebarOpen ? $t(child.title) : undefined"
+            >
+              <Icon :name="child.icon" class="w-5 h-5 flex-shrink-0" />
+              <span v-if="isSidebarOpen" class="font-body-md whitespace-nowrap">{{ $t(child.title) }}</span>
+            </NuxtLink>
           </div>
         </template>
       </nav>
 
-      <!-- User Profile - Sidebar Bottom -->
-      <div class="flex-shrink-0 relative">
-        <div class="sidebar-divider"></div>
-        <button
-          @click="showUserMenu = !showUserMenu"
-          class="sidebar-user-btn w-full flex items-center p-3 transition-all duration-200"
-          :class="isSidebarOpen ? 'space-x-3' : 'justify-center'"
-        >
-          <div class="sidebar-avatar flex-shrink-0">
-            <Icon name="mdi:account" class="w-5 h-5 text-white" />
+      <!-- Sidebar Footer: User + Settings + Logout -->
+      <div class="px-4 py-4 mt-auto border-t border-outline-variant space-y-1">
+        <!-- User Info (sadece açıkken) -->
+        <div v-if="isSidebarOpen" class="flex items-center gap-3 px-2 pb-3 border-b border-outline-variant/30 mb-2">
+          <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+            <Icon name="mdi:account" class="w-5 h-5 text-primary" />
           </div>
-          <div v-if="isSidebarOpen" class="flex-1 min-w-0 text-left">
-            <div class="text-sm font-semibold text-white truncate">{{ userInfo.name || 'Kullanıcı Adı' }}</div>
-            <div class="text-xs text-white/60 truncate">{{ userInfo.email || 'admin@kickstart.com' }}</div>
-          </div>
-          <svg v-if="isSidebarOpen" class="w-4 h-4 text-white/60 transition-transform duration-200" :class="{ 'rotate-180': showUserMenu }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path>
-          </svg>
-        </button>
-
-        <!-- Dropdown Menu (yukarı açılır) -->
-        <div
-          v-if="showUserMenu"
-          class="sidebar-user-dropdown absolute bottom-full mb-2 bg-white rounded-2xl shadow-xl border border-gray-100 z-50"
-          :class="isSidebarOpen ? 'left-2 right-2' : 'left-0 w-56'"
-        >
-          <div class="dropdown-header">
-            <div class="user-avatar-large">
-              <Icon name="mdi:account" class="w-6 h-6 text-white" />
-            </div>
-            <div class="user-info">
-              <div class="user-name">{{ userInfo.name || 'Kullanıcı Adı' }}</div>
-              <div class="user-email">{{ userInfo.email || 'admin@theetify.com' }}</div>
-              <div class="user-badge">
-                <Icon name="mdi:shield-crown" class="w-3 h-3" />
-                <span>Admin</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="dropdown-divider"></div>
-          
-          <div class="dropdown-menu">
-            <button @click="handleProfileClick" class="dropdown-item">
-              <div class="item-icon profile-icon">
-                <Icon name="mdi:account-circle" class="w-4 h-4" />
-              </div>
-              <div class="item-content">
-                <span class="item-title">Profil Ayarları</span>
-                <span class="item-desc">Hesap bilgilerini düzenle</span>
-              </div>
-            </button>
-            
-            <button @click="handleSettingsClick" class="dropdown-item">
-              <div class="item-icon settings-icon">
-                <Icon name="mdi:cog" class="w-4 h-4" />
-              </div>
-              <div class="item-content">
-                <span class="item-title">Sistem Ayarları</span>
-                <span class="item-desc">Uygulama tercihlerini yönet</span>
-              </div>
-            </button>
-            
-            <div class="dropdown-divider"></div>
-            
-            <button @click="logout" class="dropdown-item logout-item">
-              <div class="item-icon logout-icon">
-                <Icon name="mdi:logout" class="w-4 h-4" />
-              </div>
-              <div class="item-content">
-                <span class="item-title">Çıkış Yap</span>
-                <span class="item-desc">Güvenli çıkış yap</span>
-              </div>
-            </button>
+          <div class="flex-1 min-w-0">
+            <p class="text-body-sm font-bold text-on-surface truncate">{{ userInfo.name }}</p>
+            <p class="text-label-sm text-on-surface-variant truncate">{{ userInfo.email }}</p>
           </div>
         </div>
+
+        <NuxtLink
+          to="/settings"
+          class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors"
+          :class="!isSidebarOpen && 'justify-center px-0'"
+        >
+          <Icon name="mdi:cog" class="w-5 h-5 flex-shrink-0" />
+          <span v-if="isSidebarOpen" class="font-body-md">{{ $t('sidebar.menu.settings') }}</span>
+        </NuxtLink>
+
+        <button
+          @click="handleLogout"
+          class="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-error/80 hover:text-error hover:bg-error/10 transition-colors"
+          :class="!isSidebarOpen && 'justify-center px-0'"
+        >
+          <Icon name="mdi:logout" class="w-5 h-5 flex-shrink-0" />
+          <span v-if="isSidebarOpen" class="font-body-md">{{ $t('sidebar.actions.logout') }}</span>
+        </button>
       </div>
     </aside>
 
-    <!-- Main content -->
-    <div class="flex flex-col min-h-screen transition-all duration-300" :class="isSidebarOpen ? 'pl-64' : 'pl-16'">
-      <!-- Page content -->
-      <main class="flex-1 p-6">
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+      <!-- Top Bar -->
+      <header class="flex items-center justify-end gap-3 px-margin-desktop py-md border-b border-outline-variant bg-surface flex-shrink-0">
+        <!-- Language Switcher (mevcut component) -->
+        <LanguageSwitcher v-if="showLanguageSwitcher" />
+
+        <!-- Theme Toggle -->
+        <button
+          @click="toggleTheme"
+          class="w-10 h-10 rounded-xl bg-surface-container-low hover:bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-all flex items-center justify-center"
+          :title="isDark ? 'Light moda geç' : 'Dark moda geç'"
+        >
+          <Icon
+            :name="isDark ? 'mdi:weather-sunny' : 'mdi:weather-night'"
+            class="w-5 h-5"
+          />
+        </button>
+      </header>
+
+      <!-- Page Content -->
+      <main class="flex-1 overflow-y-auto px-margin-desktop py-md">
         <slot />
       </main>
     </div>
@@ -161,278 +159,126 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { navigationItems, filterNavigationByPermissions } from '~/composables/useNavigation'
 import { useAuth } from '~/composables/useAuth'
 import { useAppData } from '~/composables/useAppData'
 import { useAuthStore } from '~/stores/auth'
+import { useTheme } from '~/composables/useTheme'
 import AppToast from '~/components/UI/AppToast.vue'
 
-const isSidebarOpen = ref(true)
-const showUserMenu = ref(false)
+// Auth state
 const authStore = useAuthStore()
 const { permissions, roles } = storeToRefs(authStore)
 const authUtils = useAuth()
 const router = useRouter()
+const route = useRoute()
 
+// App data (logo, brand)
 const { loadAppData, appData } = useAppData()
 
-const sidebarGradient = computed(() => {
-  return appData.value?.theme?.gradients?.sidebar || 'var(--theme-gradient-sidebar)'
-})
+// Theme
+const { isDark, toggleTheme } = useTheme()
 
+// Sidebar state
+const isSidebarOpen = ref(true)
+const searchQuery = ref('')
+
+// Language switcher görünürlüğü — opsiyonel, app config'inden okunabilir
+const showLanguageSwitcher = computed(() => true)
+
+// User info
 const userInfo = computed(() => ({
   name: authStore.userFullName || 'Kullanıcı',
   email: authStore.user?.email || ''
 }))
 
-// Yetkiye göre menüleri filtrele (storeToRefs ile explicit reactivity - kullanıcı değişiminde güncellenir)
-const visibleMenus = computed(() => {
-  return filterNavigationByPermissions(
+// Yetkiye göre menüleri filtrele
+const visibleMenus = computed(() =>
+  filterNavigationByPermissions(
     navigationItems,
     (p) => permissions.value.includes(p),
     (r) => roles.value.includes(r)
   )
+)
+
+// Search ile menüleri filtrele
+const filteredMenus = computed(() => {
+  if (!searchQuery.value.trim()) return visibleMenus.value
+
+  const query = searchQuery.value.toLowerCase()
+  const filterChildren = (items: typeof visibleMenus.value): typeof visibleMenus.value => {
+    return items
+      .map((item) => {
+        const titleMatch = item.title.toLowerCase().includes(query)
+        if (item.children) {
+          const matchedChildren = item.children.filter((c) =>
+            c.title.toLowerCase().includes(query)
+          )
+          if (titleMatch || matchedChildren.length > 0) {
+            return { ...item, children: matchedChildren.length > 0 ? matchedChildren : item.children }
+          }
+          return null
+        }
+        return titleMatch ? item : null
+      })
+      .filter((i): i is NonNullable<typeof i> => i !== null)
+  }
+  return filterChildren(visibleMenus.value)
 })
 
+// Aktif route kontrolü
+const isActive = (to: string | undefined) => {
+  if (!to) return false
+  return route.path === to || route.path.startsWith(to + '/')
+}
+
+// Sidebar toggle
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
 }
 
-const logout = async () => {
+// Logout
+const handleLogout = async () => {
   try {
     await authUtils.logout()
-    showUserMenu.value = false
   } catch (error) {
     console.error('Çıkış yapılırken bir hata oluştu:', error)
   }
 }
 
-const handleProfileClick = () => {
-  showUserMenu.value = false
-  router.push('/profile')
-}
-
-const handleSettingsClick = () => {
-  showUserMenu.value = false
-  router.push('/settings')
-}
-
 onMounted(async () => {
   await loadAppData()
-  
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.sidebar-user-btn') && !e.target.closest('.sidebar-user-dropdown')) {
-      showUserMenu.value = false
-    }
-  })
 })
 </script>
 
 <style scoped>
-nav::-webkit-scrollbar {
-  width: 4px;
+/* Active menu item — turuncu gradient pill */
+.sidebar-active-pill {
+  background: linear-gradient(90deg, #fea619, #ff8c00);
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px rgba(254, 166, 25, 0.3);
 }
 
-nav::-webkit-scrollbar-track {
+.sidebar-active-pill :deep(.iconify),
+.sidebar-active-pill span {
+  color: #ffffff !important;
+}
+
+/* Custom scrollbar */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 6px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
   background: transparent;
 }
-
-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-}
-
-nav::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.4);
-}
-
-.brand-text {
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: white;
-  letter-spacing: -0.03em;
-  line-height: 1;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(255, 255, 255, 0.7) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.sidebar-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.2) 50%, transparent 100%);
-  margin: 0 8px;
-}
-
-/* Sidebar Avatar */
-.sidebar-avatar {
-  width: 36px;
-  height: 36px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar-user-btn:hover {
+.scrollbar-thin::-webkit-scrollbar-thumb {
   background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
 }
-
-/* Sidebar User Dropdown */
-.sidebar-user-dropdown {
-  backdrop-filter: blur(20px);
-  background: rgba(255, 255, 255, 0.95);
-  animation: dropdownFadeUp 0.2s ease-out;
-}
-
-@keyframes dropdownFadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Dropdown Header */
-.dropdown-header {
-  padding: 20px;
-  background: var(--theme-gradient);
-  color: white;
-  border-radius: 16px 16px 0 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.user-avatar-large {
-  width: 48px;
-  height: 48px;
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.user-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.user-name {
-  font-weight: 700;
-  font-size: 1rem;
-  color: white;
-  line-height: 1.2;
-}
-
-.user-email {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-top: 2px;
-}
-
-.user-badge {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.2);
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 0.625rem;
-  font-weight: 600;
-  margin-top: 6px;
-  width: fit-content;
-}
-
-.dropdown-divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, #e5e7eb 50%, transparent 100%);
-  margin: 0;
-}
-
-.dropdown-menu {
-  padding: 8px;
-}
-
-.dropdown-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  text-align: left;
-  background: transparent;
-  border: none;
-  border-radius: 12px;
-  transition: all 0.2s ease;
-  cursor: pointer;
-}
-
-.dropdown-item:hover {
-  background: linear-gradient(135deg, rgba(var(--theme-primary-dark-rgb), 0.05) 0%, rgba(var(--theme-primary-rgb), 0.05) 100%);
-  transform: translateX(2px);
-}
-
-.item-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.profile-icon {
-  background: var(--theme-gradient);
-  color: white;
-}
-
-.settings-icon {
-  background: linear-gradient(135deg, var(--theme-secondary-light) 0%, var(--theme-secondary) 100%);
-  color: white;
-}
-
-.logout-icon {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  color: white;
-}
-
-.item-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.item-title {
-  display: block;
-  font-weight: 600;
-  font-size: 0.875rem;
-  color: #1f2937;
-  line-height: 1.2;
-}
-
-.item-desc {
-  display: block;
-  font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 2px;
-  line-height: 1.2;
-}
-
-.logout-item:hover {
-  background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%);
-}
-
-.logout-item .item-title {
-  color: #dc2626;
 }
 </style>

@@ -1,37 +1,65 @@
 <template>
-  <div class="dashboard-container">
-    <!-- Header Section -->
-    <div class="dashboard-header">
-      <div>
-        <h1 class="dashboard-title">{{ authStore.user?.fullName }}</h1>
-        <h1 class="dashboard-subtitle">{{ t('dashboard.welcome') }}</h1>
-      </div>
-      <div class="header-actions">
-        <v-chip
-          color="primary"
-          variant="elevated"
-          prepend-icon="mdi-calendar-check"
+  <div class="space-y-md">
+    <!-- 1. Welcome Header -->
+    <div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-md shadow-sm">
+      <div class="flex items-center justify-between flex-wrap gap-md">
+        <div>
+          <h1 class="text-headline-md font-headline-md text-on-surface">
+            {{ greeting }}
+          </h1>
+          <p class="text-body-md text-on-surface-variant mt-1">
+            {{ t('dashboard.subtitle') }}
+          </p>
+        </div>
+        <div
+          class="flex items-center gap-2 text-primary bg-primary/10 px-3 py-1.5 rounded-full"
         >
-          {{ t('dashboard.todayLabel') }} {{ todayDate }}
-        </v-chip>
+          <Icon name="mdi:calendar-check" class="w-4 h-4" />
+          <span class="text-body-sm font-bold">{{ t('dashboard.todayLabel') }} {{ todayDate }}</span>
+        </div>
       </div>
     </div>
 
-    <!-- Charts & Tables Row -->
-    <v-row class="content-row">
-      <!-- Revenue Chart -->
-      <v-col cols="12" lg="12" v-if="isAdminOrSuperAdmin">
-        <v-card class="chart-card" elevation="4">
-          <v-card-title class="card-header">
-            <v-icon class="mr-2" color="primary">mdi-chart-line</v-icon>
+    <!-- 2. Stats Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-md">
+      <StatCard
+        v-for="stat in statsCards"
+        :key="stat.label"
+        :label="stat.label"
+        :value="stat.value"
+        :trend-percent="stat.trendPercent"
+        :trend-subtitle="stat.trendSubtitle"
+        :icon="stat.icon"
+        :color="stat.color"
+        :sparkline="stat.sparkline"
+      />
+    </div>
+
+    <!-- 3. İki kolonlu içerik alanı: Chart (sol) + Profile Card (sağ) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-md">
+      <!-- Sol: Haftalık Gelir Analizi (mevcut içerik — korunuyor) -->
+      <div
+        v-if="isAdminOrSuperAdmin"
+        class="lg:col-span-8 bg-surface-container-lowest border border-outline-variant rounded-xl shadow-sm overflow-hidden"
+      >
+        <div class="flex items-center gap-2 px-md py-4 border-b border-outline-variant">
+          <Icon name="mdi:chart-line" class="w-5 h-5 text-primary" />
+          <h2 class="text-body-md font-bold text-on-surface">
             {{ t('dashboard.weeklyRevenueAnalysis') }}
-          </v-card-title>
-          <v-card-text>
+          </h2>
+        </div>
+        <div class="p-md">
+          <div class="h-[360px]">
             <canvas ref="revenueChart"></canvas>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sağ: User Profile Card (yeni) -->
+      <div class="lg:col-span-4">
+        <UserProfileCard />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -40,6 +68,8 @@ import { ref, onMounted, computed } from "vue";
 import { Chart, registerables } from "chart.js";
 import { useAuth } from "~/composables/useAuth";
 import { useAuthStore } from "~/stores/auth";
+import StatCard from "~/components/Dashboard/StatCard.vue";
+import UserProfileCard from "~/components/Dashboard/UserProfileCard.vue";
 
 Chart.register(...registerables);
 
@@ -57,25 +87,73 @@ const isAdminOrSuperAdmin = computed(() => {
 
 const revenueChart = ref<HTMLCanvasElement>();
 
-const stats = ref({
-  todayAppointments: 24,
-  todayRevenue: 45750,
-  totalPatients: 1248,
-  activeDoctors: 8,
+// Saate göre selamlama + kullanıcı adı
+const greeting = computed(() => {
+  const hour = new Date().getHours();
+  const period = hour < 12 ? "morning" : hour < 18 ? "afternoon" : "evening";
+  const prefix = t(`dashboard.greeting.${period}`);
+  const name = authStore.userFullName;
+  return name ? `${prefix}, ${name}` : prefix;
 });
 
 const todayDate = computed(() => {
   const localeMap: Record<string, string> = {
-    tr: 'tr-TR',
-    en: 'en-US'
+    tr: "tr-TR",
+    en: "en-US",
   };
-  const dateLocale = localeMap[locale.value] || 'tr-TR';
+  const dateLocale = localeMap[locale.value] || "tr-TR";
   return new Date().toLocaleDateString(dateLocale, {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
 });
+
+/**
+ * MOCK DATA — Aşama 2A için.
+ * Backend bağlantısı 2A sonrası bağımsız bir adımda yapılacak.
+ *
+ * Sparkline değerleri son 7 gün simülasyonu — gerçek API'den günlük sayılar gelecek.
+ * Etiketler i18n'den geldiği için computed; locale değişince başlıklar güncellenir.
+ */
+const statsCards = computed(() => [
+  {
+    label: t("dashboard.stats.totalUsers"),
+    value: 1247,
+    trendPercent: 12,
+    trendSubtitle: t("dashboard.trendVsLast7Days"),
+    icon: "mdi:account-multiple",
+    color: "primary" as const,
+    sparkline: [1180, 1190, 1205, 1220, 1230, 1240, 1247],
+  },
+  {
+    label: t("dashboard.stats.activeUsers"),
+    value: 892,
+    trendPercent: 5,
+    trendSubtitle: t("dashboard.trendVsLast7Days"),
+    icon: "mdi:account-check",
+    color: "info" as const,
+    sparkline: [840, 850, 865, 870, 880, 885, 892],
+  },
+  {
+    label: t("dashboard.stats.totalRoles"),
+    value: 14,
+    trendPercent: 0,
+    trendSubtitle: t("dashboard.trendNoChange"),
+    icon: "mdi:shield-account",
+    color: "tertiary" as const,
+    sparkline: [14, 14, 14, 14, 14, 14, 14],
+  },
+  {
+    label: t("dashboard.stats.totalPermissions"),
+    value: 47,
+    trendPercent: 4,
+    trendSubtitle: t("dashboard.stats.newPermissions"),
+    icon: "mdi:key",
+    color: "secondary" as const,
+    sparkline: [45, 45, 45, 46, 47, 47, 47],
+  },
+]);
 
 const initRevenueChart = () => {
   if (!revenueChart.value) return;
@@ -84,17 +162,17 @@ const initRevenueChart = () => {
     type: "line",
     data: {
       labels: [
-        t('dashboard.days.mon'),
-        t('dashboard.days.tue'),
-        t('dashboard.days.wed'),
-        t('dashboard.days.thu'),
-        t('dashboard.days.fri'),
-        t('dashboard.days.sat'),
-        t('dashboard.days.sun'),
+        t("dashboard.days.mon"),
+        t("dashboard.days.tue"),
+        t("dashboard.days.wed"),
+        t("dashboard.days.thu"),
+        t("dashboard.days.fri"),
+        t("dashboard.days.sat"),
+        t("dashboard.days.sun"),
       ],
       datasets: [
         {
-          label: t('dashboard.revenueLabel'),
+          label: t("dashboard.revenueLabel"),
           data: [12500, 19800, 15200, 21300, 18900, 25400, 22100],
           borderColor:
             getComputedStyle(document.documentElement)
@@ -137,171 +215,6 @@ onMounted(() => {
 });
 
 useHead({
-  title: () => t('dashboard.pageTitle'),
+  title: () => t("dashboard.pageTitle"),
 });
 </script>
-
-<style scoped>
-.dashboard-container {
-  padding: 24px;
-  background: #f5f7fa;
-  min-height: 100vh;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 32px;
-  background: white;
-  padding: 24px;
-  border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.dashboard-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #2c3e50;
-  margin: 0;
-}
-
-.dashboard-subtitle {
-  font-size: 1.1rem;
-  color: #7f8c8d;
-  margin-top: 8px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.stats-row {
-  margin-bottom: 24px;
-}
-
-.stat-card {
-  border-radius: 16px !important;
-  transition:
-    transform 0.3s ease,
-    box-shadow 0.3s ease;
-  overflow: hidden;
-}
-
-.stat-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15) !important;
-}
-
-.stat-card-primary {
-  background: var(--theme-gradient);
-}
-
-.stat-card-success {
-  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
-}
-
-.stat-card-warning {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-}
-
-.stat-card-info {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-}
-
-.stat-card :deep(.v-card-text) {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 24px !important;
-}
-
-.stat-icon-wrapper {
-  width: 80px;
-  height: 80px;
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.stat-content {
-  flex: 1;
-  color: white;
-}
-
-.stat-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1;
-}
-
-.stat-label {
-  font-size: 0.95rem;
-  opacity: 0.9;
-  margin: 8px 0;
-}
-
-.stat-trend {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.85rem;
-  opacity: 0.8;
-}
-
-.content-row {
-  margin-bottom: 24px;
-}
-
-.chart-card {
-  border-radius: 16px !important;
-  height: 100%;
-}
-
-.card-header {
-  background: #f8f9fa;
-  font-weight: 600 !important;
-  padding: 20px 24px !important;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.chart-card :deep(.v-card-text) {
-  height: 400px;
-  padding: 24px !important;
-}
-
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(var(--theme-primary-rgb, 37, 99, 235), 0.3);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(var(--theme-primary-rgb, 37, 99, 235), 0.5);
-}
-
-@media (max-width: 960px) {
-  .dashboard-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 16px;
-  }
-
-  .dashboard-title {
-    font-size: 2rem;
-  }
-}
-</style>

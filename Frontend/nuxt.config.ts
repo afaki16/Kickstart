@@ -87,6 +87,7 @@ export default defineNuxtConfig({
 
   // CSS Framework
   css: [
+    "~/assets/css/theme.css",
     "vuetify/lib/styles/main.sass",
     "@mdi/font/css/materialdesignicons.min.css",
     "~/assets/scss/main.scss",

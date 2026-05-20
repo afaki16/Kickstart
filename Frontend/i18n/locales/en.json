@@ -72,7 +72,22 @@
   },
   "dashboard": {
     "welcome": "Welcome",
+    "subtitle": "Welcome to the system management panel.",
+    "greeting": {
+      "morning": "Good morning",
+      "afternoon": "Good afternoon",
+      "evening": "Good evening"
+    },
     "todayLabel": "Today:",
+    "trendVsLast7Days": "in the last 7 days",
+    "trendNoChange": "no change",
+    "stats": {
+      "totalUsers": "Total Users",
+      "activeUsers": "Active Users",
+      "totalRoles": "Total Roles",
+      "totalPermissions": "Total Permissions",
+      "newPermissions": "2 new permissions"
+    },
     "weeklyRevenueAnalysis": "Weekly Revenue Analysis",
     "revenueLabel": "Revenue ($)",
     "days": {
