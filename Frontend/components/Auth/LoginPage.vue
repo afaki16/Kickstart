@@ -48,60 +48,40 @@
         </div>
 
         <!-- Session Expired Alert -->
-        <v-alert
-          v-if="route.query.expired"
-          type="warning"
-          variant="tonal"
-          class="mb-6 expired-alert"
-          closable
-          density="compact"
-        >
-          {{ t("auth.sessionExpired") }}
-        </v-alert>
+        <AlertBox
+          v-if="route.query.expired && !sessionExpiredDismissed"
+          variant="warning"
+          :message="t('auth.sessionExpired')"
+          @close="sessionExpiredDismissed = true"
+        />
 
         <!-- Login API errors (from /api/auth/login) -->
-        <v-alert
+        <AlertBox
           v-if="loginApiErrors.length > 0 && !emailNotConfirmed"
-          type="error"
-          variant="tonal"
-          class="mb-6 login-api-error-alert"
-          closable
-          density="compact"
-          @click:close="loginApiErrors = []"
-        >
-          <template v-if="loginApiErrors.length === 1">
-            {{ loginApiErrors[0] }}
-          </template>
-          <ul v-else class="login-api-error-list">
-            <li v-for="(msg, i) in loginApiErrors" :key="i">{{ msg }}</li>
-          </ul>
-        </v-alert>
+          variant="error"
+          :message="loginApiErrors"
+          @close="loginApiErrors = []"
+        />
 
         <!-- Email not confirmed: show inline resend block -->
-        <v-alert
+        <AlertBox
           v-if="emailNotConfirmed"
-          :type="resendAlertType"
-          variant="tonal"
-          class="mb-6 login-api-error-alert"
-          closable
-          density="compact"
-          @click:close="onCloseEmailNotConfirmed"
+          :variant="resendAlertType"
+          :message="resendAlertMessage"
+          @close="onCloseEmailNotConfirmed"
         >
-          <div class="email-not-confirmed">
-            <div>{{ resendAlertMessage }}</div>
-            <v-btn
-              size="small"
-              variant="outlined"
-              :loading="resending"
-              :disabled="resendButtonDisabled"
-              class="mt-2"
-              @click="onResendVerification"
-            >
-              <v-icon start size="16">{{ resendButtonIcon }}</v-icon>
-              {{ resendButtonText }}
-            </v-btn>
-          </div>
-        </v-alert>
+          <v-btn
+            size="small"
+            variant="outlined"
+            :loading="resending"
+            :disabled="resendButtonDisabled"
+            class="mt-2"
+            @click="onResendVerification"
+          >
+            <v-icon start size="16">{{ resendButtonIcon }}</v-icon>
+            {{ resendButtonText }}
+          </v-btn>
+        </AlertBox>
 
         <v-form
           ref="loginForm"
@@ -229,6 +209,7 @@ const isFormValid = ref(false);
 const showPassword = ref(false);
 const loginApiErrors = ref<string[]>([]);
 const emailNotConfirmed = ref(false);
+const sessionExpiredDismissed = ref(false);
 const resending = ref(false);
 const currentImageIndex = ref(0);
 
@@ -626,29 +607,6 @@ onUnmounted(() => {
   color: var(--lp-text) !important;
 }
 
-/* Expired Alert */
-.expired-alert :deep(.v-alert) {
-  border-radius: 12px !important;
-}
-
-.login-api-error-alert :deep(.v-alert) {
-  border-radius: 12px !important;
-}
-
-.login-api-error-list {
-  margin: 0;
-  padding-left: 1.1rem;
-  list-style: disc;
-}
-
-.login-api-error-list li {
-  margin-top: 0.25rem;
-}
-
-.login-api-error-list li:first-child {
-  margin-top: 0;
-}
-
 /* Options Row */
 .options-row {
   display: flex;
@@ -684,12 +642,6 @@ onUnmounted(() => {
 }
 
 /* Login Button */
-.email-not-confirmed {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .login-btn {
   border-radius: 12px !important;
   height: 50px !important;

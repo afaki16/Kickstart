@@ -186,7 +186,8 @@ onUnmounted(() => {
   max-width: 90vw;
   min-width: 400px;
   height: 100vh;
-  background: white;
+  background: rgb(var(--color-surface-container-lowest));
+  color: rgb(var(--color-on-surface));
   box-shadow: -4px 0 16px rgba(0, 0, 0, 0.2);
   display: flex;
   flex-direction: column;
@@ -219,7 +220,7 @@ onUnmounted(() => {
 }
 
 .resize-handle:hover {
-  background: rgba(0, 0, 0, 0.02);
+  background: rgb(var(--color-on-surface) / 0.04);
 }
 
 .resize-dots {
@@ -232,13 +233,13 @@ onUnmounted(() => {
 .dot {
   width: 3px;
   height: 3px;
-  background: #9ca3af;
+  background: rgb(var(--color-on-surface-variant) / 0.6);
   border-radius: 50%;
   transition: all 0.2s ease;
 }
 
 .resize-handle:hover .dot {
-  background: #6b7280;
+  background: rgb(var(--color-on-surface-variant));
   transform: scale(1.2);
 }
 
@@ -251,7 +252,8 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   padding: 20px 24px;
-  background: #f5f5f5;
+  background: rgb(var(--color-surface-container-low));
+  color: rgb(var(--color-on-surface));
   flex-shrink: 0;
 }
 
@@ -261,6 +263,7 @@ onUnmounted(() => {
   font-size: 1.25rem;
   font-weight: 600;
   margin: 0;
+  color: rgb(var(--color-on-surface));
 }
 
 .drawer-actions {
@@ -280,16 +283,16 @@ onUnmounted(() => {
 }
 
 .drawer-content::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: rgb(var(--color-surface-container-low));
 }
 
 .drawer-content::-webkit-scrollbar-thumb {
-  background: #888;
+  background: rgb(var(--color-on-surface-variant) / 0.4);
   border-radius: 4px;
 }
 
 .drawer-content::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: rgb(var(--color-on-surface-variant) / 0.6);
 }
 
 .drawer-enter-active,

@@ -93,10 +93,31 @@ export default defineNuxtPlugin(() => {
         return Promise.reject(error);
       }
 
-      // Refresh endpoint'i 401 dönerse — refresh token geçersiz, oturum bitti
-      if (originalRequest.url?.includes("/auth/refresh-token")) {
-        authStore.clearAuth();
-        await router.push("/?expired=true");
+      // Public auth endpoint'lerinden gelen 401, "kimlik doğrulama başarısız" demek;
+      // token expired değil. Bu durumda refresh denemesi anlamsız — hatayı doğrudan
+      // caller'a geri verelim ki gerçek hata mesajı (email/şifre yanlış) kaybolmasın.
+      //
+      // Refresh endpoint'i listede çünkü 401 dönüyorsa session gerçekten ölmüş demek
+      // — interceptor refresh denemeye girmesin (sonsuz döngü önleme).
+      const publicAuthEndpoints = [
+        "/auth/login",
+        "/auth/register",
+        "/auth/forgot-password",
+        "/auth/reset-password",
+        "/auth/refresh-token",
+      ];
+      const isPublicAuthEndpoint = publicAuthEndpoints.some((endpoint) =>
+        originalRequest.url?.includes(endpoint),
+      );
+
+      if (isPublicAuthEndpoint) {
+        // Sadece refresh-token endpoint'inde session'ı temizle ve expired sayfasına git;
+        // diğer public endpoint'lerde (login/register/forgot-password) caller hatayı
+        // kendisi handle etsin (örn. "email/şifre hatalı" mesajı göstersin).
+        if (originalRequest.url?.includes("/auth/refresh-token")) {
+          authStore.clearAuth();
+          await router.push("/?expired=true");
+        }
         return Promise.reject(error);
       }
 

@@ -929,13 +929,17 @@ watch(() => props.itemsPerPage, (newValue) => {
 
 <style scoped>
 .modern-data-table {
-  @apply bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden;
+  @apply bg-surface-container-lowest rounded-2xl shadow-xl border border-outline-variant/30 overflow-hidden;
 }
 
 /* Header Section */
 .table-header {
-  @apply border-b border-gray-100;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  @apply border-b border-outline-variant/30;
+  background: linear-gradient(
+    135deg,
+    rgb(var(--color-surface-container-low)) 0%,
+    rgb(var(--color-surface-container)) 100%
+  );
 }
 
 .header-content {
@@ -966,11 +970,11 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .page-title {
-  @apply text-2xl font-bold text-gray-900 mb-1;
+  @apply text-2xl font-bold text-on-surface mb-1;
 }
 
 .page-description {
-  @apply text-sm text-gray-600;
+  @apply text-sm text-on-surface-variant;
 }
 
 .header-right {
@@ -990,7 +994,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .filter-toggle-btn {
-  @apply bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 relative;
+  @apply bg-surface-container-lowest border border-outline-variant/40 text-on-surface hover:bg-surface-container-low hover:border-outline-variant relative;
 }
 
 .filter-toggle-btn.active {
@@ -1049,7 +1053,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .export-btn {
-  @apply bg-gray-100 border border-gray-200 text-gray-700 hover:bg-gray-200;
+  @apply bg-surface-container border border-outline-variant/40 text-on-surface hover:bg-surface-container-high;
 }
 
 .add-button {
@@ -1077,12 +1081,12 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .search-icon {
-  @apply absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400;
+  @apply absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-on-surface-variant/60;
 }
 
 .search-input {
-  @apply w-full pl-10 pr-10 py-2.5 rounded-xl focus:ring-2 bg-white transition-colors placeholder-gray-400;
-  border: 2px solid #9ca3af !important;
+  @apply w-full pl-10 pr-10 py-2.5 rounded-xl focus:ring-2 bg-surface-container-lowest transition-colors placeholder-on-surface-variant/60 text-on-surface;
+  border: 2px solid rgb(var(--color-outline-variant)) !important;
   --tw-ring-color: var(--theme-primary);
 }
 
@@ -1091,12 +1095,12 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .clear-search-btn {
-  @apply absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400 hover:text-gray-600 transition-colors;
+  @apply absolute right-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-on-surface-variant/60 hover:text-on-surface-variant transition-colors;
 }
 
 /* Filters Panel */
 .filters-panel {
-  @apply border-t border-gray-100 bg-gray-50 p-6;
+  @apply border-t border-outline-variant/30 bg-surface-container-low p-6;
 }
 
 .filters-header {
@@ -1104,7 +1108,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .filters-title {
-  @apply text-lg font-semibold text-gray-900;
+  @apply text-lg font-semibold text-on-surface;
 }
 
 .clear-filters-btn {
@@ -1126,7 +1130,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 
 .filter-input :deep(.v-field),
 .filter-select :deep(.v-field) {
-  @apply bg-white border border-gray-200 rounded-lg transition-colors;
+  @apply bg-surface-container-lowest border border-outline-variant/40 rounded-lg transition-colors;
 }
 
 .compact-filter :deep(.v-field) {
@@ -1155,8 +1159,8 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .professional-date-filter .v-field {
-  background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
-  border: 1px solid #e2e8f0;
+  background: rgb(var(--color-surface-container-lowest));
+  border: 1px solid rgb(var(--color-outline-variant) / 0.4);
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
@@ -1173,7 +1177,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .professional-date-filter .v-field__input {
-  color: #374151;
+  color: rgb(var(--color-on-surface));
   font-weight: 500;
 }
 
@@ -1183,15 +1187,15 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .empty-icon {
-  @apply w-16 h-16 text-gray-300 mb-4;
+  @apply w-16 h-16 text-on-surface-variant/40 mb-4;
 }
 
 .empty-title {
-  @apply text-xl font-semibold text-gray-900 mb-2;
+  @apply text-xl font-semibold text-on-surface mb-2;
 }
 
 .empty-description {
-  @apply text-gray-600 text-center mb-6 max-w-md;
+  @apply text-on-surface-variant text-center mb-6 max-w-md;
 }
 
 /* Table */
@@ -1208,20 +1212,24 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .table-header-section {
-  @apply bg-gradient-to-r from-gray-50 to-gray-100;
+  background: linear-gradient(
+    to right,
+    rgb(var(--color-surface-container-low)),
+    rgb(var(--color-surface-container))
+  );
 }
 
 .table-header-row {
-  @apply border-b border-gray-200;
+  @apply border-b border-outline-variant/40;
 }
 
 .table-header-cell {
-  @apply px-6 py-4 text-left font-semibold text-gray-900 whitespace-nowrap;
+  @apply px-6 py-4 text-left font-semibold text-on-surface whitespace-nowrap;
 }
 
 .table-header-cell.center { @apply text-center; }
 .table-header-cell.right { @apply text-right; }
-.table-header-cell.sortable { @apply cursor-pointer hover:bg-gray-100 transition-colors select-none; }
+.table-header-cell.sortable { @apply cursor-pointer hover:bg-surface-container transition-colors select-none; }
 .table-header-cell.sorted {
   background: rgba(var(--theme-primary-rgb), 0.06);
   color: var(--theme-primary-dark);
@@ -1240,7 +1248,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .sort-icon {
-  @apply w-3 h-3 text-gray-400 transition-colors;
+  @apply w-3 h-3 text-on-surface-variant/60 transition-colors;
 }
 
 .sort-icon.active {
@@ -1257,11 +1265,11 @@ watch(() => props.itemsPerPage, (newValue) => {
 
 /* Table Body */
 .table-body {
-  @apply divide-y divide-gray-100;
+  @apply divide-y divide-outline-variant/30;
 }
 
 .table-row {
-  @apply hover:bg-gray-50 transition-colors cursor-pointer;
+  @apply hover:bg-surface-container-low transition-colors cursor-pointer;
 }
 
 .table-cell {
@@ -1277,7 +1285,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .cell-text {
-  @apply text-gray-900 text-sm;
+  @apply text-on-surface text-sm;
 }
 
 /* Actions */
@@ -1308,12 +1316,12 @@ watch(() => props.itemsPerPage, (newValue) => {
   background: rgba(var(--theme-primary-rgb), 0.06);
   color: var(--theme-primary-dark);
 }
-.edit-button { @apply text-yellow-600 hover:bg-yellow-50 hover:text-yellow-700; }
-.delete-button { @apply text-red-600 hover:bg-red-50 hover:text-red-700; }
+.edit-button { @apply text-secondary hover:bg-secondary-container/20 hover:text-secondary-container; }
+.delete-button { @apply text-error hover:bg-error/10 hover:text-error; }
 
 /* Pagination */
 .pagination {
-  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-t border-gray-100 bg-white;
+  @apply flex flex-col sm:flex-row sm:items-center sm:justify-between px-6 py-4 border-t border-outline-variant/30 bg-surface-container-lowest;
 }
 
 .pagination-info {
@@ -1325,11 +1333,11 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .results-text {
-  @apply text-sm text-gray-900;
+  @apply text-sm text-on-surface;
 }
 
 .items-per-page-select {
-  @apply px-3 py-2 border border-gray-200 rounded-md text-sm bg-white text-gray-900 font-medium focus:ring-2 transition-colors;
+  @apply px-3 py-2 border border-outline-variant/40 rounded-md text-sm bg-surface-container-lowest text-on-surface font-medium focus:ring-2 transition-colors;
   --tw-ring-color: var(--theme-primary);
 }
 
@@ -1338,7 +1346,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .total-count {
-  @apply text-sm text-gray-600 font-medium;
+  @apply text-sm text-on-surface-variant font-medium;
 }
 
 .pagination-controls {
@@ -1346,7 +1354,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .pagination-button {
-  @apply px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-white;
+  @apply px-3 py-2 text-sm font-medium text-on-surface-variant bg-surface-container-lowest border border-outline-variant/40 rounded-lg hover:bg-surface-container-low focus:outline-none focus:ring-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
   --tw-ring-color: var(--theme-primary);
 }
 
@@ -1371,13 +1379,13 @@ watch(() => props.itemsPerPage, (newValue) => {
 
 /* Glassmorphism Header */
 .glassmorphism-header {
-  background: rgba(255, 255, 255, 0.85);
+  background: rgb(var(--color-surface-container-low) / 0.85);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 
+  border: 1px solid rgb(var(--color-outline-variant) / 0.3);
+  box-shadow:
     0 8px 32px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    inset 0 1px 0 rgb(var(--color-on-surface) / 0.05);
   border-radius: 16px;
   position: relative;
   overflow: hidden;
@@ -1421,16 +1429,13 @@ watch(() => props.itemsPerPage, (newValue) => {
 .modern-title {
   font-weight: 700;
   font-size: 1.5rem;
-  background: var(--theme-gradient-text);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: rgb(var(--color-on-surface));
   margin: 0;
   line-height: 1.2;
 }
 
 .modern-description {
-  color: #64748b;
+  color: rgb(var(--color-on-surface-variant));
   font-weight: 500;
   margin: 4px 0 0 0;
   font-size: 0.875rem;
@@ -1443,15 +1448,15 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .skeleton-table {
-  border: 1px solid #e5e7eb;
+  border: 1px solid rgb(var(--color-outline-variant) / 0.3);
   border-radius: 12px;
   overflow: hidden;
-  background: white;
+  background: rgb(var(--color-surface-container-lowest));
 }
 
 .skeleton-header {
-  background: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  background: rgb(var(--color-surface-container-low));
+  border-bottom: 1px solid rgb(var(--color-outline-variant) / 0.3);
 }
 
 .skeleton-header-row {
@@ -1462,7 +1467,12 @@ watch(() => props.itemsPerPage, (newValue) => {
 
 .skeleton-header-cell {
   height: 20px;
-  background: linear-gradient(90deg, #e5e7eb 25%, #f3f4f6 50%, #e5e7eb 75%);
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-surface-container)) 25%,
+    rgb(var(--color-surface-container-low)) 50%,
+    rgb(var(--color-surface-container)) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
   border-radius: 4px;
@@ -1477,7 +1487,7 @@ watch(() => props.itemsPerPage, (newValue) => {
   display: flex;
   padding: 16px;
   gap: 16px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid rgb(var(--color-outline-variant) / 0.2);
   animation: skeletonFadeIn 0.2s ease-out both;
 }
 
@@ -1487,7 +1497,12 @@ watch(() => props.itemsPerPage, (newValue) => {
 
 .skeleton-cell {
   height: 16px;
-  background: linear-gradient(90deg, #f8f9fa 25%, #ffffff 50%, #f8f9fa 75%);
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-surface-container) / 0.5) 25%,
+    rgb(var(--color-surface-container-low)) 50%,
+    rgb(var(--color-surface-container) / 0.5) 75%
+  );
   background-size: 200% 100%;
   animation: shimmer 2.5s infinite;
   border-radius: 4px;
@@ -1616,7 +1631,7 @@ watch(() => props.itemsPerPage, (newValue) => {
 }
 
 .infinite-scroll-table::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: rgb(var(--color-surface-container-low));
   border-radius: 4px;
 }
 
