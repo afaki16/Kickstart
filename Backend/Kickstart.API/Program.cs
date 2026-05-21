@@ -4,7 +4,9 @@ using Kickstart.Application;
 using Kickstart.API.Extensions;
 using Kickstart.API.Middleware;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -47,6 +49,20 @@ builder.Services.AddApplication();
 
 // Add Infrastructure services
 builder.Services.AddInfrastructure(builder.Configuration, builder.Environment);
+
+// Request localization — supports "Accept-Language: tr" or "Accept-Language: en" header.
+// Default culture is tr. Falls back to default if browser sends an unsupported culture.
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo("tr"),
+        new CultureInfo("en")
+    };
+    options.DefaultRequestCulture = new RequestCulture("tr");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+});
 
 builder.Services.AddApiServices(builder.Configuration);
 // Global exception handlers - specific first, generic last.
@@ -93,6 +109,10 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+
+// Request localization must run after routing but before authentication, because the
+// JWT challenge/forbidden events resolve the localizer using the request's CurrentUICulture.
+app.UseRequestLocalization();
 
 // Security headers run after routing so they apply to every response,
 // including auth failures and route-not-found responses.

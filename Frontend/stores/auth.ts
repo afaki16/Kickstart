@@ -3,6 +3,13 @@ import type { User, LoginResponse, AuthState } from "~/types";
 import { jwtDecode } from "jwt-decode";
 
 /**
+ * In-flight silentRefresh promise — parallel calls (e.g. auth.global.ts +
+ * guest.ts middleware fire simultaneously) should share a single HTTP request.
+ * Reset to null when the request settles.
+ */
+let inFlightSilentRefresh: Promise<boolean> | null = null;
+
+/**
  * Auth store — güvenlik notları:
  *
  * 1) Access token SADECE memory'de (bu store'da) tutulur.
@@ -190,11 +197,22 @@ export const useAuthStore = defineStore("auth", {
         return;
       }
 
+      // device_id cookie'si bu cihazda önceden login olunduğunu işaret eder.
+      // Yoksa: ya hiç login olmamış ya da logout edilmiş — refresh anlamsız.
+      // Varsa: refresh_token HttpOnly cookie de büyük ihtimal mevcut (remember me).
+      // Bu kontrol login sayfasındaki boş 400 isteklerini önler.
+      const deviceIdCookie = useCookie("device_id");
+      if (!deviceIdCookie.value) {
+        this.isAuthenticated = false;
+        this.accessToken = null;
+        return;
+      }
+
       try {
         await this.silentRefresh();
       } catch {
         // Refresh başarısız — kullanıcı authenticate olmadı,
-        // ama bu normal bir durum (ilk ziyaret, expired session vb.)
+        // ama bu normal bir durum (refresh_token expired, revoked vb.)
         this.isAuthenticated = false;
         this.accessToken = null;
       }
@@ -204,6 +222,27 @@ export const useAuthStore = defineStore("auth", {
      * Refresh token HttpOnly cookie'sini kullanarak yeni access token alır.
      */
     async silentRefresh(): Promise<boolean> {
+      // Deduplication: zaten devam eden bir silentRefresh varsa onun sonucunu paylaş,
+      // yeni HTTP isteği atma. auth.global.ts + guest.ts middleware'leri paralel
+      // çağırdığında ikinci çağrı ilki bittiğinde aynı sonucu alır.
+      if (inFlightSilentRefresh) {
+        return inFlightSilentRefresh;
+      }
+
+      const refreshPromise = this._doSilentRefresh();
+      inFlightSilentRefresh = refreshPromise;
+      try {
+        return await refreshPromise;
+      } finally {
+        inFlightSilentRefresh = null;
+      }
+    },
+
+    /**
+     * Internal — actual HTTP call. silentRefresh wraps this with deduplication.
+     * Don't call this directly; use silentRefresh().
+     */
+    async _doSilentRefresh(): Promise<boolean> {
       const { $api } = useNuxtApp();
       try {
         // Refresh token HttpOnly cookie'de — withCredentials ile otomatik gider.

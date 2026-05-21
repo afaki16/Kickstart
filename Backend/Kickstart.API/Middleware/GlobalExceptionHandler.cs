@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Diagnostics;
+﻿using Kickstart.Application.Common.Localization;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace Kickstart.API.Middleware
 {
@@ -11,13 +12,16 @@ namespace Kickstart.API.Middleware
     {
         private readonly ILogger<GlobalExceptionHandler> _logger;
         private readonly IHostEnvironment _environment;
+        private readonly IJsonStringLocalizer _localizer;
 
         public GlobalExceptionHandler(
             ILogger<GlobalExceptionHandler> logger,
-            IHostEnvironment environment)
+            IHostEnvironment environment,
+            IJsonStringLocalizer localizer)
         {
             _logger = logger;
             _environment = environment;
+            _localizer = localizer;
         }
 
         public async ValueTask<bool> TryHandleAsync(
@@ -54,7 +58,7 @@ namespace Kickstart.API.Middleware
                     {
                         error = new[]
                         {
-                            "An unexpected error occurred. Please try again or contact support if the problem persists."
+                            _localizer["common.unexpectedError"]
                         }
                     },
                     // Stack trace only in Development - never sent to production clients.

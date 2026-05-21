@@ -1,4 +1,6 @@
 using Kickstart.Application.Interfaces;
+using Kickstart.Application.Common.Localization;
+using Kickstart.Infrastructure.Localization;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Infrastructure.Persistence;
@@ -35,6 +37,10 @@ namespace Kickstart.Infrastructure
 
         // Add Memory Cache
         services.AddMemoryCache();
+
+        // Localization — registered before JWT setup because the JWT challenge/forbidden
+        // events resolve IJsonStringLocalizer to return localized error messages.
+        services.AddSingleton<IJsonStringLocalizer, JsonStringLocalizer>();
 
         // Add Services
         services.AddScoped<IPasswordService, PasswordService>();
@@ -119,10 +125,22 @@ namespace Kickstart.Infrastructure
                         context.HandleResponse();
                         context.Response.StatusCode = 401;
                         context.Response.ContentType = "application/json";
+
+                        var localizer = context.HttpContext.RequestServices
+                            .GetRequiredService<IJsonStringLocalizer>();
+
                         var result = System.Text.Json.JsonSerializer.Serialize(new
                         {
-                            error = "Unauthorized",
-                            message = "You are not authorized to access this resource"
+                            success = false,
+                            error = new
+                            {
+                                status = 401,
+                                code = 1012, // ErrorCode.Unauthorized
+                                errors = new Dictionary<string, string[]>
+                                {
+                                    { "error", new[] { localizer["auth.unauthorized"] } }
+                                }
+                            }
                         });
                         return context.Response.WriteAsync(result);
                     },
@@ -130,10 +148,22 @@ namespace Kickstart.Infrastructure
                     {
                         context.Response.StatusCode = 403;
                         context.Response.ContentType = "application/json";
+
+                        var localizer = context.HttpContext.RequestServices
+                            .GetRequiredService<IJsonStringLocalizer>();
+
                         var result = System.Text.Json.JsonSerializer.Serialize(new
                         {
-                            error = "Forbidden",
-                            message = "You don't have permission to access this resource"
+                            success = false,
+                            error = new
+                            {
+                                status = 403,
+                                code = 1011, // ErrorCode.Forbidden
+                                errors = new Dictionary<string, string[]>
+                                {
+                                    { "error", new[] { localizer["auth.forbidden"] } }
+                                }
+                            }
                         });
                         return context.Response.WriteAsync(result);
                     }

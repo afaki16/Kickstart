@@ -71,6 +71,19 @@ export default defineNuxtPlugin(() => {
       if (token) {
         reqConfig.headers.Authorization = `Bearer ${token}`;
       }
+
+      // Send current UI language to backend so error messages come back localized.
+      // Backend's RequestLocalizationMiddleware reads Accept-Language and sets
+      // CurrentUICulture for the request, which JsonStringLocalizer then uses.
+      try {
+        const i18nCookie = useCookie<string | null>("i18n_redirected");
+        const locale = i18nCookie.value || "tr";
+        reqConfig.headers["Accept-Language"] = locale;
+      } catch {
+        // useCookie may not be available in some edge cases; default tr is safe.
+        reqConfig.headers["Accept-Language"] = "tr";
+      }
+
       return reqConfig;
     },
     (error) => Promise.reject(error),

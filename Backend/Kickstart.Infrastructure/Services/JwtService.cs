@@ -1,4 +1,5 @@
 using Kickstart.Application.Interfaces;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Application.Features.Auth.Dtos;
 using Kickstart.Application.Features.Auth.Models;
 using Kickstart.Application.Common.Security;
@@ -30,6 +31,7 @@ namespace Kickstart.Infrastructure.Services
         private readonly ILogger<JwtService> _logger;
         private readonly IBruteForceProtectionService _bruteForceService;
         private readonly IEmailService _emailService;
+        private readonly IJsonStringLocalizer _localizer;
 
         public JwtService(
             IConfiguration configuration,
@@ -37,7 +39,8 @@ namespace Kickstart.Infrastructure.Services
             IPasswordService passwordService,
             ILogger<JwtService> logger,
             IBruteForceProtectionService bruteForceService,
-            IEmailService emailService)
+            IEmailService emailService,
+            IJsonStringLocalizer localizer)
         {
             _configuration = configuration;
             _unitOfWork = unitOfWork;
@@ -45,6 +48,7 @@ namespace Kickstart.Infrastructure.Services
             _logger = logger;
             _bruteForceService = bruteForceService;
             _emailService = emailService;
+            _localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
         }
 
     public async Task<Result<LoginResponseDto>> LoginAsync(string email, string password, string ipAddress, string userAgent, string deviceId = null, string deviceName = null, bool rememberMe = false, int? tenantId = null)
@@ -65,7 +69,7 @@ namespace Kickstart.Infrastructure.Services
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.Unauthorized,
-                    "Invalid email or password"));
+                    _localizer["auth.invalidCredentials"]));
             }
 
             var candidates = await _unitOfWork.Users.GetUsersByEmailWithPermissionsAsync(normalizedEmail);
@@ -90,7 +94,7 @@ namespace Kickstart.Infrastructure.Services
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.ValidationFailed,
-                    "Multiple accounts with this email. Specify tenant id."));
+                    _localizer["auth.multipleAccountsFound"]));
             }
 
             if (user == null)
@@ -103,7 +107,7 @@ namespace Kickstart.Infrastructure.Services
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.Unauthorized,
-                    "Invalid email or password"));
+                    _localizer["auth.invalidCredentials"]));
             }
 
             var passwordVerification = _passwordService.VerifyPassword(password, user.PasswordHash);
@@ -112,7 +116,7 @@ namespace Kickstart.Infrastructure.Services
                 await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "InvalidPassword", user);
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.Unauthorized,
-                    "Invalid email or password"));
+                    _localizer["auth.invalidCredentials"]));
             }
 
             if (user.Status != Domain.Common.Enums.UserStatus.Active)
@@ -128,7 +132,7 @@ namespace Kickstart.Infrastructure.Services
                 // No email notification: the legitimate owner already knows the account is inactive.
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.Unauthorized,
-                    "Invalid email or password"));
+                    _localizer["auth.invalidCredentials"]));
             }
 
             if (!user.EmailConfirmed)
@@ -142,20 +146,20 @@ namespace Kickstart.Infrastructure.Services
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.EmailNotConfirmed,
-                    "Lütfen email adresinizi doğrulayın. Doğrulama bağlantısı email adresinize gönderildi."));
+                    _localizer["auth.emailNotConfirmed"]));
             }
 
             var accessTokenResult = await GenerateAccessTokenAsync(user);
             if (!accessTokenResult.IsSuccess)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,
-                    "Failed to generate access token"));
+                    _localizer["auth.accessTokenGenerationFailed"]));
 
             var refreshTokenResult = await GenerateRefreshTokenAsync(user, ipAddress, userAgent, deviceId, deviceName, rememberMe);
             if (!refreshTokenResult.IsSuccess)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,
-                    "Failed to generate refresh token"));
+                    _localizer["auth.refreshTokenGenerationFailed"]));
 
             await _bruteForceService.RecordSuccessfulAttemptAsync(normalizedEmail, safeIp, userAgent);
 
@@ -176,7 +180,7 @@ namespace Kickstart.Infrastructure.Services
             _logger.LogError(ex, "Login failed for email {Email}", normalizedEmail);
             return Result<LoginResponseDto>.Failure(Error.Failure(
                 ErrorCode.InternalError,
-                "An unexpected error occurred during login"));
+                _localizer["auth.loginUnexpectedError"]));
         }
     }
 
@@ -261,7 +265,7 @@ namespace Kickstart.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to generate access token for user {UserId}", user.Id);
-                return Result<string>.Failure(Error.Failure(ErrorCode.InternalError, "Failed to generate access token"));
+                return Result<string>.Failure(Error.Failure(ErrorCode.InternalError, _localizer["auth.accessTokenGenerationFailed"]));
             }
     }
 
@@ -320,7 +324,7 @@ namespace Kickstart.Infrastructure.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to generate refresh token for user {UserId}", user.Id);
-                return Result<RefreshTokenIssueResult>.Failure(Error.Failure(ErrorCode.InternalError, "Failed to generate refresh token"));
+                return Result<RefreshTokenIssueResult>.Failure(Error.Failure(ErrorCode.InternalError, _localizer["auth.refreshTokenGenerationFailed"]));
             }
     }
 
@@ -360,7 +364,7 @@ namespace Kickstart.Infrastructure.Services
             if (storedRefreshToken == null)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
-                    "Invalid refresh token"));
+                    _localizer["auth.invalidRefreshToken"]));
 
             var userId = storedRefreshToken.UserId;
 
@@ -379,7 +383,7 @@ namespace Kickstart.Infrastructure.Services
                             userId, tokenUserId, ipAddress);
                         return Result<LoginResponseDto>.Failure(Error.Failure(
                             ErrorCode.InvalidRequest,
-                            "Invalid refresh token"));
+                            _localizer["auth.invalidRefreshToken"]));
                     }
                 }
             }
@@ -405,19 +409,19 @@ namespace Kickstart.Infrastructure.Services
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
-                    "Invalid refresh token"));
+                    _localizer["auth.invalidRefreshToken"]));
             }
 
             if (storedRefreshToken.IsExpired)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
-                    "Refresh token is not active"));
+                    _localizer["auth.refreshTokenInactive"]));
 
             var user = await _unitOfWork.Users.GetUserWithPermissionsAsync(userId);
             if (user == null)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.NotFound,
-                    "User not found"));
+                    _localizer["auth.userNotFound"]));
 
             storedRefreshToken.Revoke(ipAddress, userAgent, "Token rotated");
             _unitOfWork.RefreshTokens.Update(storedRefreshToken);
@@ -427,7 +431,7 @@ namespace Kickstart.Infrastructure.Services
             if (!newAccessTokenResult.IsSuccess)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,
-                    "Failed to generate access token"));
+                    _localizer["auth.accessTokenGenerationFailed"]));
 
             var newRefreshTokenResult = await GenerateRefreshTokenAsync(
                 user,
@@ -440,7 +444,7 @@ namespace Kickstart.Infrastructure.Services
             if (!newRefreshTokenResult.IsSuccess)
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,
-                    "Failed to generate refresh token"));
+                    _localizer["auth.refreshTokenGenerationFailed"]));
 
             _logger.LogInformation(
                 "Token refreshed. UserId: {UserId}, IpAddress: {IpAddress}",

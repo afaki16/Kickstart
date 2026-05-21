@@ -22,4 +22,12 @@
 		<ProjectReference Include="..\Kickstart.Application\Kickstart.Application.csproj" />
 		<ProjectReference Include="..\Kickstart.Domain\Kickstart.Domain.csproj" />
 	</ItemGroup>
+	<ItemGroup>
+		<None Update="Resources\tr.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Resources\en.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 </Project>

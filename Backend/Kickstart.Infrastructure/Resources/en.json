@@ -1,0 +1,18 @@
+{
+  "auth": {
+    "invalidCredentials": "Invalid email or password",
+    "emailNotConfirmed": "Please verify your email address. A verification link has been sent to your email.",
+    "multipleAccountsFound": "Multiple accounts found with this email. Please specify a tenant id.",
+    "accessTokenGenerationFailed": "Failed to generate access token",
+    "refreshTokenGenerationFailed": "Failed to generate refresh token",
+    "invalidRefreshToken": "Invalid refresh token",
+    "refreshTokenInactive": "Refresh token is not active",
+    "userNotFound": "User not found",
+    "loginUnexpectedError": "An unexpected error occurred during login",
+    "unauthorized": "You are not authorized to access this resource",
+    "forbidden": "You don't have permission to access this resource"
+  },
+  "common": {
+    "unexpectedError": "An unexpected error occurred. Please try again or contact support if the problem persists."
+  }
+}

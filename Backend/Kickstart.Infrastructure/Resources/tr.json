@@ -1,0 +1,18 @@
+{
+  "auth": {
+    "invalidCredentials": "Email veya şifre hatalı",
+    "emailNotConfirmed": "Lütfen email adresinizi doğrulayın. Doğrulama bağlantısı email adresinize gönderildi.",
+    "multipleAccountsFound": "Bu email adresine ait birden fazla hesap bulundu. Lütfen tenant kimliğini belirtin.",
+    "accessTokenGenerationFailed": "Erişim tokeni oluşturulamadı",
+    "refreshTokenGenerationFailed": "Yenileme tokeni oluşturulamadı",
+    "invalidRefreshToken": "Geçersiz yenileme tokeni",
+    "refreshTokenInactive": "Yenileme tokeni aktif değil",
+    "userNotFound": "Kullanıcı bulunamadı",
+    "loginUnexpectedError": "Giriş sırasında beklenmeyen bir hata oluştu",
+    "unauthorized": "Bu kaynağa erişim yetkiniz yok",
+    "forbidden": "Bu kaynağa erişim izniniz bulunmuyor"
+  },
+  "common": {
+    "unexpectedError": "Beklenmedik bir hata oluştu. Lütfen tekrar deneyin veya sorun devam ederse destek ekibiyle iletişime geçin."
+  }
+}
