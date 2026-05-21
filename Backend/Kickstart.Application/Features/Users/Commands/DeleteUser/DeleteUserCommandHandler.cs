@@ -2,6 +2,7 @@ using Kickstart.Application.Features.Users.Commands.CreateUser;
 using Kickstart.Application.Features.Users.Commands.UpdateUser;
 using Kickstart.Application.Features.Users.Commands.DeleteUser;
 using Kickstart.Application.Common.Authorization;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
@@ -28,17 +29,20 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
         private readonly ICurrentUserService _currentUserService;
         private readonly IPermissionService _permissionService;
         private readonly ILogger<DeleteUserCommandHandler> _logger;
+        private readonly IJsonStringLocalizer _localizer;
 
         public DeleteUserCommandHandler(
             IUnitOfWork unitOfWork,
             ICurrentUserService currentUserService,
             IPermissionService permissionService,
-            ILogger<DeleteUserCommandHandler> logger)
+            ILogger<DeleteUserCommandHandler> logger,
+            IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
             _permissionService = permissionService;
             _logger = logger;
+            _localizer = localizer;
         }
 
         public async Task<Result> Handle(DeleteUserCommand request, CancellationToken cancellationToken)
@@ -48,7 +52,7 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
             if (user == null)
                 return Result.Failure(Error.Failure(
                     ErrorCode.NotFound,
-                    "User not found"));
+                    _localizer["users.notFound"]));
 
             // Prevent self-deletion
             if (user.Id == _currentUserService.UserId)
@@ -58,19 +62,19 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
                     _currentUserService.UserId);
                 return Result.Failure(Error.Failure(
                     ErrorCode.Forbidden,
-                    "You cannot delete your own account"));
+                    _localizer["users.cannotDeleteSelf"]));
             }
 
             // Admin/User can only delete users from their own tenant; SuperAdmin can delete any user
             if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
                 return Result.Failure(Error.Failure(
                     ErrorCode.Forbidden,
-                    "You do not have access to delete this user"));
+                    _localizer["users.noAccessToDelete"]));
 
             if (TenantAdminVisibility.IsHiddenFromTenantAdmin(_currentUserService, user))
                 return Result.Failure(Error.Failure(
                     ErrorCode.Forbidden,
-                    "You do not have access to delete this user"));
+                    _localizer["users.noAccessToDelete"]));
 
             // Last SuperAdmin protection
             var isSuperAdmin = user.UserRoles?.Any(ur => ur.Role?.Name == RoleNames.SuperAdmin) == true;
@@ -85,7 +89,7 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
                         _currentUserService.UserId, request.Id);
                     return Result.Failure(Error.Failure(
                         ErrorCode.Forbidden,
-                        "Cannot delete the last SuperAdmin in the system"));
+                        _localizer["users.cannotDeleteLastSuperAdmin"]));
                 }
             }
 

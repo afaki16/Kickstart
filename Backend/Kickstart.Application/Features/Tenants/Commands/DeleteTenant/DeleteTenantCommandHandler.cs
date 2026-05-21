@@ -1,6 +1,7 @@
 using Kickstart.Application.Features.Tenants.Commands.CreateTenant;
 using Kickstart.Application.Features.Tenants.Commands.UpdateTenant;
 using Kickstart.Application.Features.Tenants.Commands.DeleteTenant;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -15,10 +16,12 @@ namespace Kickstart.Application.Features.Tenants.Commands.DeleteTenant;
     public class DeleteTenantCommandHandler : IRequestHandler<DeleteTenantCommand, Result<bool>>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IJsonStringLocalizer _localizer;
 
-    public DeleteTenantCommandHandler(IUnitOfWork unitOfWork)
+    public DeleteTenantCommandHandler(IUnitOfWork unitOfWork, IJsonStringLocalizer localizer)
     {
         _unitOfWork = unitOfWork;
+        _localizer = localizer;
     }
 
     public async Task<Result<bool>> Handle(DeleteTenantCommand request, CancellationToken cancellationToken)
@@ -29,7 +32,7 @@ namespace Kickstart.Application.Features.Tenants.Commands.DeleteTenant;
         {
             return Result<bool>.Failure(Error.Failure(
                 ErrorCode.NotFound,
-                "Tenant not found"));
+                _localizer["tenants.notFound"]));
         }
 
         // Soft delete - User'ların TenantId'si null olur (DeleteBehavior.SetNull)

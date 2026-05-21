@@ -7,6 +7,7 @@ using Kickstart.Application.Features.Users.Commands.CreateUser;
 using Kickstart.Application.Features.Users.Commands.UpdateUser;
 using Kickstart.Application.Features.Users.Commands.DeleteUser;
 using Kickstart.Application.Common.Authorization;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
@@ -28,13 +29,15 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
         private readonly IPermissionService _permissionService;
+        private readonly IJsonStringLocalizer _localizer;
 
-        public UpdateUserCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService, IPermissionService permissionService)
+        public UpdateUserCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService, IPermissionService permissionService, IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _currentUserService = currentUserService;
             _permissionService = permissionService;
+            _localizer = localizer;
         }
 
         public async Task<Result<UserListDto>> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
@@ -44,18 +47,18 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
             if (user == null)
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.NotFound,
-                    "User not found"));
+                    _localizer["users.notFound"]));
 
             // Admin/User can only update users from their own tenant; SuperAdmin can update any user
             if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.Forbidden,
-                    "You do not have access to update this user"));
+                    _localizer["users.noAccessToUpdate"]));
 
             if (TenantAdminVisibility.IsHiddenFromTenantAdmin(_currentUserService, user))
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.Forbidden,
-                    "You do not have access to update this user"));
+                    _localizer["users.noAccessToUpdate"]));
 
             var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
 
@@ -64,13 +67,13 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
             if (existingUser != null && existingUser.Id != request.Id)
             return Result<UserListDto>.Failure(Error.Failure(
                         ErrorCode.AlreadyExists,
-                        "Email already exists"));
+                        _localizer["users.emailExists"]));
 
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber) &&
                 await _unitOfWork.Users.PhoneExistsAsync(request.PhoneNumber, user.TenantId, request.Id))
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.AlreadyExists,
-                    "Phone number already exists"));
+                    _localizer["users.phoneExists"]));
 
             // Update user properties
             user.FirstName = request.FirstName;
@@ -93,7 +96,7 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
                     if (roles.Any(r => r.Name == RoleNames.SuperAdmin))
                         return Result<UserListDto>.Failure(Error.Failure(
                             ErrorCode.Forbidden,
-                            "You cannot assign the SuperAdmin role"));
+                            _localizer["users.cannotAssignSuperAdmin"]));
                 }
 
                 foreach (var roleId in request.RoleIds)

@@ -1,4 +1,5 @@
 using Kickstart.Application.Common.Results;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Application.Features.Roles.Dtos;
 using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Enums;
@@ -14,11 +15,13 @@ namespace Kickstart.Application.Features.Roles.Commands.DeleteRole
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPermissionService _permissionService;
+        private readonly IJsonStringLocalizer _localizer;
 
-        public DeleteRoleCommandHandler(IUnitOfWork unitOfWork, IPermissionService permissionService)
+        public DeleteRoleCommandHandler(IUnitOfWork unitOfWork, IPermissionService permissionService, IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _permissionService = permissionService;
+            _localizer = localizer;
         }
 
         public async Task<Result> Handle(DeleteRoleCommand request, CancellationToken cancellationToken)
@@ -28,12 +31,12 @@ namespace Kickstart.Application.Features.Roles.Commands.DeleteRole
             if (role == null)
                 return Result<RoleDto>.Failure(Error.Failure(
                     ErrorCode.NotFound,
-                    "Role not found"));
+                    _localizer["roles.notFound"]));
 
             if (role.IsSystemRole)
                 return Result<RoleDto>.Failure(Error.Failure(
                     ErrorCode.InvalidOperation,
-                    "Cannot modify system roles"));
+                    _localizer["roles.cannotModifySystem"]));
 
             // Collect affected users BEFORE delete so we can invalidate their cached
             // permission lists after the role is removed.

@@ -10,6 +10,7 @@ using Kickstart.Application.Features.Auth.Commands.ChangePassword;
 using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
 using Kickstart.Application.Features.Auth.Commands.ResetPassword;
 using Kickstart.Application.Common.Security;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Constants;
 using Kickstart.Domain.Common.Interfaces.Repositories;
@@ -39,6 +40,7 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
         private readonly ILogger<RegisterCommandHandler> _logger;
+        private readonly IJsonStringLocalizer _localizer;
 
         public RegisterCommandHandler(
             IUnitOfWork unitOfWork,
@@ -46,7 +48,8 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
             IEmailService emailService,
             IConfiguration configuration,
             IMapper mapper,
-            ILogger<RegisterCommandHandler> logger)
+            ILogger<RegisterCommandHandler> logger,
+            IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
@@ -54,6 +57,7 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
             _configuration = configuration;
             _mapper = mapper;
             _logger = logger;
+            _localizer = localizer;
         }
 
         public async Task<Result<UserDto>> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -64,13 +68,13 @@ namespace Kickstart.Application.Features.Auth.Commands.Register
             if (await _unitOfWork.Users.EmailExistsAsync(normalizedEmail, tenantId: null))
              return Result<UserDto>.Failure(Error.Failure(
                   ErrorCode.AlreadyExists,
-                  "Email already exists"));
+                  _localizer["users.emailExists"]));
 
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber) &&
                 await _unitOfWork.Users.PhoneExistsAsync(request.PhoneNumber, tenantId: null))
                 return Result<UserDto>.Failure(Error.Failure(
                     ErrorCode.AlreadyExists,
-                    "Phone number already exists"));
+                    _localizer["users.phoneExists"]));
 
             // Validate password strength (single source of truth: PasswordService)
             var strengthResult = _passwordService.ValidatePasswordStrength(request.Password);

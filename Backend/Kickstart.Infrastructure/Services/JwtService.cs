@@ -458,7 +458,7 @@ namespace Kickstart.Infrastructure.Services
             _logger.LogError(ex, "Token refresh failed for user");
             return Result<LoginResponseDto>.Failure(Error.Failure(
                 ErrorCode.InternalError,
-                "An unexpected error occurred during token refresh"));
+                _localizer["auth.tokenRefreshUnexpectedError"]));
         }
     }
     private static LoginResponseDto BuildLoginResponse(User user, string accessToken, RefreshTokenIssueResult refreshTokenResult)

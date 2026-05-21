@@ -1,5 +1,6 @@
 using AutoMapper;
 using Kickstart.Application.Interfaces;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Application.Features.Roles.Commands.CreateRole;
 using Kickstart.Application.Features.Roles.Commands.UpdateRole;
 using Kickstart.Application.Features.Roles.Commands.DeleteRole;
@@ -27,13 +28,15 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
         private readonly IMapper _mapper;
         private readonly ILogger<UpdateRoleCommandHandler> _logger;
         private readonly IPermissionService _permissionService;
+        private readonly IJsonStringLocalizer _localizer;
 
-        public UpdateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UpdateRoleCommandHandler> logger, IPermissionService permissionService)
+        public UpdateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UpdateRoleCommandHandler> logger, IPermissionService permissionService, IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _permissionService = permissionService;
+            _localizer = localizer;
         }
 
         public async Task<Result<RoleDto>> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
@@ -47,12 +50,12 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
                 if (role == null)
                 return Result<RoleDto>.Failure(Error.Failure(
                   ErrorCode.NotFound,
-                  "Role not found"));
+                  _localizer["roles.notFound"]));
 
                 if (role.IsSystemRole)
                 return Result<RoleDto>.Failure(Error.Failure(
                 ErrorCode.InvalidOperation,
-                "Cannot modify system roles"));
+                _localizer["roles.cannotModifySystem"]));
 
                 // Check if role name already exists for another role
                 var existingRole = await _unitOfWork.Roles.GetByNameAsync(request.Name);
@@ -112,7 +115,7 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
                 _logger.LogError(ex, "Error occurred while updating role with ID: {RoleId}", request.Id);
                 return Result<RoleDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,
-                    "An unexpected error occurred while updating the role"));
+                    _localizer["roles.updateFailed"]));
         }
         }
     }

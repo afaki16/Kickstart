@@ -1,4 +1,5 @@
 using Kickstart.Application.Interfaces;
+using Kickstart.Application.Common.Localization;
 using AutoMapper;
 using Kickstart.Application.Features.Users.Commands.CreateUser;
 using Kickstart.Application.Features.Users.Commands.UpdateUser;
@@ -27,13 +28,15 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
         private readonly IPasswordService _passwordService;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IJsonStringLocalizer _localizer;
 
-        public CreateUserCommandHandler(IUnitOfWork unitOfWork, IPasswordService passwordService, IMapper mapper, ICurrentUserService currentUserService)
+        public CreateUserCommandHandler(IUnitOfWork unitOfWork, IPasswordService passwordService, IMapper mapper, ICurrentUserService currentUserService, IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
             _mapper = mapper;
             _currentUserService = currentUserService;
+            _localizer = localizer;
         }
 
         public async Task<Result<UserListDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -43,7 +46,7 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
             if (request.TenantId.HasValue)
             {
                 if (!_currentUserService.CanAccessAllTenants)
-                    return Result<UserListDto>.Failure(Error.Failure(ErrorCode.Forbidden, "Only SuperAdmin can create users in a specific tenant"));
+                    return Result<UserListDto>.Failure(Error.Failure(ErrorCode.Forbidden, _localizer["users.onlySuperAdminCanSpecifyTenant"]));
                 tenantId = request.TenantId;
             }
             else
@@ -57,13 +60,13 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
             if (await _unitOfWork.Users.EmailExistsAsync(normalizedEmail, tenantId))
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.AlreadyExists,
-                    "Email already exists"));
+                    _localizer["users.emailExists"]));
 
             if (!string.IsNullOrWhiteSpace(request.PhoneNumber) &&
                 await _unitOfWork.Users.PhoneExistsAsync(request.PhoneNumber, tenantId))
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.AlreadyExists,
-                    "Phone number already exists"));
+                    _localizer["users.phoneExists"]));
 
             if (!_currentUserService.CanAccessAllTenants && request.RoleIds?.Any() == true)
             {
@@ -71,7 +74,7 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
                 if (roles.Any(r => r.Name == RoleNames.SuperAdmin))
                     return Result<UserListDto>.Failure(Error.Failure(
                         ErrorCode.Forbidden,
-                        "You cannot assign the SuperAdmin role"));
+                        _localizer["users.cannotAssignSuperAdmin"]));
             }
 
             // Validate password strength (single source of truth: PasswordService)

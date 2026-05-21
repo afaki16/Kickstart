@@ -6,6 +6,7 @@ using Kickstart.Application.Features.Permissions.Dtos;
 using Kickstart.Application.Features.Roles.Commands.CreateRole;
 using Kickstart.Application.Features.Roles.Commands.UpdateRole;
 using Kickstart.Application.Features.Roles.Commands.DeleteRole;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -25,12 +26,14 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ILogger<CreateRoleCommandHandler> _logger;
+        private readonly IJsonStringLocalizer _localizer;
 
-        public CreateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<CreateRoleCommandHandler> logger)
+        public CreateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<CreateRoleCommandHandler> logger, IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
+            _localizer = localizer;
         }
 
         public async Task<Result<RoleDto>> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
@@ -97,7 +100,7 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
                 _logger.LogError(ex, "Error occurred while creating role: {RoleName}", request.Name);
                 return Result<RoleDto>.Failure(Error.Failure(
                     ErrorCode.InternalError,
-                    "An unexpected error occurred while creating the role"));
+                    _localizer["roles.createFailed"]));
             }
         }
     }

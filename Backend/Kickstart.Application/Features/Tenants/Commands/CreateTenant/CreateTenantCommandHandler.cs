@@ -3,6 +3,7 @@ using Kickstart.Application.Features.Tenants.Commands.CreateTenant;
 using Kickstart.Application.Features.Tenants.Commands.UpdateTenant;
 using Kickstart.Application.Features.Tenants.Commands.DeleteTenant;
 using Kickstart.Application.Features.Tenants.Dtos;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -19,11 +20,13 @@ namespace Kickstart.Application.Features.Tenants.Commands.CreateTenant;
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IMapper _mapper;
+    private readonly IJsonStringLocalizer _localizer;
 
-    public CreateTenantCommandHandler(IUnitOfWork unitOfWork, IMapper mapper)
+    public CreateTenantCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, IJsonStringLocalizer localizer)
     {
         _unitOfWork = unitOfWork;
         _mapper = mapper;
+        _localizer = localizer;
     }
 
     public async Task<Result<TenantListDto>> Handle(CreateTenantCommand request, CancellationToken cancellationToken)
@@ -33,7 +36,7 @@ namespace Kickstart.Application.Features.Tenants.Commands.CreateTenant;
         {
             return Result<TenantListDto>.Failure(Error.Failure(
                 ErrorCode.AlreadyExists,
-                "Tenant name already exists"));
+                _localizer["tenants.nameExists"]));
         }
 
         // Domain kontrolü (eğer verilmişse)
@@ -41,7 +44,7 @@ namespace Kickstart.Application.Features.Tenants.Commands.CreateTenant;
         {
             return Result<TenantListDto>.Failure(Error.Failure(
                 ErrorCode.AlreadyExists,
-                "Tenant domain already exists"));
+                _localizer["tenants.domainExists"]));
         }
 
         // Entity oluştur

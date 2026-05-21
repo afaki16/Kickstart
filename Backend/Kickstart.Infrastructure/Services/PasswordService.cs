@@ -1,4 +1,5 @@
 using Kickstart.Application.Interfaces;
+using Kickstart.Application.Common.Localization;
 using BCrypt.Net;
 using Kickstart.Application.Common.Security;
 using Kickstart.Domain.Common.Interfaces;
@@ -18,10 +19,12 @@ namespace Kickstart.Infrastructure.Services
     public class PasswordService : IPasswordService
     {
         private readonly ILogger<PasswordService> _logger;
+        private readonly IJsonStringLocalizer _localizer;
 
-        public PasswordService(ILogger<PasswordService> logger)
+        public PasswordService(ILogger<PasswordService> logger, IJsonStringLocalizer localizer)
         {
             _logger = logger;
+            _localizer = localizer;
         }
 
     public Result<string> HashPassword(string password)
@@ -31,7 +34,7 @@ namespace Kickstart.Infrastructure.Services
             if (string.IsNullOrWhiteSpace(password))
                 return Result<string>.Failure(Error.Failure(
                     ErrorCode.ValidationFailed,
-                    "Password cannot be empty"));
+                    _localizer["password.empty"]));
 
             var hashedPassword = BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
             return Result<string>.Success(hashedPassword);
@@ -85,7 +88,7 @@ namespace Kickstart.Infrastructure.Services
             {
                 if (length < 8)
                 return Result<string>.Failure(
-            Error.Failure(ErrorCode.ValidationFailed, "Password must be at least 8 characters long"));
+            Error.Failure(ErrorCode.ValidationFailed, _localizer["password.tooShort"]));
 
             const string lowercase = "abcdefghijklmnopqrstuvwxyz";
                 const string uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -116,7 +119,7 @@ namespace Kickstart.Infrastructure.Services
             {
                 _logger.LogError(ex, "Failed to generate random password");
                 return Result<string>.Failure(
-                    Error.Failure(ErrorCode.InternalError, "Failed to generate password"));
+                    Error.Failure(ErrorCode.InternalError, _localizer["password.generationFailed"]));
             }
         }
 
@@ -124,23 +127,23 @@ namespace Kickstart.Infrastructure.Services
     {
         if (string.IsNullOrWhiteSpace(password))
             return Result<bool>.Failure(
-                Error.Failure(ErrorCode.ValidationFailed, "Password cannot be empty"));
+                Error.Failure(ErrorCode.ValidationFailed, _localizer["password.empty"]));
 
         if (password.Length < 8)
             return Result<bool>.Failure(
-                Error.Failure(ErrorCode.ValidationFailed, "Password must be at least 8 characters long"));
+                Error.Failure(ErrorCode.ValidationFailed, _localizer["password.tooShort"]));
 
         if (!Regex.IsMatch(password, @"[a-z]"))
             return Result<bool>.Failure(
-                Error.Failure(ErrorCode.ValidationFailed, "Password must contain at least one lowercase letter"));
+                Error.Failure(ErrorCode.ValidationFailed, _localizer["password.missingLowercase"]));
 
         if (!Regex.IsMatch(password, @"[A-Z]"))
             return Result<bool>.Failure(
-                Error.Failure(ErrorCode.ValidationFailed, "Password must contain at least one uppercase letter"));
+                Error.Failure(ErrorCode.ValidationFailed, _localizer["password.missingUppercase"]));
 
         if (!Regex.IsMatch(password, @"\d"))
             return Result<bool>.Failure(
-                Error.Failure(ErrorCode.ValidationFailed, "Password must contain at least one digit"));
+                Error.Failure(ErrorCode.ValidationFailed, _localizer["password.missingDigit"]));
 
         return Result<bool>.Success(true);
     }
