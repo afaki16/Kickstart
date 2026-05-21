@@ -60,7 +60,8 @@
       "tenants": "Kiracılar",
       "roles": "Roller",
       "permissions": "İzinler",
-      "settings": "Ayarlar"
+      "settings": "Ayarlar",
+      "profile": "Profil"
     },
     "actions": {
       "support": "Destek",

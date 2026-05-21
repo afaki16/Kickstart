@@ -60,7 +60,8 @@
       "tenants": "Tenants",
       "roles": "Roles",
       "permissions": "Permissions",
-      "settings": "Settings"
+      "settings": "Settings",
+      "profile": "Profile"
     },
     "actions": {
       "support": "Support",

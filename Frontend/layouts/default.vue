@@ -96,31 +96,75 @@
         </template>
       </nav>
 
-      <!-- Sidebar Footer: User + Settings + Logout -->
-      <div class="px-4 py-4 mt-auto border-t border-outline-variant space-y-1">
-        <!-- User Info (sadece açıkken) -->
-        <div v-if="isSidebarOpen" class="flex items-center gap-3 px-2 pb-3 border-b border-outline-variant/30 mb-2">
-          <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-            <Icon name="mdi:account" class="w-5 h-5 text-primary" />
-          </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-body-sm font-bold text-on-surface truncate">{{ userInfo.name }}</p>
-            <p class="text-label-sm text-on-surface-variant truncate">{{ userInfo.email }}</p>
-          </div>
+      <!-- Sidebar Footer: User Dropdown + Logout (sabit) -->
+      <div class="px-4 py-4 mt-auto border-t border-outline-variant relative">
+        <!-- User Card — Dropdown Trigger -->
+        <div class="relative">
+          <button
+            @click="toggleUserDropdown"
+            class="w-full flex items-center gap-3 rounded-xl hover:bg-surface-container-high transition-all"
+            :class="isSidebarOpen ? 'px-2 py-2' : 'justify-center p-2'"
+            :title="!isSidebarOpen ? userInfo.name : undefined"
+          >
+            <!-- Avatar -->
+            <div class="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+              <Icon name="mdi:account" class="w-5 h-5 text-primary" />
+            </div>
+
+            <!-- User Info (sadece açık sidebar'da) -->
+            <div v-if="isSidebarOpen" class="flex-1 min-w-0 text-left">
+              <p class="text-body-sm font-bold text-on-surface truncate">{{ userInfo.name }}</p>
+              <p class="text-label-sm text-on-surface-variant truncate">{{ userInfo.email }}</p>
+            </div>
+
+            <!-- Caret (sadece açık sidebar'da) -->
+            <Icon
+              v-if="isSidebarOpen"
+              name="mdi:chevron-up"
+              class="w-4 h-4 text-on-surface-variant flex-shrink-0 transition-transform"
+              :class="{ 'rotate-180': showUserDropdown }"
+            />
+          </button>
+
+          <!-- Dropdown Menu — yukarı açılır -->
+          <Transition
+            enter-active-class="transition-all duration-200 ease-out"
+            enter-from-class="opacity-0 translate-y-2"
+            enter-to-class="opacity-100 translate-y-0"
+            leave-active-class="transition-all duration-150 ease-in"
+            leave-from-class="opacity-100 translate-y-0"
+            leave-to-class="opacity-0 translate-y-2"
+          >
+            <div
+              v-if="showUserDropdown"
+              class="user-dropdown-menu absolute bottom-full mb-2 bg-surface-container-low border border-outline-variant/30 rounded-xl shadow-xl z-50 overflow-hidden"
+              :class="isSidebarOpen ? 'left-0 right-0' : 'left-full ml-2 w-48'"
+            >
+              <NuxtLink
+                to="/profile"
+                @click="closeUserDropdown"
+                class="flex items-center gap-3 px-4 py-3 text-on-surface hover:bg-surface-container-high transition-colors"
+              >
+                <Icon name="mdi:account-circle" class="w-5 h-5 text-on-surface-variant" />
+                <span class="text-body-sm font-medium">{{ $t('sidebar.menu.profile') }}</span>
+              </NuxtLink>
+
+              <NuxtLink
+                to="/settings"
+                @click="closeUserDropdown"
+                class="flex items-center gap-3 px-4 py-3 text-on-surface hover:bg-surface-container-high transition-colors border-t border-outline-variant/20"
+              >
+                <Icon name="mdi:cog" class="w-5 h-5 text-on-surface-variant" />
+                <span class="text-body-sm font-medium">{{ $t('sidebar.menu.settings') }}</span>
+              </NuxtLink>
+            </div>
+          </Transition>
         </div>
 
-        <NuxtLink
-          to="/settings"
-          class="flex items-center gap-3 px-4 py-2 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-high transition-colors"
-          :class="!isSidebarOpen && 'justify-center px-0'"
-        >
-          <Icon name="mdi:cog" class="w-5 h-5 flex-shrink-0" />
-          <span v-if="isSidebarOpen" class="font-body-md">{{ $t('sidebar.menu.settings') }}</span>
-        </NuxtLink>
-
+        <!-- Logout — Sabit, dropdown'dan bağımsız -->
         <button
           @click="handleLogout"
-          class="w-full flex items-center gap-3 px-4 py-2 rounded-xl text-error/80 hover:text-error hover:bg-error/10 transition-colors"
+          class="w-full flex items-center gap-3 mt-2 px-4 py-2 rounded-xl text-error/80 hover:text-error hover:bg-error/10 transition-colors"
           :class="!isSidebarOpen && 'justify-center px-0'"
         >
           <Icon name="mdi:logout" class="w-5 h-5 flex-shrink-0" />
@@ -160,7 +204,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { storeToRefs } from 'pinia'
 import { navigationItems, filterNavigationByPermissions } from '~/composables/useNavigation'
 import { useAuth } from '~/composables/useAuth'
@@ -240,6 +284,30 @@ const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
 }
 
+// User dropdown state
+const showUserDropdown = ref(false)
+
+const toggleUserDropdown = () => {
+  showUserDropdown.value = !showUserDropdown.value
+}
+
+const closeUserDropdown = () => {
+  showUserDropdown.value = false
+}
+
+/**
+ * Dropdown dışına tıklayınca kapansın.
+ * Named function — onUnmounted'da temizlenebilir.
+ */
+const handleDocumentClickForUserDropdown = (e: MouseEvent) => {
+  const target = e.target as HTMLElement | null
+  if (!target) return
+  // Dropdown menüsünün veya trigger butonunun içine tıklanmadıysa kapat
+  if (!target.closest('.user-dropdown-menu') && !target.closest('button')) {
+    showUserDropdown.value = false
+  }
+}
+
 // Logout
 const handleLogout = async () => {
   try {
@@ -251,6 +319,17 @@ const handleLogout = async () => {
 
 onMounted(async () => {
   await loadAppData()
+
+  // Dropdown dışı tıklama listener
+  if (process.client) {
+    document.addEventListener('click', handleDocumentClickForUserDropdown)
+  }
+})
+
+onUnmounted(() => {
+  if (process.client) {
+    document.removeEventListener('click', handleDocumentClickForUserDropdown)
+  }
 })
 </script>
 
