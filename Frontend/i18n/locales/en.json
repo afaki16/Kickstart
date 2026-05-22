@@ -101,5 +101,18 @@
       "sun": "Sun"
     },
     "pageTitle": "Dashboard - Kickstart"
+  },
+  "validation": {
+    "required": "This field is required",
+    "emailFormat": "Please enter a valid email address",
+    "passwordRequired": "Password is required",
+    "passwordMinLength": "Password must be at least {min} characters",
+    "passwordLowercase": "Password must contain at least one lowercase letter",
+    "passwordUppercase": "Password must contain at least one uppercase letter",
+    "passwordDigit": "Password must contain at least one number",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "minLength": "Must be at least {min} characters",
+    "maxLength": "Must be no more than {max} characters",
+    "phoneFormat": "Please enter a valid phone number"
   }
 }

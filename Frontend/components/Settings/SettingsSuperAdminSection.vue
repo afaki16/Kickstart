@@ -277,13 +277,13 @@ onMounted(async () => {
 .section-title {
   font-size: 1.15rem;
   font-weight: 700;
-  color: #1a202c;
+  color: rgb(var(--v-theme-on-surface));
   margin: 0;
 }
 
 .section-desc {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin: 0;
 }
 
@@ -291,19 +291,19 @@ onMounted(async () => {
   transition: box-shadow 0.2s;
 }
 .stat-card:hover {
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08) !important;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15) !important;
 }
 
 .stat-value {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #1a202c;
+  color: rgb(var(--v-theme-on-surface));
   line-height: 1.2;
 }
 
 .stat-label {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin-top: 2px;
 }
 
@@ -317,12 +317,12 @@ onMounted(async () => {
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6b7280 !important;
-  background: #f9fafb;
+  color: rgb(var(--v-theme-on-surface-variant)) !important;
+  background: rgb(var(--v-theme-surface-variant));
 }
 
 .online-table :deep(tr:hover td) {
-  background: rgba(var(--v-theme-deep-purple), 0.03);
+  background: rgba(var(--v-theme-deep-purple), 0.08);
 }
 
 .empty-table {

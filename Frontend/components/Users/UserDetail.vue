@@ -266,8 +266,8 @@ const formatDateTime = (date?: string | null) => {
 }
 
 .detail-avatar {
-  border: 3px solid #e2e8f0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 3px solid rgb(var(--v-theme-outline-variant));
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .header-info {
@@ -277,7 +277,7 @@ const formatDateTime = (date?: string | null) => {
 .user-name {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #1e293b;
+  color: rgb(var(--v-theme-on-surface));
   margin: 0 0 8px 0;
 }
 
@@ -301,7 +301,7 @@ const formatDateTime = (date?: string | null) => {
 .section-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #1e293b;
+  color: rgb(var(--v-theme-on-surface));
   margin: 0 0 16px 0;
   display: flex;
   align-items: center;
@@ -315,15 +315,15 @@ const formatDateTime = (date?: string | null) => {
 
 .info-item {
   padding: 14px 16px;
-  background: #f8fafc;
+  background: rgb(var(--v-theme-surface-variant));
   border-radius: 8px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgb(var(--v-theme-outline-variant));
   transition: all 0.2s ease;
 }
 
 .info-item:hover {
-  border-color: #cbd5e1;
-  background: white;
+  border-color: rgb(var(--v-theme-outline));
+  background: rgb(var(--v-theme-surface));
 }
 
 .info-label {
@@ -331,7 +331,7 @@ const formatDateTime = (date?: string | null) => {
   align-items: center;
   gap: 6px;
   font-size: 0.75rem;
-  color: #64748b;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin-bottom: 6px;
   font-weight: 500;
   text-transform: uppercase;
@@ -340,7 +340,7 @@ const formatDateTime = (date?: string | null) => {
 
 .info-value {
   font-size: 0.9375rem;
-  color: #1e293b;
+  color: rgb(var(--v-theme-on-surface));
   font-weight: 500;
 }
 
@@ -352,16 +352,16 @@ const formatDateTime = (date?: string | null) => {
 }
 
 .role-card {
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgb(var(--v-theme-outline-variant));
   border-radius: 8px;
   padding: 14px 16px;
   transition: all 0.2s ease;
 }
 
 .role-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-color: rgb(var(--v-theme-outline));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .role-card-header {
@@ -376,7 +376,7 @@ const formatDateTime = (date?: string | null) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0f7ff;
+  background: rgba(var(--v-theme-primary), 0.1);
   border-radius: 8px;
   flex-shrink: 0;
 }
@@ -389,13 +389,13 @@ const formatDateTime = (date?: string | null) => {
 .role-card-name {
   font-size: 0.9375rem;
   font-weight: 600;
-  color: #1e293b;
+  color: rgb(var(--v-theme-on-surface));
   margin: 0 0 4px 0;
 }
 
 .role-card-description {
   font-size: 0.8125rem;
-  color: #64748b;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin: 0;
   line-height: 1.4;
 }
@@ -412,15 +412,15 @@ const formatDateTime = (date?: string | null) => {
   display: flex;
   gap: 12px;
   padding: 14px 16px;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: rgb(var(--v-theme-surface));
+  border: 1px solid rgb(var(--v-theme-outline-variant));
   border-radius: 8px;
   transition: all 0.2s ease;
 }
 
 .security-card:hover {
-  border-color: #cbd5e1;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-color: rgb(var(--v-theme-outline));
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .security-icon {
@@ -444,8 +444,8 @@ const formatDateTime = (date?: string | null) => {
 }
 
 .security-icon.default {
-  background: #f1f5f9;
-  color: #64748b;
+  background: rgb(var(--v-theme-surface-variant));
+  color: rgb(var(--v-theme-on-surface-variant));
 }
 
 .security-info {
@@ -455,13 +455,13 @@ const formatDateTime = (date?: string | null) => {
 .security-title {
   font-size: 0.8125rem;
   font-weight: 600;
-  color: #1e293b;
+  color: rgb(var(--v-theme-on-surface));
   margin: 0 0 4px 0;
 }
 
 .security-status {
   font-size: 0.8125rem;
-  color: #64748b;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin: 0;
   font-weight: 500;
 }
@@ -475,14 +475,15 @@ const formatDateTime = (date?: string | null) => {
 .empty-title {
   font-size: 1rem;
   font-weight: 600;
-  color: #64748b;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin-top: 12px;
 }
 
 .empty-text {
   font-size: 0.875rem;
-  color: #94a3b8;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin-top: 6px;
+  opacity: 0.7;
 }
 
 /* Footer */
@@ -492,7 +493,7 @@ const formatDateTime = (date?: string | null) => {
   gap: 12px;
   margin-top: 24px;
   padding-top: 20px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid rgb(var(--v-theme-outline-variant));
 }
 
 @media (max-width: 768px) {

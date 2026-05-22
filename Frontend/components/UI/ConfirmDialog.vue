@@ -109,7 +109,8 @@ const confirmColor = computed(() => {
 .confirm-card {
   border-radius: 20px !important;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+  background: rgb(var(--v-theme-surface)) !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.15) !important;
 }
 
 /* Header Styles */
@@ -238,14 +239,14 @@ const confirmColor = computed(() => {
 .confirm-title {
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e293b;
+  color: rgb(var(--v-theme-on-surface));
   margin: 0 0 8px 0;
   line-height: 1.3;
 }
 
 .confirm-message {
   font-size: 1rem;
-  color: #64748b;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin: 0;
   line-height: 1.5;
 }

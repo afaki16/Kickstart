@@ -99,27 +99,27 @@ watch(
 <style scoped>
 .settings-container {
   padding: 24px;
-  background: #f5f7fa;
+  background: rgb(var(--v-theme-background));
   min-height: 100vh;
 }
 
 .settings-header {
-  background: white;
+  background: rgb(var(--v-theme-surface));
   padding: 24px;
   border-radius: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 .settings-title {
   font-size: 1.75rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: rgb(var(--v-theme-on-surface));
   margin: 0;
 }
 
 .settings-subtitle {
   font-size: 0.95rem;
-  color: #7f8c8d;
+  color: rgb(var(--v-theme-on-surface-variant));
   margin-top: 8px;
 }
 

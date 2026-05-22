@@ -101,5 +101,18 @@
       "sun": "Paz"
     },
     "pageTitle": "Anasayfa - Kickstart"
+  },
+  "validation": {
+    "required": "Bu alan zorunludur",
+    "emailFormat": "Geçerli bir e-posta adresi girin",
+    "passwordRequired": "Şifre zorunludur",
+    "passwordMinLength": "Şifre en az {min} karakter olmalıdır",
+    "passwordLowercase": "Şifre en az bir küçük harf içermelidir",
+    "passwordUppercase": "Şifre en az bir büyük harf içermelidir",
+    "passwordDigit": "Şifre en az bir rakam içermelidir",
+    "passwordsDoNotMatch": "Şifreler eşleşmiyor",
+    "minLength": "En az {min} karakter girilmelidir",
+    "maxLength": "En fazla {max} karakter girilebilir",
+    "phoneFormat": "Geçerli bir telefon numarası girin"
   }
 }
