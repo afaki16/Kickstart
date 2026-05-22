@@ -1,26 +1,18 @@
 using FluentValidation;
-using Kickstart.Application.Features.Auth.Commands.Login;
-using Kickstart.Application.Features.Auth.Commands.Logout;
-using Kickstart.Application.Features.Auth.Commands.LogoutAll;
-using Kickstart.Application.Features.Auth.Commands.LogoutDevice;
-using Kickstart.Application.Features.Auth.Commands.Register;
-using Kickstart.Application.Features.Auth.Commands.RefreshToken;
-using Kickstart.Application.Features.Auth.Commands.ChangePassword;
-using Kickstart.Application.Features.Auth.Commands.ForgotPassword;
-using Kickstart.Application.Features.Auth.Commands.ResetPassword;
+using Kickstart.Application.Common.Localization;
 
 namespace Kickstart.Application.Features.Auth.Commands.Login
 {
     public class LoginCommandValidator : AbstractValidator<LoginCommand>
     {
-        public LoginCommandValidator()
+        public LoginCommandValidator(IJsonStringLocalizer localizer)
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("Email format is not valid.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.email"]])
+                .EmailAddress().WithMessage(localizer["validation.emailFormat"]);
 
             RuleFor(x => x.Password)
-                .NotEmpty().WithMessage("Password is required.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.password"]]);
         }
     }
-} 
+}

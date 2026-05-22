@@ -1,17 +1,18 @@
 using FluentValidation;
+using Kickstart.Application.Common.Localization;
 
 namespace Kickstart.Application.Features.Auth.Commands.VerifyEmail
 {
     public class VerifyEmailCommandValidator : AbstractValidator<VerifyEmailCommand>
     {
-        public VerifyEmailCommandValidator()
+        public VerifyEmailCommandValidator(IJsonStringLocalizer localizer)
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("Email format is not valid.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.email"]])
+                .EmailAddress().WithMessage(localizer["validation.emailFormat"]);
 
             RuleFor(x => x.Token)
-                .NotEmpty().WithMessage("Token is required.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.token"]]);
         }
     }
 }

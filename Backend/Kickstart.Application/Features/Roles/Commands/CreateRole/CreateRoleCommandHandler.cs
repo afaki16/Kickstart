@@ -46,7 +46,7 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
                 if (await _unitOfWork.Roles.RoleExistsAsync(request.Name))
                 return Result<RoleDto>.Failure(Error.Failure(
                   ErrorCode.AlreadyExists,
-                  "Role name already exists"));
+                  _localizer["roles.nameExists"]));
             
 
                 // Create role and assign permissions in a single transaction

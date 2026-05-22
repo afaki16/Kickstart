@@ -44,7 +44,7 @@ namespace Kickstart.Infrastructure.Services
             _logger.LogError(ex, "Failed to hash password");
             return Result<string>.Failure(Error.Failure(
                 ErrorCode.InternalError,
-                "Failed to hash password"));
+                _localizer["password.hashFailed"]));
         }
     }
 
@@ -78,7 +78,7 @@ namespace Kickstart.Infrastructure.Services
             _logger.LogError(ex, "Failed to verify password");
             return Result<bool>.Failure(Error.Failure(
                 ErrorCode.InternalError,
-                "Failed to verify password"));
+                _localizer["password.verifyFailed"]));
         }
     }
 

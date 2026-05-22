@@ -1,36 +1,34 @@
 using FluentValidation;
-using Kickstart.Application.Features.Tenants.Commands.CreateTenant;
-using Kickstart.Application.Features.Tenants.Commands.UpdateTenant;
-using Kickstart.Application.Features.Tenants.Commands.DeleteTenant;
+using Kickstart.Application.Common.Localization;
 
 namespace Kickstart.Application.Features.Tenants.Commands.UpdateTenant;
 
-    public class UpdateTenantCommandValidator : AbstractValidator<UpdateTenantCommand>
+public class UpdateTenantCommandValidator : AbstractValidator<UpdateTenantCommand>
 {
-    public UpdateTenantCommandValidator()
+    public UpdateTenantCommandValidator(IJsonStringLocalizer localizer)
     {
         RuleFor(x => x.Id)
-            .GreaterThan(0).WithMessage("Tenant ID is required");
+            .GreaterThan(0).WithMessage(localizer["validation.required", localizer["validation.fields.tenantId"]]);
 
         RuleFor(x => x.Name)
-            .NotEmpty().WithMessage("Tenant name is required")
-            .MaximumLength(100).WithMessage("Tenant name must not exceed 100 characters");
+            .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.tenantName"]])
+            .MaximumLength(100).WithMessage(localizer["validation.maxLength", localizer["validation.fields.tenantName"], 100]);
 
         RuleFor(x => x.Description)
-            .MaximumLength(500).WithMessage("Description must not exceed 500 characters");
+            .MaximumLength(500).WithMessage(localizer["validation.maxLength", localizer["validation.fields.description"], 500]);
 
         RuleFor(x => x.Domain)
-            .MaximumLength(100).WithMessage("Domain must not exceed 100 characters")
+            .MaximumLength(100).WithMessage(localizer["validation.maxLength", localizer["validation.fields.domain"], 100])
             .Matches(@"^[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)*$")
             .When(x => !string.IsNullOrEmpty(x.Domain))
-            .WithMessage("Invalid domain format");
+            .WithMessage(localizer["validation.domainFormat"]);
 
         RuleFor(x => x.ContactEmail)
-            .EmailAddress().WithMessage("Invalid email format")
-            .MaximumLength(100).WithMessage("Contact email must not exceed 100 characters")
+            .EmailAddress().WithMessage(localizer["validation.emailFormat"])
+            .MaximumLength(100).WithMessage(localizer["validation.maxLength", localizer["validation.fields.contactEmail"], 100])
             .When(x => !string.IsNullOrEmpty(x.ContactEmail));
 
         RuleFor(x => x.ContactPhone)
-            .MaximumLength(20).WithMessage("Contact phone must not exceed 20 characters");
+            .MaximumLength(20).WithMessage(localizer["validation.maxLength", localizer["validation.fields.contactPhone"], 20]);
     }
 }

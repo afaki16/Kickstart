@@ -1,4 +1,5 @@
 using FluentValidation;
+using Kickstart.Application.Common.Localization;
 
 namespace Kickstart.Application.Features.Auth.Commands.RefreshToken
 {
@@ -13,11 +14,11 @@ namespace Kickstart.Application.Features.Auth.Commands.RefreshToken
     /// </summary>
     public class RefreshTokenCommandValidator : AbstractValidator<RefreshTokenCommand>
     {
-        public RefreshTokenCommandValidator()
+        public RefreshTokenCommandValidator(IJsonStringLocalizer localizer)
         {
             // RefreshToken zorunlu — controller cookie'den veya body'den doldurmalı
             RuleFor(x => x.RefreshToken)
-                .NotEmpty().WithMessage("Refresh token is required.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.refreshToken"]]);
 
             // AccessToken artık opsiyonel (yeni client'lar göndermiyor)
         }

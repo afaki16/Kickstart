@@ -62,7 +62,7 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
                 if (existingRole != null && existingRole.Id != request.Id)
                 return Result<RoleDto>.Failure(Error.Failure(
                                 ErrorCode.AlreadyExists,
-                                "Role name already exists"));
+                                _localizer["roles.nameExists"]));
 
 
             // Update role properties

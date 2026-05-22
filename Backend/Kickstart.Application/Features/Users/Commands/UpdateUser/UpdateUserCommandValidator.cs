@@ -1,36 +1,34 @@
 using FluentValidation;
-using Kickstart.Application.Features.Users.Commands.CreateUser;
-using Kickstart.Application.Features.Users.Commands.UpdateUser;
-using Kickstart.Application.Features.Users.Commands.DeleteUser;
+using Kickstart.Application.Common.Localization;
 
 namespace Kickstart.Application.Features.Users.Commands.UpdateUser
 {
     public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
     {
-        public UpdateUserCommandValidator()
+        public UpdateUserCommandValidator(IJsonStringLocalizer localizer)
         {
             RuleFor(x => x.Id)
-                .NotEmpty().WithMessage("User ID is required.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.userId"]]);
 
             RuleFor(x => x.FirstName)
-                .NotEmpty().WithMessage("First name is required.")
-                .MaximumLength(50).WithMessage("First name cannot exceed 50 characters.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.firstName"]])
+                .MaximumLength(50).WithMessage(localizer["validation.maxLength", localizer["validation.fields.firstName"], 50]);
 
             RuleFor(x => x.LastName)
-                .NotEmpty().WithMessage("Last name is required.")
-                .MaximumLength(50).WithMessage("Last name cannot exceed 50 characters.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.lastName"]])
+                .MaximumLength(50).WithMessage(localizer["validation.maxLength", localizer["validation.fields.lastName"], 50]);
 
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("Email format is not valid.")
-                .MaximumLength(100).WithMessage("Email cannot exceed 100 characters.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.email"]])
+                .EmailAddress().WithMessage(localizer["validation.emailFormat"])
+                .MaximumLength(100).WithMessage(localizer["validation.maxLength", localizer["validation.fields.email"], 100]);
 
             RuleFor(x => x.PhoneNumber)
-                .MaximumLength(20).WithMessage("Phone number cannot exceed 20 characters.")
+                .MaximumLength(20).WithMessage(localizer["validation.maxLength", localizer["validation.fields.phoneNumber"], 20])
                 .When(x => !string.IsNullOrEmpty(x.PhoneNumber));
 
             RuleFor(x => x.Status)
-                .IsInEnum().WithMessage("Invalid user status.");
+                .IsInEnum().WithMessage(localizer["validation.invalidEnum", localizer["validation.fields.status"]]);
         }
     }
-} 
+}

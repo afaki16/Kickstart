@@ -1,3 +1,4 @@
+using Kickstart.Application.Common.Localization;
 using Kickstart.Application.Common.Results;
 using Kickstart.Application.Common.Security;
 using Kickstart.Application.Interfaces;
@@ -14,15 +15,18 @@ namespace Kickstart.Application.Features.Auth.Commands.ResetPassword
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
         private readonly ILogger<ResetPasswordCommandHandler> _logger;
+        private readonly IJsonStringLocalizer _localizer;
 
         public ResetPasswordCommandHandler(
             IUnitOfWork unitOfWork,
             IPasswordService passwordService,
-            ILogger<ResetPasswordCommandHandler> logger)
+            ILogger<ResetPasswordCommandHandler> logger,
+            IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
             _logger = logger;
+            _localizer = localizer;
         }
 
         public async Task<Result> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
@@ -36,7 +40,7 @@ namespace Kickstart.Application.Features.Auth.Commands.ResetPassword
                 _logger.LogWarning(
                     "Password reset failed - invalid or expired token. Email: {Email}",
                     normalizedEmail);
-                return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, "Geçersiz veya süresi dolmuş sıfırlama bağlantısı."));
+                return Result.Failure(Error.Failure(ErrorCode.ValidationFailed, _localizer["auth.invalidOrExpiredResetLink"]));
             }
 
             var strengthResult = _passwordService.ValidatePasswordStrength(request.NewPassword);

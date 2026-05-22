@@ -1,14 +1,15 @@
 using FluentValidation;
+using Kickstart.Application.Common.Localization;
 
 namespace Kickstart.Application.Features.Auth.Commands.ResendVerificationEmail
 {
     public class ResendVerificationEmailCommandValidator : AbstractValidator<ResendVerificationEmailCommand>
     {
-        public ResendVerificationEmailCommandValidator()
+        public ResendVerificationEmailCommandValidator(IJsonStringLocalizer localizer)
         {
             RuleFor(x => x.Email)
-                .NotEmpty().WithMessage("Email is required.")
-                .EmailAddress().WithMessage("Email format is not valid.");
+                .NotEmpty().WithMessage(localizer["validation.required", localizer["validation.fields.email"]])
+                .EmailAddress().WithMessage(localizer["validation.emailFormat"]);
         }
     }
 }

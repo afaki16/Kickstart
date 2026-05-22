@@ -1,3 +1,4 @@
+using Kickstart.Application.Common.Localization;
 using Kickstart.Application.Common.Results;
 using Kickstart.Application.Common.Security;
 using Kickstart.Domain.Common.Enums;
@@ -12,13 +13,16 @@ namespace Kickstart.Application.Features.Auth.Commands.VerifyEmail
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<VerifyEmailCommandHandler> _logger;
+        private readonly IJsonStringLocalizer _localizer;
 
         public VerifyEmailCommandHandler(
             IUnitOfWork unitOfWork,
-            ILogger<VerifyEmailCommandHandler> logger)
+            ILogger<VerifyEmailCommandHandler> logger,
+            IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _logger = logger;
+            _localizer = localizer;
         }
 
         public async Task<Result> Handle(VerifyEmailCommand request, CancellationToken cancellationToken)
@@ -39,7 +43,7 @@ namespace Kickstart.Application.Features.Auth.Commands.VerifyEmail
                     normalizedEmail, request.IpAddress);
                 return Result.Failure(Error.Failure(
                     ErrorCode.ValidationFailed,
-                    "Geçersiz veya süresi dolmuş doğrulama bağlantısı."));
+                    _localizer["auth.invalidOrExpiredVerificationLink"]));
             }
 
             token.User.EmailConfirmed = true;
