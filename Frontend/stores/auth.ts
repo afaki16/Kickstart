@@ -111,7 +111,7 @@ export const useAuthStore = defineStore("auth", {
 
       // deviceId hassas değil — cookie'de tutulması OK (cihazı tanımak için).
       // localStorage YOK artık.
-      if (process.client && deviceId !== undefined) {
+      if (import.meta.client && deviceId !== undefined) {
         const cookieMaxAge = 60 * 60 * 24 * 30; // 30 gün
         const deviceIdCookie = useCookie("device_id", {
           maxAge: cookieMaxAge,
@@ -142,7 +142,7 @@ export const useAuthStore = defineStore("auth", {
       this.roles = [];
 
       // deviceId cookie'sini de temizle (logout = cihaz unutma)
-      if (process.client) {
+      if (import.meta.client) {
         const deviceIdCookie = useCookie("device_id");
         deviceIdCookie.value = null;
 
@@ -157,7 +157,7 @@ export const useAuthStore = defineStore("auth", {
      * veriler kalmış olabilir — temizleyelim.
      */
     cleanupLegacyStorage() {
-      if (!process.client) return;
+      if (!import.meta.client) return;
       try {
         localStorage.removeItem("user");
         localStorage.removeItem("deviceId"); // deviceId cookie'ye taşındı
@@ -187,7 +187,7 @@ export const useAuthStore = defineStore("auth", {
      * Bu fonksiyon HİÇBİR ZAMAN exception throw ETMEZ.
      */
     async initializeAuth() {
-      if (!process.client) return;
+      if (!import.meta.client) return;
 
       // Eski sürümden kalan veriyi temizle (idempotent)
       this.cleanupLegacyStorage();

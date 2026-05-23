@@ -6,7 +6,6 @@ import type {
   Session,
 } from "~/types";
 import { API_ENDPOINTS } from "~/utils/apiEndpoints";
-import { useRouter } from "nuxt/app";
 import { useAuthStore } from "~/stores/auth";
 import { useApi } from "./useApi";
 import { useToast } from "./useToast";
@@ -43,7 +42,7 @@ export const useAuth = () => {
    * Cookie'de tutulur (clearAuth'da temizlenir).
    */
   const generateDeviceId = (): string => {
-    if (!process.client) {
+    if (!import.meta.client) {
       return `device_${Date.now()}_${Math.random().toString(36).slice(2, 11)}`;
     }
 
@@ -60,7 +59,7 @@ export const useAuth = () => {
   };
 
   const getDeviceName = (): string => {
-    if (!process.client) return "Unknown Device";
+    if (!import.meta.client) return "Unknown Device";
 
     const ua = navigator.userAgent;
     if (ua.includes("Windows")) return "Windows Device";

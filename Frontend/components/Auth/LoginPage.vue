@@ -183,6 +183,7 @@
 <script setup lang="ts">
 import type { LoginRequest } from "~/types";
 import { parseApiErrorMessages } from "~/utils/apiError";
+import { ErrorCode } from "~/utils/errorCodes";
 
 const props = withDefaults(
   defineProps<{
@@ -297,9 +298,6 @@ const nextSlide = () => {
   }
 };
 
-// ErrorCode.EmailNotConfirmed = 1013 (backend Domain.Common.Enums.ErrorCode)
-const EMAIL_NOT_CONFIRMED_CODE = 1013;
-
 // ── Login Handler ──
 const handleLogin = async () => {
   if (!isFormValid.value) return;
@@ -314,7 +312,7 @@ const handleLogin = async () => {
     console.error("Login failed:", error);
     loginApiErrors.value = parseApiErrorMessages(error);
     const code = error?.response?.data?.error?.code ?? error?.data?.error?.code;
-    if (code === EMAIL_NOT_CONFIRMED_CODE) {
+    if (code === ErrorCode.EmailNotConfirmed) {
       emailNotConfirmed.value = true;
     }
   }

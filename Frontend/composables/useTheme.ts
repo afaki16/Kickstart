@@ -77,7 +77,7 @@ export const useTheme = () => {
   const isDark = computed(() => currentTheme.value === 'dark')
   const isLight = computed(() => currentTheme.value === 'light')
 
-  if (process.client) {
+  if (import.meta.client) {
     initTheme()
   }
 

@@ -66,8 +66,6 @@ const { getPermissions } = usePermissions()
 const permissions = ref([])
 const isLoading = ref(false)
 
-console.log('fakı',permissions)
-
 // Table columns for BaseDataTable
 const tableColumns = [
   { 
@@ -139,7 +137,6 @@ const getResourceColorClass = (resource) => {
 }
 
 const handleSearch = (query) => {
-  console.log('Search query:', query)
   // Additional search logic can be implemented here
 }
 

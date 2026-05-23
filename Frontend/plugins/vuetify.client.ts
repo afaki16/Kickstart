@@ -165,7 +165,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   // useTheme() tema değiştirildiğinde Vuetify'ı senkronize et.
   // Plugin yüklendikten sonra çalışır — DOM hazır.
-  if (process.client) {
+  if (import.meta.client) {
     // Vuetify instance'ına erişmek için
     const vuetifyInstance = vuetify
     // useTheme composable'ı henüz çalışıyor olmayabilir; bu yüzden

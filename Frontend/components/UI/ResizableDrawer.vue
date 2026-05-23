@@ -155,13 +155,13 @@ watch(() => props.modelValue, (newValue) => {
 })
 
 onMounted(() => {
-  if (process.client) {
+  if (import.meta.client) {
     document.addEventListener('keydown', handleKeyDown)
   }
 })
 
 onUnmounted(() => {
-  if (process.client) {
+  if (import.meta.client) {
     document.removeEventListener('mousemove', handleResize)
     document.removeEventListener('mouseup', stopResize)
     document.removeEventListener('keydown', handleKeyDown)

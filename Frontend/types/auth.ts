@@ -1,5 +1,3 @@
-import type { User } from './user'
-
 export interface LoginRequest {
   email: string
   password: string
@@ -15,18 +13,6 @@ export interface RegisterRequest {
   password: string
   confirmPassword: string
   phoneNumber?: string
-}
-
-export interface LoginResponse {
-  accessToken: string
-  /**
-   * @deprecated Backend artık refresh token'ı HttpOnly cookie'ye yazıyor.
-   * Bu alan eski clientlar için geriye dönük uyumluluk amacıyla bırakılmıştır.
-   * Frontend'de KULLANILMAMALI ve persist EDİLMEMELİDİR.
-   */
-  refreshToken?: string
-  expiresAt: string
-  user: User
 }
 
 /**

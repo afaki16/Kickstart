@@ -321,13 +321,13 @@ onMounted(async () => {
   await loadAppData()
 
   // Dropdown dışı tıklama listener
-  if (process.client) {
+  if (import.meta.client) {
     document.addEventListener('click', handleDocumentClickForUserDropdown)
   }
 })
 
 onUnmounted(() => {
-  if (process.client) {
+  if (import.meta.client) {
     document.removeEventListener('click', handleDocumentClickForUserDropdown)
   }
 })

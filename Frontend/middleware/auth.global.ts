@@ -9,8 +9,8 @@
  *  4) Protected route'larda authenticated olmayan kullanıcılar login'e yönlendirilir
  */
 export default defineNuxtRouteMiddleware(async (to) => {
-  // ssr: false olduğu için process.server zaten çalışmaz, ama defensive olsun
-  if (process.server) return
+  // ssr: false olduğu için import.meta.server zaten çalışmaz, ama defensive olsun
+  if (import.meta.server) return
 
   const authStore = useAuthStore()
 
