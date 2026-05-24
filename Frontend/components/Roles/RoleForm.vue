@@ -1,6 +1,6 @@
 <template>
   <!-- Modern Tab Navigation -->
-  <div class="tabs-container">
+  <div class="tabs-container modern-tabs">
     <button
       v-for="tab in tabs"
       :key="tab.value"

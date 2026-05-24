@@ -69,6 +69,7 @@
   <ResizableDrawer
     v-model="dialogs.create"
     :title="isEditMode ? 'Kullanıcıyı Düzenle' : 'Yeni Kullanıcı Ekle'"
+    :subtitle="isEditMode ? 'Kullanıcı bilgilerini düzenleyin' : 'Sisteme yeni kullanıcı bilgilerini girin'"
     icon="mdi-account"
     :default-width="600"
     :min-width="400"
@@ -86,6 +87,7 @@
   <ResizableDrawer
     v-model="dialogs.view"
     title="Kullanıcı Detayları"
+    :subtitle="'Kullanıcı bilgilerini görüntüleyin'"
     icon="mdi-account-details"
     :default-width="800"
     :min-width="600"

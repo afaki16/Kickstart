@@ -68,6 +68,7 @@
     <ResizableDrawer
       v-model="dialogs.create"
       :title="isEditMode ? 'Rolü Düzenle' : 'Yeni Rol Ekle'"
+      :subtitle="isEditMode ? 'Rol bilgilerini ve yetkilerini düzenleyin' : 'Yeni rol ve yetkilerini tanımlayın'"
       icon="mdi-shield-account"
       :default-width="600"
       :min-width="400"

@@ -1,5 +1,9 @@
 {
   "permissions": {
+    "allow": [
+      "Bash(echo \"exit:$?\")",
+      "Bash(npx vue-tsc *)"
+    ],
     "additionalDirectories": [
       "c:\\Users\\Hp\\Desktop\\Projects\\Kickstart\\Backend\\Kickstart.Infrastructure\\Resources",
       "c:\\Users\\Hp\\Desktop\\Projects\\Kickstart\\Backend\\Kickstart.Application\\Features\\Auth\\Commands\\Login",

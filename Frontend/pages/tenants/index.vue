@@ -59,6 +59,7 @@
   <ResizableDrawer
     v-model="dialogs.create"
     :title="isEditMode ? 'Tenant Düzenle' : 'Yeni Tenant Ekle'"
+    :subtitle="isEditMode ? 'Tenant bilgilerini güncelleyin' : 'Sisteme yeni tenant bilgilerini girin'"
     icon="mdi-domain"
     :default-width="600"
     :min-width="400"
