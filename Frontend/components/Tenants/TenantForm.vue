@@ -6,7 +6,6 @@
           <v-text-field
             v-model="formData.name"
             label="Tenant Adı"
-            placeholder="Örn: Şirket Adı"
             variant="outlined"
             :disabled="loading"
             prepend-inner-icon="mdi-domain"
@@ -23,7 +22,6 @@
           <v-text-field
             v-model="formData.domain"
             label="Domain"
-            placeholder="Örn: sirket.com"
             variant="outlined"
             :disabled="loading"
             prepend-inner-icon="mdi-web"
@@ -40,7 +38,6 @@
           <v-textarea
             v-model="formData.description"
             label="Açıklama"
-            placeholder="Tenant hakkında kısa açıklama..."
             variant="outlined"
             :disabled="loading"
             rows="3"
@@ -59,7 +56,6 @@
           <v-text-field
             v-model="formData.contactEmail"
             label="İletişim E-postası"
-            placeholder="iletisim@sirket.com"
             variant="outlined"
             :disabled="loading"
             prepend-inner-icon="mdi-email"
@@ -74,7 +70,6 @@
           <v-text-field
             v-model="formData.contactPhone"
             label="İletişim Telefonu"
-            placeholder="+90 5xx xxx xx xx"
             variant="outlined"
             :disabled="loading"
             prepend-inner-icon="mdi-phone"

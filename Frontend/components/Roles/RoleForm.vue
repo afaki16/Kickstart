@@ -25,7 +25,6 @@
               <v-text-field
                 v-model="formData.name"
                 label="Rol Adı"
-                placeholder="Örn: Yönetici, Editör, Doktor"
                 variant="outlined"
                 :disabled="loading || (role && role.isSystemRole)"
                 prepend-inner-icon="mdi-shield-account"
@@ -42,7 +41,6 @@
               <v-textarea
                 v-model="formData.description"
                 label="Açıklama"
-                placeholder="Bu rolün sorumluluklarını ve amacını açıklayın..."
                 variant="outlined"
                 :disabled="loading"
                 rows="3"
@@ -65,7 +63,6 @@
           <v-col cols="12">
             <v-text-field
               v-model="searchQuery"
-              placeholder="İzinlerde ara..."
               prepend-inner-icon="mdi-magnify"
               variant="outlined"
               density="compact"

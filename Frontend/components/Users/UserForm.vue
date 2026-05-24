@@ -25,7 +25,6 @@
               <v-text-field
                 v-model="formData.firstName"
                 label="Ad"
-                placeholder="Adınızı giriniz"
                 variant="outlined"
                 :disabled="loading"
                 prepend-inner-icon="mdi-account"
@@ -39,7 +38,6 @@
               <v-text-field
                 v-model="formData.lastName"
                 label="Soyad"
-                placeholder="Soyadınızı giriniz"
                 variant="outlined"
                 :disabled="loading"
                 prepend-inner-icon="mdi-account"
@@ -56,7 +54,6 @@
               <v-text-field
                 v-model="formData.email"
                 label="E-posta"
-                placeholder="ornek@email.com"
                 variant="outlined"
                 :disabled="loading || !!user"
                 prepend-inner-icon="mdi-email"
@@ -71,7 +68,6 @@
               <v-text-field
                 v-model="formData.phoneNumber"
                 label="Telefon Numarası"
-                placeholder="5xxxxxxxxx"
                 variant="outlined"
                 :disabled="loading"
                 prepend-inner-icon="mdi-phone"
@@ -90,7 +86,6 @@
               item-title="name"
               item-value="id"
               label="Tenant"
-              placeholder="Tenant seçin (opsiyonel)"
               variant="outlined"
               :disabled="loading"
               prepend-inner-icon="mdi-domain"
@@ -146,7 +141,6 @@
             <v-text-field
               v-model="formData.password"
               label="Şifre"
-              placeholder="En az 8 karakter"
               variant="outlined"
               :disabled="loading"
               :type="showPassword ? 'text' : 'password'"
@@ -166,7 +160,6 @@
             <v-text-field
               v-model="formData.confirmPassword"
               label="Şifre Tekrar"
-              placeholder="Şifreyi tekrar giriniz"
               variant="outlined"
               :disabled="loading"
               :type="showConfirmPassword ? 'text' : 'password'"
@@ -190,7 +183,6 @@
           <v-col cols="12">
             <v-text-field
               v-model="searchQuery"
-              placeholder="Rollerde ara..."
               prepend-inner-icon="mdi-magnify"
               variant="outlined"
               density="compact"
