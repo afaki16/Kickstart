@@ -1,22 +1,19 @@
 {
+  "tenant": {
+    "loginPage": "default"
+  },
   "app": {
-    "name": "Kickstart",
-    "version": "1.0.0",
-    "description": "Modern Authentication System",
     "logo": {
       "src": "/images/logo.svg",
-      "alt": "Kickstart Logo",
-      "width": "32",
-      "height": "32"
+      "alt": "Kickstart Logo"
     },
     "brand": {
-      "text": "Kickstart",
-      "tagline": "Secure Authentication System"
+      "text": "Kickstart"
     }
   },
   "theme": {
     "colors": {
-     "primary": "linear-gradient(180deg, #14532d 0%, #166534 50%, #064e3b 100%)",
+      "primary": "linear-gradient(180deg, #14532d 0%, #166534 50%, #064e3b 100%)",
       "accent": "#82B1FF",
       "success": "#4CAF50",
       "warning": "#FB8C00",
@@ -32,18 +29,7 @@
       "https://images.unsplash.com/photo-1518709268805-4e9042af2176?ixlib=rb-4.0.3&auto=format&fit=crop&w=2125&q=80",
       "https://images.unsplash.com/photo-1555066931-4365d14bab8c?ixlib=rb-4.0.3&auto=format&fit=crop&w=2070&q=80"
     ],
-    "rotationInterval": 3000,
-    "overlay": {
-      "opacity": 0.4,
-      "color": "rgba(0, 0, 0, 0.4)"
-    },
-    "card": {
-      "background": "rgba(255, 255, 255, 0.25)",
-      "backdropFilter": "blur(20px)",
-      "borderRadius": "20px",
-      "border": "1px solid rgba(255, 255, 255, 0.3)",
-      "shadow": "0 25px 45px rgba(0, 0, 0, 0.2)"
-    }
+    "rotationInterval": 3000
   },
   "register": {
     "backgroundImages": [
@@ -55,7 +41,6 @@
     ],
     "rotationInterval": 3000,
     "overlay": {
-      "opacity": 0.4,
       "color": "rgba(0, 0, 0, 0.4)"
     },
     "card": {
@@ -64,36 +49,6 @@
       "borderRadius": "20px",
       "border": "1px solid rgba(255, 255, 255, 0.2)",
       "shadow": "0 25px 45px rgba(0, 0, 0, 0.2)"
-    }
-  },
-  "navigation": {
-    "sidebar": {
-      "width": "256px",
-      "background": "#ffffff",
-      "shadow": "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-      "borderColor": "#e5e7eb"
-    },
-    "navbar": {
-      "height": "64px",
-      "background": "linear-gradient(135deg, #ffffff 0%, #2563eb 100%)",
-      "shadow": "0 1px 3px rgba(0, 0, 0, 0.1)"
-    }
-  },
-  "ui": {
-    "borderRadius": {
-      "small": "8px",
-      "medium": "12px",
-      "large": "20px"
-    },
-    "shadows": {
-      "small": "0 2px 4px rgba(0, 0, 0, 0.1)",
-      "medium": "0 4px 8px rgba(0, 0, 0, 0.1)",
-      "large": "0 8px 16px rgba(0, 0, 0, 0.1)"
-    },
-    "transitions": {
-      "fast": "0.2s ease",
-      "medium": "0.3s ease",
-      "slow": "0.5s ease"
     }
   }
 }

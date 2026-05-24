@@ -1,4 +1,4 @@
-import { ref, computed, readonly, watch } from 'vue'
+import { computed, readonly, watch } from 'vue'
 
 function hexToRgb(hex: string): string {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -19,23 +19,15 @@ function parseGradientColors(gradient: string): { dark: string; main: string; li
 
 interface AppData {
   tenant?: {
-    layout?: string
     loginPage?: string
-    registerPage?: string
   }
   app: {
-    name: string
-    version: string
-    description: string
     logo: {
       src: string
       alt: string
-      width: string
-      height: string
     }
     brand: {
       text: string
-      tagline: string
     }
   }
   theme: {
@@ -51,23 +43,11 @@ interface AppData {
   login: {
     backgroundImages: string[]
     rotationInterval: number
-    overlay: {
-      opacity: number
-      color: string
-    }
-    card: {
-      background: string
-      backdropFilter: string
-      borderRadius: string
-      border: string
-      shadow: string
-    }
   }
   register: {
     backgroundImages: string[]
     rotationInterval: number
     overlay: {
-      opacity: number
       color: string
     }
     card: {
@@ -78,47 +58,14 @@ interface AppData {
       shadow: string
     }
   }
-  navigation: {
-    sidebar: {
-      width: string
-      background: string
-      shadow: string
-      borderColor: string
-    }
-    navbar: {
-      height: string
-      background: string
-      shadow: string
-    }
-  }
-  ui: {
-    borderRadius: {
-      small: string
-      medium: string
-      large: string
-    }
-    shadows: {
-      small: string
-      medium: string
-      large: string
-    }
-    transitions: {
-      fast: string
-      medium: string
-      slow: string
-    }
-  }
 }
 
-const appData = ref<AppData | null>(null)
-const isLoading = ref(false)
-const error = ref<string | null>(null)
-
 export const useAppData = () => {
+  // SSR-safe shared state — Nuxt'ın useState'i sayesinde her request için izole
+  const appData = useState<AppData | null>('app-data', () => null)
+  const isLoading = useState<boolean>('app-data-loading', () => false)
+  const error = useState<string | null>('app-data-error', () => null)
 
-  /**
-   * App data y�kler (public/data.json).
-   */
   const loadAppData = async (forceReload = false) => {
     if (appData.value && !forceReload) {
       return appData.value
@@ -146,7 +93,8 @@ export const useAppData = () => {
   }
 
   const injectThemeCSSVariables = () => {
-    if (typeof document === 'undefined' || !appData.value) return
+    // SSR'da hiçbir şey yapma — sadece client'ta DOM'a dokun
+    if (!import.meta.client || !appData.value) return
 
     const colors = appData.value.theme?.colors
     if (!colors) return
@@ -183,17 +131,20 @@ export const useAppData = () => {
   const getTheme = computed(() => appData.value?.theme || null)
   const getLoginConfig = computed(() => appData.value?.login || null)
   const getRegisterConfig = computed(() => appData.value?.register || null)
-  const getNavigationConfig = computed(() => appData.value?.navigation || null)
-  const getUIConfig = computed(() => appData.value?.ui || null)
 
   const getLogo = computed(() => appData.value?.app.logo || null)
   const getBrandText = computed(() => appData.value?.app.brand.text || 'Kickstart')
-  const getBackgroundImages = computed(() => appData.value?.login.backgroundImages || appData.value?.register.backgroundImages || [])
+  const getBackgroundImages = computed(
+    () => appData.value?.login.backgroundImages || appData.value?.register.backgroundImages || []
+  )
   const getThemeColors = computed(() => appData.value?.theme.colors || null)
 
-  watch(appData, () => {
-    injectThemeCSSVariables()
-  }, { immediate: true })
+  // Sadece client'ta watch et — SSR'da dokuma
+  if (import.meta.client) {
+    watch(appData, () => {
+      injectThemeCSSVariables()
+    }, { immediate: true })
+  }
 
   return {
     appData: readonly(appData),
@@ -204,8 +155,6 @@ export const useAppData = () => {
     getTheme,
     getLoginConfig,
     getRegisterConfig,
-    getNavigationConfig,
-    getUIConfig,
     getLogo,
     getBrandText,
     getBackgroundImages,
