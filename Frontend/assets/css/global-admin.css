@@ -167,52 +167,6 @@
   opacity: 0.5 !important;
 }
 
-/* Large select - min-height, typography */
-.large-select .v-field {
-  min-height: 48px !important;
-  border-radius: 12px !important;
-  width: 100% !important;
-}
-
-.large-select .v-field__input {
-  font-size: 14px !important;
-  font-weight: 400 !important;
-  padding: 8px 12px !important;
-  line-height: 1.4 !important;
-}
-
-.large-select .v-field-label {
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  color: var(--theme-primary, #2563eb) !important;
-}
-
-.large-select .v-select__selection-text {
-  font-size: 14px !important;
-  font-weight: 400 !important;
-  color: #1e293b !important;
-}
-
-/* Large input - text fields */
-.large-input .v-field {
-  min-height: 48px !important;
-  border-radius: 12px !important;
-  width: 100% !important;
-}
-
-.large-input .v-field__input {
-  font-size: 14px !important;
-  font-weight: 400 !important;
-  padding: 8px 12px !important;
-  line-height: 1.4 !important;
-}
-
-.large-input .v-field-label {
-  font-size: 12px !important;
-  font-weight: 500 !important;
-  color: var(--theme-primary, #2563eb) !important;
-}
-
 /* Search input */
 .search-input .v-field {
   border-radius: 12px !important;
