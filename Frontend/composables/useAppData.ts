@@ -33,11 +33,6 @@ interface AppData {
   theme: {
     colors: {
       primary: string
-      accent?: string
-      success: string
-      warning: string
-      error: string
-      info: string
     }
   }
   login: {
@@ -102,29 +97,10 @@ export const useAppData = () => {
     const root = document.documentElement
     const p = parseGradientColors(colors.primary)
 
-    root.style.setProperty('--theme-primary', p.main)
-    root.style.setProperty('--theme-primary-light', p.light)
-    root.style.setProperty('--theme-primary-dark', p.dark)
-    root.style.setProperty('--theme-primary-rgb', hexToRgb(p.main))
-    root.style.setProperty('--theme-primary-dark-rgb', hexToRgb(p.dark))
-
-    root.style.setProperty('--theme-secondary', p.dark)
-    root.style.setProperty('--theme-secondary-light', p.main)
-    root.style.setProperty('--theme-secondary-dark', p.dark)
-    root.style.setProperty('--theme-secondary-rgb', hexToRgb(p.dark))
-
+    // Sadece gradient'ler inject edilir. Düz renkler theme.css'ten gelir (--color-*).
     root.style.setProperty('--theme-gradient', `linear-gradient(135deg, ${p.dark} 0%, ${p.main} 100%)`)
     root.style.setProperty('--theme-gradient-hover', `linear-gradient(135deg, ${p.dark} 0%, ${p.light} 100%)`)
     root.style.setProperty('--theme-gradient-sidebar', colors.primary)
-    root.style.setProperty('--theme-gradient-text', `linear-gradient(135deg, #1f2937 0%, ${p.dark} 100%)`)
-
-    if (colors.accent) {
-      root.style.setProperty('--theme-accent', colors.accent)
-    }
-    root.style.setProperty('--theme-success', colors.success)
-    root.style.setProperty('--theme-warning', colors.warning)
-    root.style.setProperty('--theme-error', colors.error)
-    root.style.setProperty('--theme-info', colors.info)
   }
 
   const getAppInfo = computed(() => appData.value?.app || null)

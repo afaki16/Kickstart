@@ -295,7 +295,7 @@ onUnmounted(() => {
 }
 
 .resize-handle:active .dot {
-  background: var(--theme-primary, #2563eb);
+  background: rgb(var(--color-primary));
 }
 
 .drawer-header {

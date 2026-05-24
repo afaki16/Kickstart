@@ -175,8 +175,8 @@ const confirmColor = computed(() => {
 }
 
 .icon-container--info {
-  background: rgba(var(--theme-primary-rgb, 37, 99, 235), 0.1);
-  border: 2px solid rgba(var(--theme-primary-rgb, 37, 99, 235), 0.2);
+  background: rgb(var(--color-primary) / 0.1);
+  border: 2px solid rgb(var(--color-primary) / 0.2);
 }
 
 .icon-container--info::before {
@@ -216,7 +216,7 @@ const confirmColor = computed(() => {
 }
 
 .icon-container--info .confirm-icon {
-  color: var(--theme-primary, #2563eb);
+  color: rgb(var(--color-primary));
 }
 
 .icon-container--warning .confirm-icon {

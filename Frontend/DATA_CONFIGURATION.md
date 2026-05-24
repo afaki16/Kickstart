@@ -13,12 +13,7 @@
   },
   "theme": {
     "colors": {
-      "primary": "linear-gradient(180deg, #14532d 0%, #166534 50%, #064e3b 100%)",
-      "accent": "#82B1FF",
-      "success": "#4CAF50",
-      "warning": "#FB8C00",
-      "error": "#FF5252",
-      "info": "#2196F3"
+      "primary": "linear-gradient(180deg, #14532d 0%, #166534 50%, #064e3b 100%)"
     }
   },
   "login":    { "backgroundImages": [...], "rotationInterval": 3000 },
@@ -37,23 +32,18 @@
 
 | CSS Değişkeni | Kaynak |
 |---|---|
-| `--theme-primary` | Gradient'in 2. rengi (main) |
-| `--theme-primary-light` | Gradient'in 3. rengi |
-| `--theme-primary-dark` | Gradient'in 1. rengi |
-| `--theme-primary-rgb` | Main rengin RGB karşılığı (rgba() için) |
-| `--theme-primary-dark-rgb` | Dark rengin RGB karşılığı |
 | `--theme-gradient` | `linear-gradient(135deg, dark, main)` |
 | `--theme-gradient-hover` | `linear-gradient(135deg, dark, light)` |
 | `--theme-gradient-sidebar` | Orijinal `primary` string'i |
-| `--theme-gradient-text` | `linear-gradient(135deg, #1f2937, dark)` |
-| `--theme-accent`, `--theme-success`, `--theme-warning`, `--theme-error`, `--theme-info` | Doğrudan hex |
 
 ### Kullanım örneği
 
 ```css
 .my-button {
   background: var(--theme-gradient);
-  border: 1px solid rgba(var(--theme-primary-rgb), 0.3);
+}
+.my-button:hover {
+  background: var(--theme-gradient-hover);
 }
 ```
 

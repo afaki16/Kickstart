@@ -36,15 +36,15 @@
 }
 
 .tab-item:hover:not(:disabled) {
-  color: var(--theme-primary, #2563eb);
-  border-bottom-color: var(--theme-primary, #2563eb);
+  color: rgb(var(--color-primary));
+  border-bottom-color: rgb(var(--color-primary));
   transform: translateY(-2px);
 }
 
 .tab-item.active {
   color: #ffffff;
-  border-bottom-color: var(--theme-primary-dark, #4338ca);
-  background: var(--theme-primary-dark, #4338ca);
+  border-bottom-color: rgb(var(--color-primary));
+  background: rgb(var(--color-primary));
   font-weight: 600;
 }
 
