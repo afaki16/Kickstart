@@ -33,6 +33,10 @@ namespace Kickstart.Infrastructure.Services
         private readonly IEmailService _emailService;
         private readonly IJsonStringLocalizer _localizer;
 
+        // A rotated token presented again within this window is treated as a benign race
+        // (parallel tabs/requests), not as theft.
+        private static readonly TimeSpan ReuseDetectionGracePeriod = TimeSpan.FromSeconds(30);
+
         public JwtService(
             IConfiguration configuration,
             IUnitOfWork unitOfWork,
@@ -403,9 +407,13 @@ namespace Kickstart.Infrastructure.Services
                 }
             }
 
-            // Reuse detection: a revoked token being presented indicates the previous holder
-            // already rotated past it — the real owner is likely an attacker. Revoke everything.
-            if (storedRefreshToken.IsRevoked)
+            // Reuse detection: a token that was rotated away more than the grace period ago being
+            // presented again indicates the previous holder already moved past it — the real owner
+            // is likely an attacker. Revoke everything.
+            if (storedRefreshToken.IsRevoked &&
+                storedRefreshToken.Reason == RefreshTokenReasons.Rotated &&
+                storedRefreshToken.RevokedDate.HasValue &&
+                DateTime.UtcNow - storedRefreshToken.RevokedDate.Value > ReuseDetectionGracePeriod)
             {
                 _logger.LogWarning(
                     "Refresh token reuse detected for user {UserId}. All sessions revoked. Source IP: {IpAddress}, UserAgent: {UserAgent}",
@@ -421,6 +429,19 @@ namespace Kickstart.Infrastructure.Services
                     _unitOfWork.Users.Update(compromisedUser);
                     await _unitOfWork.SaveChangesAsync();
                 }
+
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    _localizer["auth.invalidRefreshToken"]));
+            }
+
+            // Revoked for another reason (logout, session revoke, new login on device...) or rotated
+            // within the grace period: reject without touching other sessions.
+            if (storedRefreshToken.IsRevoked)
+            {
+                _logger.LogInformation(
+                    "Revoked refresh token presented. UserId: {UserId}, Reason: {Reason}, RevokedDate: {RevokedDate}, IP: {IpAddress}",
+                    storedRefreshToken.UserId, storedRefreshToken.Reason, storedRefreshToken.RevokedDate, ipAddress);
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.InvalidRequest,
@@ -446,7 +467,7 @@ namespace Kickstart.Infrastructure.Services
                     ErrorCode.InvalidRequest,
                     _localizer["auth.invalidRefreshToken"]));
 
-            storedRefreshToken.Revoke(ipAddress, userAgent, "Token rotated");
+            storedRefreshToken.Revoke(ipAddress, userAgent, RefreshTokenReasons.Rotated);
             _unitOfWork.RefreshTokens.Update(storedRefreshToken);
             await _unitOfWork.SaveChangesAsync();
 
@@ -554,6 +575,15 @@ namespace Kickstart.Infrastructure.Services
             try
             {
                 await _unitOfWork.RefreshTokens.RevokeAllUserTokensAsync(userId, ipAddress, userAgent, reason);
+
+                // Also reject access tokens issued before now (other devices keep theirs otherwise)
+                var user = await _unitOfWork.Users.GetByIdAsync(userId);
+                if (user != null)
+                {
+                    user.LastSessionsRevokedAt = DateTime.UtcNow;
+                    _unitOfWork.Users.Update(user);
+                }
+
                 await _unitOfWork.SaveChangesAsync();
 
                 _logger.LogWarning(

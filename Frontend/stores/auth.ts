@@ -243,6 +243,16 @@ export const useAuthStore = defineStore("auth", {
      * Don't call this directly; use silentRefresh().
      */
     async _doSilentRefresh(): Promise<boolean> {
+      // Tabs share the HttpOnly refresh cookie: serialize refreshes across tabs so one tab
+      // does not present a token another tab has just rotated. Falls back to a plain call
+      // where the Web Locks API is unavailable.
+      if (import.meta.client && typeof navigator !== "undefined" && navigator.locks) {
+        return navigator.locks.request("auth-refresh", () => this._requestRefresh());
+      }
+      return this._requestRefresh();
+    },
+
+    async _requestRefresh(): Promise<boolean> {
       const { $api } = useNuxtApp();
       try {
         // Refresh token HttpOnly cookie'de — withCredentials ile otomatik gider.

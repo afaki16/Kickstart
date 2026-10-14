@@ -1,5 +1,4 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
-import { API_ENDPOINTS } from "~/utils/apiEndpoints";
 
 /**
  * Axios plugin — güvenlik notları:
@@ -152,33 +151,21 @@ export default defineNuxtPlugin(() => {
       isRefreshing = true;
 
       try {
-        // Refresh token HttpOnly cookie'de — body boş gidiyor
-        // Doğrudan axios kullanıyoruz (kendi instance'ımız değil) çünkü
-        // bu çağrının kendi response interceptor'una takılmasını istemiyoruz.
-        const response = await axios.post(
-          `${config.public.apiBase}${API_ENDPOINTS.AUTH.REFRESH_TOKEN}`,
-          {},
-          {
-            headers: { "Content-Type": "application/json" },
-            withCredentials: true,
-          },
-        );
+        // Store'daki tek refresh yolu: sekme içinde tekilleştirilmiş (inFlightSilentRefresh)
+        // ve sekmeler arasında navigator.locks ile sıralanmış. Kendi isteği _skipAuthRefresh
+        // taşıdığı için bu interceptor'a tekrar girmez.
+        const refreshed = await authStore.silentRefresh();
+        const newToken = authStore.accessToken;
 
-        const data =
-          response.data?.data ?? response.data?.value ?? response.data;
-
-        if (!data?.accessToken) {
-          throw new Error("Invalid refresh response");
+        if (!refreshed || !newToken) {
+          throw new Error("Token refresh failed");
         }
 
-        // Yeni token'ı store'a yaz
-        await authStore.setAuth(data);
-
         // Kuyruğu işle
-        processQueue(null, data.accessToken);
+        processQueue(null, newToken);
 
         // Orijinal isteği yeni token ile tekrar dene
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
         return api(originalRequest);
       } catch (refreshError) {
         processQueue(refreshError as Error, null);

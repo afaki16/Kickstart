@@ -223,7 +223,10 @@ export const useAuth = () => {
       currentPassword,
       newPassword,
     });
-    toast.success("Şifreniz başarıyla güncellendi");
+    toast.success("Şifreniz değiştirildi. Lütfen yeni şifrenizle tekrar giriş yapın.");
+    // Backend revoked every session, including this one
+    authStore.clearAuth();
+    await router.push("/");
   };
 
   const logoutAllDevices = async (): Promise<void> => {
