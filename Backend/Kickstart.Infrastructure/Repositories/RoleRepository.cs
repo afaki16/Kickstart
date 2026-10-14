@@ -22,7 +22,7 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
 
     public async Task<Role> GetByNameAsync(string name)
     {
-        return await _context.Set<Role>().FirstOrDefaultAsync(r => r.Name == name);
+        return await _context.Set<Role>().FirstOrDefaultAsync(r => r.TenantId == null && r.Name == name);
     }
 
     public async Task<int> GetByIdWithNameAsync(string name)
@@ -56,9 +56,9 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
             .ToListAsync();
     }
 
-    public async Task<(IEnumerable<Role> Roles, int TotalCount)> GetRolesPagedAsync(int page, int pageSize, string searchTerm = null, bool excludeSuperAdminRole = false)
+    public async Task<(IEnumerable<Role> Roles, int TotalCount)> GetRolesPagedAsync(int page, int pageSize, string searchTerm = null, bool excludeSuperAdminRole = false, bool restrictToTenant = false, int? tenantId = null)
     {
-        var baseQuery = BuildRolesQuery(searchTerm, excludeSuperAdminRole).AsNoTracking();
+        var baseQuery = BuildRolesQuery(searchTerm, excludeSuperAdminRole, restrictToTenant, tenantId).AsNoTracking();
         var totalCount = await baseQuery.CountAsync();
 
         var roles = await baseQuery
@@ -70,12 +70,15 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
         return (roles, totalCount);
     }
 
-    private IQueryable<Role> BuildRolesQuery(string searchTerm, bool excludeSuperAdminRole)
+    private IQueryable<Role> BuildRolesQuery(string searchTerm, bool excludeSuperAdminRole, bool restrictToTenant, int? tenantId)
     {
         var query = _context.Set<Role>().AsQueryable();
 
         if (excludeSuperAdminRole)
             query = query.Where(r => r.Name != RoleNames.SuperAdmin);
+
+        if (restrictToTenant)
+            query = query.Where(r => r.TenantId == null || r.TenantId == tenantId);
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
@@ -106,9 +109,19 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
             .ToListAsync();
     }
 
-    public async Task<bool> RoleExistsAsync(string name)
+    public async Task<bool> RoleNameExistsAsync(string name, int? tenantId, int? excludeRoleId = null)
     {
-        return await _context.Set<Role>().AnyAsync(r => r.Name == name);
+        var lower = name.Trim().ToLowerInvariant();
+        var query = _context.Set<Role>().Where(r => r.Name.ToLower() == lower);
+
+        // Common role names must be unique everywhere; tenant role names must not clash with common roles or the same tenant
+        if (tenantId != null)
+            query = query.Where(r => r.TenantId == null || r.TenantId == tenantId);
+
+        if (excludeRoleId != null)
+            query = query.Where(r => r.Id != excludeRoleId);
+
+        return await query.AnyAsync();
     }
 
     public async Task<bool> RoleHasPermissionAsync(int roleId, string permission)

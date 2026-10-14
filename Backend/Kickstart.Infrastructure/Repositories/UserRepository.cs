@@ -1,3 +1,4 @@
+using Kickstart.Domain.Common.Enums;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Domain.Constants;
@@ -34,6 +35,7 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
     public async Task<IReadOnlyList<User>> GetUsersByEmailWithPermissionsAsync(string email)
     {
         return await _context.Set<User>()
+            .Include(u => u.Tenant)
             .Include(u => u.UserRoles)
                 .ThenInclude(ur => ur.Role)
                     .ThenInclude(r => r.RolePermissions)
@@ -150,5 +152,32 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
         return await _context.Set<User>()
             .Where(u => u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin))
             .CountAsync();
+    }
+
+    public async Task<(DateTime? LastSessionsRevokedAt, UserStatus Status, int? TenantId, bool TenantOk)?> GetSessionStateAsync(int userId)
+    {
+        // A soft-deleted tenant is hidden by the query filter, so u.Tenant comes back null → TenantOk = false
+        var state = await _context.Set<User>()
+            .AsNoTracking()
+            .Where(u => u.Id == userId)
+            .Select(u => new
+            {
+                u.LastSessionsRevokedAt,
+                u.Status,
+                u.TenantId,
+                TenantOk = u.TenantId == null || (u.Tenant != null && u.Tenant.IsActive)
+            })
+            .FirstOrDefaultAsync();
+
+        if (state == null)
+            return null;
+
+        return (state.LastSessionsRevokedAt, state.Status, state.TenantId, state.TenantOk);
+    }
+
+    public async Task<bool> TenantHasSuperAdminAsync(int tenantId)
+    {
+        return await _context.Set<User>()
+            .AnyAsync(u => u.TenantId == tenantId && u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
     }
 }

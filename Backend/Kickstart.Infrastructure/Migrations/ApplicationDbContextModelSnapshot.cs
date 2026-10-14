@@ -285,6 +285,9 @@ namespace Kickstart.Infrastructure.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
+                    b.Property<int?>("TenantId")
+                        .HasColumnType("integer");
+
                     b.Property<int?>("UpdatedBy")
                         .HasColumnType("integer");
 
@@ -294,7 +297,12 @@ namespace Kickstart.Infrastructure.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("Name")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("\"TenantId\" IS NULL AND NOT \"IsDeleted\"");
+
+                    b.HasIndex("TenantId", "Name")
+                        .IsUnique()
+                        .HasFilter("\"TenantId\" IS NOT NULL AND NOT \"IsDeleted\"");
 
                     b.ToTable("Roles", (string)null);
                 });
@@ -619,6 +627,14 @@ namespace Kickstart.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Kickstart.Domain.Entities.Role", b =>
+                {
+                    b.HasOne("Kickstart.Domain.Entities.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.Restrict);
                 });
 
             modelBuilder.Entity("Kickstart.Domain.Entities.RolePermission", b =>

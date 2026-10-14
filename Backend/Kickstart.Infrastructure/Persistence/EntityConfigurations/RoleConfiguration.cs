@@ -16,8 +16,13 @@ namespace Kickstart.Infrastructure.Persistence.EntityConfigurations
                 .IsRequired()
                 .HasMaxLength(50);
 
+            builder.HasIndex(x => new { x.TenantId, x.Name })
+                .IsUnique()
+                .HasFilter("\"TenantId\" IS NOT NULL AND NOT \"IsDeleted\"");
+
             builder.HasIndex(x => x.Name)
-                .IsUnique();
+                .IsUnique()
+                .HasFilter("\"TenantId\" IS NULL AND NOT \"IsDeleted\"");
 
             builder.Property(x => x.Description)
                 .HasMaxLength(500);
@@ -43,6 +48,11 @@ namespace Kickstart.Infrastructure.Persistence.EntityConfigurations
                 .WithOne(x => x.Role)
                 .HasForeignKey(x => x.RoleId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.HasOne<Tenant>()
+                .WithMany()
+                .HasForeignKey(x => x.TenantId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 } 

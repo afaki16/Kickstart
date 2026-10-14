@@ -5,6 +5,7 @@ export interface Role {
   name: string
   description?: string
   isSystemRole: boolean
+  tenantId?: number | null
   createdDate: string
   permissions: Permission[]
 }

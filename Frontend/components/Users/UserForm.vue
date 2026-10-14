@@ -85,6 +85,7 @@
               :items="tenants"
               item-title="name"
               item-value="id"
+              :menu-props="{ zIndex: 10000 }"
               label="Tenant"
               variant="outlined"
               :disabled="loading"
@@ -179,7 +180,7 @@
     <!-- Tab 3: Roller -->
     <v-window-item value="roles">
       <v-container>
-        <v-row v-if="roles && roles.length">
+        <v-row v-if="assignableRoles && assignableRoles.length">
           <v-col cols="12">
             <v-text-field
               v-model="searchQuery"
@@ -362,17 +363,29 @@ onMounted(async () => {
   }
 })
 
-const filteredRoles = computed(() => {
-  if (!searchQuery.value) return props.roles
-  
+// SuperAdmin sees every tenant's roles; only common roles and the target tenant's own roles are assignable
+const targetTenantId = computed(() =>
+  props.user ? props.user.tenantId : (formData.tenantId ?? authStore.user?.tenantId)
+)
+
+const assignableRoles = computed(() => {
+  if (!canAccessAllTenants.value) return props.roles
   return props.roles.filter(role =>
+    role.tenantId == null || Number(role.tenantId) === Number(targetTenantId.value)
+  )
+})
+
+const filteredRoles = computed(() => {
+  if (!searchQuery.value) return assignableRoles.value
+
+  return assignableRoles.value.filter(role =>
     role.name.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
     (role.description && role.description.toLowerCase().includes(searchQuery.value.toLowerCase()))
   )
 })
 
 const selectAllRoles = () => {
-  formData.roleIds = props.roles.map(r => String(r.id))
+  formData.roleIds = assignableRoles.value.map(r => String(r.id))
 }
 
 const clearAllRoles = () => {
@@ -408,6 +421,13 @@ const handleSubmit = async () => {
 watch(() => formData.roleIds, (newIds) => {
   emit('update:selected-roles', newIds)
 }, { deep: true })
+
+// New user (SuperAdmin): drop selected roles that do not belong to the newly selected tenant
+watch(() => formData.tenantId, () => {
+  if (!canAccessAllTenants.value || props.user) return
+  const allowedIds = new Set(assignableRoles.value.map(r => String(r.id)))
+  formData.roleIds = formData.roleIds.filter(id => allowedIds.has(id))
+})
 
 watchEffect(() => {
   if (props.user) {

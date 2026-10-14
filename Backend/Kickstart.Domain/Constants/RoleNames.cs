@@ -11,5 +11,7 @@ namespace Kickstart.Domain.Constants
         public const string Admin = "Admin";
         public const string User = "User";
         public const string Manager = "Manager";
+
+        public static readonly string[] Reserved = { SuperAdmin, Admin, User, Manager };
     }
 }

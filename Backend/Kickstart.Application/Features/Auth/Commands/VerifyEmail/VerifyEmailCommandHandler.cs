@@ -47,7 +47,9 @@ namespace Kickstart.Application.Features.Auth.Commands.VerifyEmail
             }
 
             token.User.EmailConfirmed = true;
-            token.User.Status = UserStatus.Active;
+            // Only activate accounts waiting for verification; never re-activate a deactivated or banned user
+            if (token.User.Status == UserStatus.PendingVerification)
+                token.User.Status = UserStatus.Active;
             token.MarkAsUsed();
 
             _unitOfWork.Users.Update(token.User);

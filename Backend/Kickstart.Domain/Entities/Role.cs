@@ -8,6 +8,7 @@ namespace Kickstart.Domain.Entities
         public string Name { get; set; }
         public string Description { get; set; }
         public bool IsSystemRole { get; set; }
+        public int? TenantId { get; set; }
 
         // Navigation properties
         public ICollection<UserRole> UserRoles { get; set; }

@@ -7,6 +7,7 @@ using Kickstart.Application.Features.Roles.Commands.CreateRole;
 using Kickstart.Application.Features.Roles.Commands.UpdateRole;
 using Kickstart.Application.Features.Roles.Commands.DeleteRole;
 using Kickstart.Application.Common.Localization;
+using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -18,6 +19,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Kickstart.Domain.Models;
 using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Constants;
 
 namespace Kickstart.Application.Features.Roles.Commands.CreateRole
 {
@@ -27,13 +29,17 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
         private readonly IMapper _mapper;
         private readonly ILogger<CreateRoleCommandHandler> _logger;
         private readonly IJsonStringLocalizer _localizer;
+        private readonly IPermissionService _permissionService;
+        private readonly ICurrentUserService _currentUserService;
 
-        public CreateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<CreateRoleCommandHandler> logger, IJsonStringLocalizer localizer)
+        public CreateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<CreateRoleCommandHandler> logger, IJsonStringLocalizer localizer, IPermissionService permissionService, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _localizer = localizer;
+            _permissionService = permissionService;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<RoleDto>> Handle(CreateRoleCommand request, CancellationToken cancellationToken)
@@ -42,19 +48,58 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
             {
                 _logger.LogInformation($"Creating new role: {request.Name}");
 
+                // SuperAdmin creates common roles (TenantId null); everyone else creates roles in their own tenant
+                var isSuperAdmin = _currentUserService.CanAccessAllTenants;
+                int? tenantId = isSuperAdmin ? null : _currentUserService.TenantId;
+
+                if (!isSuperAdmin && tenantId == null)
+                    return Result<RoleDto>.Failure(Error.Failure(
+                        ErrorCode.Forbidden,
+                        _localizer["auth.forbidden"]));
+
+                var name = request.Name.Trim();
+
+                if (tenantId != null && RoleNames.Reserved.Contains(name, StringComparer.OrdinalIgnoreCase))
+                    return Result<RoleDto>.Failure(Error.Failure(
+                        ErrorCode.AlreadyExists,
+                        _localizer["roles.nameReserved"]));
+
                 // Check if role name already exists
-                if (await _unitOfWork.Roles.RoleExistsAsync(request.Name))
+                if (await _unitOfWork.Roles.RoleNameExistsAsync(name, tenantId))
                 return Result<RoleDto>.Failure(Error.Failure(
                   ErrorCode.AlreadyExists,
                   _localizer["roles.nameExists"]));
-            
+
+                var permissions = request.PermissionIds?.Any() == true
+                    ? (await _unitOfWork.Permissions.FindAsync(p => request.PermissionIds.Contains(p.Id))).ToList()
+                    : new List<Permission>();
+
+                // Caller cannot grant a permission they do not have
+                if (!isSuperAdmin)
+                {
+                    if (_currentUserService.UserId is not int callerId)
+                        return Result<RoleDto>.Failure(Error.Failure(
+                            ErrorCode.Unauthorized,
+                            _localizer["auth.userNotAuthenticated"]));
+
+                    var permissionsResult = await _permissionService.GetUserPermissionsAsync(callerId);
+                    if (!permissionsResult.IsSuccess)
+                        return Result<RoleDto>.Failure(permissionsResult.Errors);
+
+                    var callerPermissions = new HashSet<string>(permissionsResult.Value, StringComparer.OrdinalIgnoreCase);
+                    if (permissions.Any(p => !callerPermissions.Contains(p.Name)))
+                        return Result<RoleDto>.Failure(Error.Failure(
+                            ErrorCode.Forbidden,
+                            _localizer["roles.cannotGrantPermission"]));
+                }
 
                 // Create role and assign permissions in a single transaction
                 var role = new Role
                 {
-                    Name = request.Name,
+                    Name = name,
                     Description = request.Description,
-                    IsSystemRole = false
+                    IsSystemRole = false,
+                    TenantId = tenantId
                 };
 
                 await _unitOfWork.Roles.AddAsync(role);
@@ -63,11 +108,9 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
                 _logger.LogInformation($"Created role with ID: {role.Id}");
 
                 // Assign permissions to role if provided
-                if (request.PermissionIds?.Any() == true)
+                if (permissions.Any())
                 {
                     _logger.LogInformation($"Adding {request.PermissionIds.Count()} permissions to new role. Permission IDs: {string.Join(", ", request.PermissionIds)}");
-
-                    var permissions = await _unitOfWork.Permissions.FindAsync(p => request.PermissionIds.Contains(p.Id));
 
                     foreach (var permission in permissions)
                     {
@@ -84,6 +127,8 @@ namespace Kickstart.Application.Features.Roles.Commands.CreateRole
                     await _unitOfWork.SaveChangesAsync();
                     _logger.LogInformation($"Saved {permissions.Count()} role permissions to database");
                 }
+
+                _permissionService.ClearRolePermissionCache();
 
                 // Get role with permissions for mapping
                 var roleWithPermissions = await _unitOfWork.Roles.GetRoleWithPermissionsAsync(role.Id);

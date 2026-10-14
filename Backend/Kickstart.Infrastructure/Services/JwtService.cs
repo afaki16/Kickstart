@@ -135,6 +135,21 @@ namespace Kickstart.Infrastructure.Services
                     _localizer["auth.invalidCredentials"]));
             }
 
+            // Inactive or soft-deleted tenant (the query filter returns a deleted tenant as null)
+            if (user.TenantId != null && (user.Tenant == null || !user.Tenant.IsActive))
+            {
+                await _bruteForceService.RecordFailedAttemptAsync(
+                    normalizedEmail, safeIp, userAgent, "TenantInactive");
+
+                _logger.LogWarning(
+                    "Login attempt on inactive tenant. Email: {Email}, TenantId: {TenantId}, IP: {IpAddress}",
+                    normalizedEmail, user.TenantId, safeIp);
+
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.Unauthorized,
+                    _localizer["auth.invalidCredentials"]));
+            }
+
             if (!user.EmailConfirmed)
             {
                 await _bruteForceService.RecordFailedAttemptAsync(
@@ -422,6 +437,14 @@ namespace Kickstart.Infrastructure.Services
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.NotFound,
                     _localizer["auth.userNotFound"]));
+
+            // Inactive user or inactive/deleted tenant: refuse without revoking, so the session
+            // can continue if the account or tenant is re-activated.
+            if (user.Status != Domain.Common.Enums.UserStatus.Active ||
+                (user.TenantId != null && (user.Tenant == null || !user.Tenant.IsActive)))
+                return Result<LoginResponseDto>.Failure(Error.Failure(
+                    ErrorCode.InvalidRequest,
+                    _localizer["auth.invalidRefreshToken"]));
 
             storedRefreshToken.Revoke(ipAddress, userAgent, "Token rotated");
             _unitOfWork.RefreshTokens.Update(storedRefreshToken);

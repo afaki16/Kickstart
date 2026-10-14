@@ -39,7 +39,8 @@ namespace Kickstart.Application.Features.Roles.Queries.GetAllRoles
                 _logger.LogInformation("Getting roles with permissions (paged)...");
 
                 var hideSuperAdmin = !_currentUserService.CanAccessAllTenants;
-                var (roles, totalCount) = await _unitOfWork.Roles.GetRolesPagedAsync(request.Page, request.PageSize, request.SearchTerm, hideSuperAdmin);
+                var restrictToTenant = !_currentUserService.CanAccessAllTenants;
+                var (roles, totalCount) = await _unitOfWork.Roles.GetRolesPagedAsync(request.Page, request.PageSize, request.SearchTerm, hideSuperAdmin, restrictToTenant, _currentUserService.TenantId);
                 var roleDtos = _mapper.Map<IEnumerable<RoleDto>>(roles);
                 var totalPages = (int)Math.Ceiling(totalCount / (double)request.PageSize);
 

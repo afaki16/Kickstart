@@ -10,6 +10,7 @@ using Kickstart.Application.Common.Results;
 using Kickstart.Domain.Entities;
 using Kickstart.Domain.Models;
 using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Constants;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using System.Linq;
@@ -29,14 +30,16 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
         private readonly ILogger<UpdateRoleCommandHandler> _logger;
         private readonly IPermissionService _permissionService;
         private readonly IJsonStringLocalizer _localizer;
+        private readonly ICurrentUserService _currentUserService;
 
-        public UpdateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UpdateRoleCommandHandler> logger, IPermissionService permissionService, IJsonStringLocalizer localizer)
+        public UpdateRoleCommandHandler(IUnitOfWork unitOfWork, IMapper mapper, ILogger<UpdateRoleCommandHandler> logger, IPermissionService permissionService, IJsonStringLocalizer localizer, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _permissionService = permissionService;
             _localizer = localizer;
+            _currentUserService = currentUserService;
         }
 
         public async Task<Result<RoleDto>> Handle(UpdateRoleCommand request, CancellationToken cancellationToken)
@@ -57,16 +60,66 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
                 ErrorCode.InvalidOperation,
                 _localizer["roles.cannotModifySystem"]));
 
+                var isSuperAdmin = _currentUserService.CanAccessAllTenants;
+                HashSet<string>? callerPermissions = null;
+
+                if (!isSuperAdmin)
+                {
+                    // Common roles are managed by SuperAdmin only; other tenants' roles look like they do not exist
+                    if (role.TenantId == null)
+                        return Result<RoleDto>.Failure(Error.Failure(
+                            ErrorCode.Forbidden,
+                            _localizer["roles.cannotModifySystem"]));
+
+                    if (role.TenantId != _currentUserService.TenantId)
+                        return Result<RoleDto>.Failure(Error.Failure(
+                            ErrorCode.NotFound,
+                            _localizer["roles.notFound"]));
+
+                    if (_currentUserService.UserId is not int callerId)
+                        return Result<RoleDto>.Failure(Error.Failure(
+                            ErrorCode.Unauthorized,
+                            _localizer["auth.userNotAuthenticated"]));
+
+                    var permissionsResult = await _permissionService.GetUserPermissionsAsync(callerId);
+                    if (!permissionsResult.IsSuccess)
+                        return Result<RoleDto>.Failure(permissionsResult.Errors);
+
+                    callerPermissions = new HashSet<string>(permissionsResult.Value, StringComparer.OrdinalIgnoreCase);
+
+                    // Caller cannot modify a role that already has permissions beyond their own
+                    if (role.RolePermissions.Any(rp => !callerPermissions.Contains(rp.Permission.Name)))
+                        return Result<RoleDto>.Failure(Error.Failure(
+                            ErrorCode.Forbidden,
+                            _localizer["roles.noAccessToModify"]));
+                }
+
+                var name = request.Name.Trim();
+
+                if (role.TenantId != null && RoleNames.Reserved.Contains(name, StringComparer.OrdinalIgnoreCase))
+                    return Result<RoleDto>.Failure(Error.Failure(
+                        ErrorCode.AlreadyExists,
+                        _localizer["roles.nameReserved"]));
+
                 // Check if role name already exists for another role
-                var existingRole = await _unitOfWork.Roles.GetByNameAsync(request.Name);
-                if (existingRole != null && existingRole.Id != request.Id)
+                if (await _unitOfWork.Roles.RoleNameExistsAsync(name, role.TenantId, excludeRoleId: role.Id))
                 return Result<RoleDto>.Failure(Error.Failure(
                                 ErrorCode.AlreadyExists,
                                 _localizer["roles.nameExists"]));
 
+                var permissions = request.PermissionIds?.Any() == true
+                    ? (await _unitOfWork.Permissions.FindAsync(p => request.PermissionIds.Contains(p.Id))).ToList()
+                    : new List<Permission>();
+
+                // Caller cannot grant a permission they do not have
+                if (callerPermissions != null && permissions.Any(p => !callerPermissions.Contains(p.Name)))
+                    return Result<RoleDto>.Failure(Error.Failure(
+                        ErrorCode.Forbidden,
+                        _localizer["roles.cannotGrantPermission"]));
+
 
             // Update role properties
-            role.Name = request.Name;
+            role.Name = name;
                 role.Description = request.Description;
 
                 _unitOfWork.Roles.Update(role);
@@ -79,11 +132,9 @@ namespace Kickstart.Application.Features.Roles.Commands.UpdateRole
                 }
 
                 // Add new permissions if provided
-                if (request.PermissionIds?.Any() == true)
+                if (permissions.Any())
                 {
                     _logger.LogInformation($"Adding {request.PermissionIds.Count()} permissions to role");
-
-                    var permissions = await _unitOfWork.Permissions.FindAsync(p => request.PermissionIds.Contains(p.Id));
 
                     foreach (var permission in permissions)
                     {

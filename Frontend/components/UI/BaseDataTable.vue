@@ -314,7 +314,7 @@
                           </svg>
                         </button>
                         <button
-                          v-if="canUpdate"
+                          v-if="canUpdate && (!canEditItem || canEditItem(item))"
                           @click="$emit('edit', item)"
                           class="action-button edit-button"
                           title="Düzenle"
@@ -324,7 +324,7 @@
                           </svg>
                         </button>
                         <button
-                          v-if="canDelete"
+                          v-if="canDelete && (!canDeleteItem || canDeleteItem(item))"
                           @click="$emit('delete', item)"
                           class="action-button delete-button"
                           title="Sil"
@@ -521,6 +521,15 @@ const props = defineProps({
   serverCurrentPage: {
     type: Number,
     default: 1
+  },
+  // Optional per-row checks; when omitted every row follows canUpdate / canDelete
+  canEditItem: {
+    type: Function,
+    default: null
+  },
+  canDeleteItem: {
+    type: Function,
+    default: null
   }
 })
 

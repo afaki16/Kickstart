@@ -30,6 +30,8 @@
       :server-total-count="totalCount"
       :server-current-page="currentPage"
       use-view-modal
+      :can-edit-item="canModifyRole"
+      :can-delete-item="canModifyRole"
       @add="openCreateDialog"
       @view="openViewDialog"
       @edit="openEditDialog"
@@ -62,6 +64,11 @@
   </v-chip>
 </template>
 
+    <!-- For tenantId (SuperAdmin only) -->
+  <template #cell-tenantId="{ value }">
+    {{ value == null ? 'Ortak' : value }}
+  </template>
+
      </BaseDataTable>
 
     <!-- Create/Edit Role Drawer -->
@@ -75,7 +82,7 @@
     >
       <RoleForm
         :role="selectedItem"
-        :permissions="permissions"
+        :permissions="formPermissions"
         :loading="isLoading"
         @submit="handleSubmit"
         @cancel="closeCreateDialog"
@@ -97,7 +104,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import RoleForm from '~/components/Roles/RoleForm.vue'
 import BaseDataTable from '~/components/UI/BaseDataTable.vue'
 import ResizableDrawer from '~/components/UI/ResizableDrawer.vue'
@@ -116,7 +123,11 @@ useHead({
 //#endregion
 
 //#region DataTable Columns
-const tableColumns = [
+const authStore = useAuthStore()
+const isSuperAdmin = computed(() => authStore.hasRole('SuperAdmin'))
+
+const tableColumns = computed(() => {
+  const base = [
   {
     label: 'Rol Adı',
     key: 'name',
@@ -140,7 +151,18 @@ const tableColumns = [
     filterable: false,
     width: '300px'
   }
-]
+  ]
+  if (isSuperAdmin.value) {
+    base.splice(2, 0, {
+      label: 'Tenant',
+      key: 'tenantId',
+      sortable: true,
+      filterable: false,
+      width: '150px'
+    })
+  }
+  return base
+})
 //#endregion
 
 //#region Composables
@@ -203,11 +225,34 @@ const loadPermissions = async () => {
     permissions.value = []
   }
 }
+
+// Same name mapping as authStore.setUser
+const permissionName = (p) => p?.fullPermission ?? p?.name
+
+// Non-SuperAdmin can only grant permissions they have; their own list comes with the user
+// (GET /api/permissions needs Permissions.Read, which a role manager may not have).
+// The user's list can repeat a permission shared by several roles, so dedupe by id.
+const formPermissions = computed(() =>
+  isSuperAdmin.value
+    ? permissions.value
+    : [...new Map((authStore.user?.permissions ?? []).map(p => [String(p.id), p])).values()]
+)
+
+// Mirrors backend rules: system and common roles are SuperAdmin-only,
+// and a role with permissions beyond the caller's cannot be modified
+const canModifyRole = (role) => {
+  if (role.isSystemRole) return false
+  if (isSuperAdmin.value) return true
+  if (role.tenantId == null) return false
+  return (role.permissions || []).every(p => authStore.permissions.includes(permissionName(p)))
+}
 //#endregion
 
 //#region Lifecycle
 onMounted(async () => {
-  await loadPermissions()
+  if (isSuperAdmin.value) {
+    await loadPermissions()
+  }
   if (!rolesData.value) {
     await loadItemsData(1, 10, '')
   }

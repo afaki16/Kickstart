@@ -2,6 +2,7 @@ using AutoMapper;
 using Kickstart.Application.Features.Roles.Queries.GetAllRoles;
 using Kickstart.Application.Features.Roles.Queries.GetRoleById;
 using Kickstart.Application.Interfaces;
+using Kickstart.Application.Common.Localization;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
@@ -23,25 +24,28 @@ namespace Kickstart.Application.Features.Roles.Queries.GetRoleById
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IJsonStringLocalizer _localizer;
 
-        public GetRoleByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
+        public GetRoleByIdQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService, IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _currentUserService = currentUserService;
+            _localizer = localizer;
         }
 
         public async Task<Result<RoleDto>> Handle(GetRoleByIdQuery request, CancellationToken cancellationToken)
         {
             var role = await _unitOfWork.Roles.GetRoleWithPermissionsReadOnlyAsync(request.Id);
 
-            if (role == null)
-            return Result<RoleDto>.Failure(Error.Failure(
-                       ErrorCode.NotFound,
-                       "Role not found"));
-
-            if (!_currentUserService.CanAccessAllTenants && role.Name == RoleNames.SuperAdmin)
-                return Result<RoleDto>.Failure(Error.Failure(ErrorCode.Forbidden, "You do not have access to this role"));
+            // Missing, SuperAdmin (for non-SuperAdmin) and other tenants' roles all look the same: not found
+            if (role == null ||
+                (!_currentUserService.CanAccessAllTenants &&
+                 (role.Name == RoleNames.SuperAdmin ||
+                  (role.TenantId != null && role.TenantId != _currentUserService.TenantId))))
+                return Result<RoleDto>.Failure(Error.Failure(
+                    ErrorCode.NotFound,
+                    _localizer["roles.notFound"]));
 
         var roleDto = _mapper.Map<RoleDto>(role);
             return Result<RoleDto>.Success(roleDto);

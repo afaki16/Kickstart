@@ -35,7 +35,17 @@ namespace Kickstart.Application.Features.Tenants.Commands.DeleteTenant;
                 _localizer["tenants.notFound"]));
         }
 
-        // Soft delete - User'ların TenantId'si null olur (DeleteBehavior.SetNull)
+        // Deleting a tenant would lock out its SuperAdmin
+        if (await _unitOfWork.Users.TenantHasSuperAdminAsync(tenant.Id))
+        {
+            return Result<bool>.Failure(Error.Failure(
+                ErrorCode.Forbidden,
+                _localizer["tenants.hasSuperAdmin"]));
+        }
+
+        // Soft delete is an UPDATE (IsDeleted = true): users are not deleted and their TenantId does not change
+        // (DeleteBehavior.SetNull only applies to a real DELETE). Access is blocked by the login, refresh and
+        // per-request session checks, which treat a deleted tenant as inactive.
         _unitOfWork.Tenants.SoftDelete(tenant);
         await _unitOfWork.SaveChangesAsync();
 

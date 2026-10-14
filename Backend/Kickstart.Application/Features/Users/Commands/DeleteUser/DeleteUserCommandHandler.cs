@@ -76,6 +76,14 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
                     ErrorCode.Forbidden,
                     _localizer["users.noAccessToDelete"]));
 
+            // Caller cannot delete a user whose roles exceed the caller's own permissions
+            var targetRoleError = await RoleAssignmentGuard.ValidateAsync(
+                user.UserRoles.Select(ur => ur.RoleId), user.TenantId, _unitOfWork, _currentUserService, _permissionService, _localizer);
+            if (targetRoleError != null)
+                return Result.Failure(Error.Failure(
+                    ErrorCode.Forbidden,
+                    _localizer["users.noAccessToDelete"]));
+
             // Last SuperAdmin protection
             var isSuperAdmin = user.UserRoles?.Any(ur => ur.Role?.Name == RoleNames.SuperAdmin) == true;
             if (isSuperAdmin)

@@ -1,3 +1,4 @@
+using Kickstart.Domain.Common.Enums;
 using Kickstart.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -28,5 +29,13 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
         Task<(IEnumerable<User> Users, int TotalCount)> GetUsersPagedAsync(int page, int pageSize, string searchTerm = null, int? tenantId = null, bool excludeUsersWithSuperAdminRole = false);
         Task<IEnumerable<int>> GetUserIdsByRoleIdAsync(int roleId);
         Task<int> CountActiveSuperAdminsAsync();
+
+        /// <summary>
+        /// Lightweight per-request session check. TenantOk is false when the user's tenant is
+        /// inactive or soft-deleted. Returns null when the user does not exist.
+        /// </summary>
+        Task<(DateTime? LastSessionsRevokedAt, UserStatus Status, int? TenantId, bool TenantOk)?> GetSessionStateAsync(int userId);
+
+        Task<bool> TenantHasSuperAdminAsync(int tenantId);
     }
 } 

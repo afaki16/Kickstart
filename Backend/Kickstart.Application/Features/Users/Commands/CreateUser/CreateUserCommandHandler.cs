@@ -1,4 +1,5 @@
 using Kickstart.Application.Interfaces;
+using Kickstart.Application.Common.Authorization;
 using Kickstart.Application.Common.Localization;
 using AutoMapper;
 using Kickstart.Application.Features.Users.Commands.CreateUser;
@@ -28,14 +29,16 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
         private readonly IPasswordService _passwordService;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IPermissionService _permissionService;
         private readonly IJsonStringLocalizer _localizer;
 
-        public CreateUserCommandHandler(IUnitOfWork unitOfWork, IPasswordService passwordService, IMapper mapper, ICurrentUserService currentUserService, IJsonStringLocalizer localizer)
+        public CreateUserCommandHandler(IUnitOfWork unitOfWork, IPasswordService passwordService, IMapper mapper, ICurrentUserService currentUserService, IPermissionService permissionService, IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
             _mapper = mapper;
             _currentUserService = currentUserService;
+            _permissionService = permissionService;
             _localizer = localizer;
         }
 
@@ -68,14 +71,10 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
                     ErrorCode.AlreadyExists,
                     _localizer["users.phoneExists"]));
 
-            if (!_currentUserService.CanAccessAllTenants && request.RoleIds?.Any() == true)
-            {
-                var roles = await _unitOfWork.Roles.FindAsync(r => request.RoleIds.Contains(r.Id));
-                if (roles.Any(r => r.Name == RoleNames.SuperAdmin))
-                    return Result<UserListDto>.Failure(Error.Failure(
-                        ErrorCode.Forbidden,
-                        _localizer["users.cannotAssignSuperAdmin"]));
-            }
+            var roleError = await RoleAssignmentGuard.ValidateAsync(
+                request.RoleIds, tenantId, _unitOfWork, _currentUserService, _permissionService, _localizer);
+            if (roleError != null)
+                return Result<UserListDto>.Failure(roleError);
 
             // Validate password strength (single source of truth: PasswordService)
             var strengthResult = _passwordService.ValidatePasswordStrength(request.Password);

@@ -60,6 +60,24 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
                     ErrorCode.Forbidden,
                     _localizer["users.noAccessToUpdate"]));
 
+            if (request.Id == _currentUserService.UserId && request.Status != user.Status)
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.Forbidden,
+                    _localizer["users.cannotChangeOwnStatus"]));
+
+            // Caller cannot manage a user whose roles exceed the caller's own permissions
+            var targetRoleError = await RoleAssignmentGuard.ValidateAsync(
+                user.UserRoles.Select(ur => ur.RoleId), user.TenantId, _unitOfWork, _currentUserService, _permissionService, _localizer);
+            if (targetRoleError != null)
+                return Result<UserListDto>.Failure(Error.Failure(
+                    ErrorCode.Forbidden,
+                    _localizer["users.noAccessToUpdate"]));
+
+            var roleError = await RoleAssignmentGuard.ValidateAsync(
+                request.RoleIds, user.TenantId, _unitOfWork, _currentUserService, _permissionService, _localizer);
+            if (roleError != null)
+                return Result<UserListDto>.Failure(roleError);
+
             var normalizedEmail = request.Email?.Trim().ToLowerInvariant();
 
             // Check if email already exists for another user in the same tenant
@@ -74,6 +92,8 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.AlreadyExists,
                     _localizer["users.phoneExists"]));
+
+            var isDeactivated = user.Status == UserStatus.Active && request.Status != UserStatus.Active;
 
             // Update user properties
             user.FirstName = request.FirstName;
@@ -90,21 +110,19 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
             // Add new roles if provided
             if (request.RoleIds?.Any() == true)
             {
-                if (!_currentUserService.CanAccessAllTenants)
-                {
-                    var roles = await _unitOfWork.Roles.FindAsync(r => request.RoleIds.Contains(r.Id));
-                    if (roles.Any(r => r.Name == RoleNames.SuperAdmin))
-                        return Result<UserListDto>.Failure(Error.Failure(
-                            ErrorCode.Forbidden,
-                            _localizer["users.cannotAssignSuperAdmin"]));
-                }
-
                 foreach (var roleId in request.RoleIds)
                     await _unitOfWork.Users.AddUserRoleAsync(new UserRole { UserId = user.Id, RoleId = roleId });
             }
 
+            if (isDeactivated)
+                user.LastSessionsRevokedAt = DateTime.UtcNow;
+
             _unitOfWork.Users.Update(user);
             await _unitOfWork.SaveChangesAsync();
+
+            // Runs immediately (ExecuteUpdate), so only after the status change is saved
+            if (isDeactivated)
+                await _unitOfWork.RefreshTokens.RevokeAllUserTokensAsync(user.Id, reason: "User deactivated");
 
             _permissionService.ClearUserPermissionCache(request.Id);
 

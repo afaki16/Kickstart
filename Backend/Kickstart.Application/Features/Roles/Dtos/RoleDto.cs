@@ -10,6 +10,7 @@ namespace Kickstart.Application.Features.Roles.Dtos
         public string Name { get; set; }
         public string Description { get; set; }
         public bool IsSystemRole { get; set; }
+        public int? TenantId { get; set; }
         public DateTime CreatedDate { get; set; }
         public List<PermissionDto> Permissions { get; set; } = new List<PermissionDto>();
     }

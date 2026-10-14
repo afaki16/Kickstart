@@ -57,6 +57,14 @@ namespace Kickstart.Application.Features.Tenants.Commands.UpdateTenant;
                 _localizer["tenants.domainExists"]));
         }
 
+        // Deactivating a tenant would lock out its SuperAdmin
+        if (tenant.IsActive && !request.IsActive && await _unitOfWork.Users.TenantHasSuperAdminAsync(tenant.Id))
+        {
+            return Result<TenantListDto>.Failure(Error.Failure(
+                ErrorCode.Forbidden,
+                _localizer["tenants.hasSuperAdmin"]));
+        }
+
         tenant.Name = request.Name;
         tenant.Description = request.Description;
         tenant.Domain = request.Domain;

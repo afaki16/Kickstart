@@ -25,22 +25,28 @@
     "phoneExists": "Bu telefon numarası zaten kullanılıyor",
     "onlySuperAdminCanSpecifyTenant": "Sadece SuperAdmin başka bir tenant için kullanıcı oluşturabilir",
     "cannotAssignSuperAdmin": "SuperAdmin rolü atayamazsınız",
+    "cannotAssignRole": "Kendi yetkinizi aşan bir rol atayamazsınız.",
     "noAccessToUpdate": "Bu kullanıcıyı güncelleme yetkiniz yok",
     "noAccessToDelete": "Bu kullanıcıyı silme yetkiniz yok",
     "cannotDeleteSelf": "Kendi hesabınızı silemezsiniz",
-    "cannotDeleteLastSuperAdmin": "Sistemdeki son SuperAdmin'i silemezsiniz"
+    "cannotDeleteLastSuperAdmin": "Sistemdeki son SuperAdmin'i silemezsiniz",
+    "cannotChangeOwnStatus": "Kendi hesabınızın durumunu değiştiremezsiniz."
   },
   "roles": {
     "notFound": "Rol bulunamadı",
     "cannotModifySystem": "Sistem rolleri değiştirilemez",
     "nameExists": "Bu rol adı zaten kullanılıyor",
+    "nameReserved": "Bu rol adı sistem tarafından ayrılmıştır, başka bir ad seçin.",
+    "cannotGrantPermission": "Sahip olmadığınız bir izni role ekleyemezsiniz.",
+    "noAccessToModify": "Bu rolü değiştirme yetkiniz yok.",
     "createFailed": "Rol oluşturulurken beklenmeyen bir hata oluştu",
     "updateFailed": "Rol güncellenirken beklenmeyen bir hata oluştu"
   },
   "tenants": {
     "notFound": "Tenant bulunamadı",
     "nameExists": "Bu tenant adı zaten kullanılıyor",
-    "domainExists": "Bu tenant domaini zaten kullanılıyor"
+    "domainExists": "Bu tenant domaini zaten kullanılıyor",
+    "hasSuperAdmin": "Bu tenant'ta SuperAdmin kullanıcısı olduğu için pasif yapılamaz veya silinemez."
   },
   "password": {
     "generationFailed": "Şifre oluşturulamadı",

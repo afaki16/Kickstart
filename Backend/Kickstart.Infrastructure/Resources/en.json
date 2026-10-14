@@ -25,22 +25,28 @@
     "phoneExists": "Phone number already exists",
     "onlySuperAdminCanSpecifyTenant": "Only SuperAdmin can create users in a specific tenant",
     "cannotAssignSuperAdmin": "You cannot assign the SuperAdmin role",
+    "cannotAssignRole": "You cannot assign a role with permissions beyond your own.",
     "noAccessToUpdate": "You do not have access to update this user",
     "noAccessToDelete": "You do not have access to delete this user",
     "cannotDeleteSelf": "You cannot delete your own account",
-    "cannotDeleteLastSuperAdmin": "Cannot delete the last SuperAdmin in the system"
+    "cannotDeleteLastSuperAdmin": "Cannot delete the last SuperAdmin in the system",
+    "cannotChangeOwnStatus": "You cannot change the status of your own account."
   },
   "roles": {
     "notFound": "Role not found",
     "cannotModifySystem": "Cannot modify system roles",
     "nameExists": "Role name already exists",
+    "nameReserved": "This role name is reserved by the system. Please choose another name.",
+    "cannotGrantPermission": "You cannot grant a permission you do not have.",
+    "noAccessToModify": "You do not have permission to modify this role.",
     "createFailed": "An unexpected error occurred while creating the role",
     "updateFailed": "An unexpected error occurred while updating the role"
   },
   "tenants": {
     "notFound": "Tenant not found",
     "nameExists": "Tenant name already exists",
-    "domainExists": "Tenant domain already exists"
+    "domainExists": "Tenant domain already exists",
+    "hasSuperAdmin": "This tenant cannot be deactivated or deleted because it contains a SuperAdmin user."
   },
   "password": {
     "generationFailed": "Failed to generate password",
