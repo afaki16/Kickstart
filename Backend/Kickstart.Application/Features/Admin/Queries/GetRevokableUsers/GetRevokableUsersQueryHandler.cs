@@ -1,3 +1,4 @@
+using Kickstart.Application.Common.Authorization;
 using Kickstart.Application.Features.Admin.Dtos;
 using Kickstart.Application.Interfaces;
 using Kickstart.Application.Common.Results;
@@ -25,6 +26,10 @@ namespace Kickstart.Application.Features.Admin.Queries.GetRevokableUsers
 
         public async Task<Result<IEnumerable<RevokableUserDto>>> Handle(GetRevokableUsersQuery request, CancellationToken cancellationToken)
         {
+            if (!TenantAccess.HasTenantScope(_currentUserService))
+                return Result<IEnumerable<RevokableUserDto>>.Failure(
+                    Domain.Models.Error.Failure(Domain.Common.Enums.ErrorCode.Forbidden, "You can only view users in your own tenant"));
+
             int? tenantId = request.TenantId;
             if (!_currentUserService.CanAccessAllTenants)
             {

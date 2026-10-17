@@ -53,6 +53,9 @@ namespace Kickstart.Infrastructure
         services.AddScoped<IAuthorizationHandler, PermissionAuthorizationHandler>();
         services.AddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
 
+        // Periodic hard-delete of expired tokens and old login attempts
+        services.AddHostedService<DataCleanupService>();
+
         // Add JWT Authentication
         AddJwtAuthentication(services, configuration, environment);
 

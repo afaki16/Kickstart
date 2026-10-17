@@ -10,6 +10,7 @@ namespace Kickstart.Application.Features.Tenants.Dtos
         public string Domain { get; set; }
         public bool IsActive { get; set; }
         public string ContactEmail { get; set; }
+        public string ContactPhone { get; set; }
         public DateTime CreatedDate { get; set; }
         public int UserCount { get; set; }
     }

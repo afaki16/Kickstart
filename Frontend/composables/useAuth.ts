@@ -1,6 +1,8 @@
 import type {
   LoginRequest,
   RegisterRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
   LoginResponse,
   User,
   Session,
@@ -141,6 +143,25 @@ export const useAuth = () => {
     );
   };
 
+  // tenantId gönderilmez: backend alanı int, gönderilmezse 0 kabul ediliyor.
+  const forgotPassword = async (email: string) => {
+    const payload: ForgotPasswordRequest = { email };
+    return await api.post(API_ENDPOINTS.AUTH.FORGOT_PASSWORD, payload, {
+      silent: true,
+    });
+  };
+
+  const resetPassword = async (
+    email: string,
+    token: string,
+    newPassword: string,
+  ) => {
+    const payload: ResetPasswordRequest = { email, token, newPassword };
+    return await api.post(API_ENDPOINTS.AUTH.RESET_PASSWORD, payload, {
+      silent: true,
+    });
+  };
+
   const logout = async () => {
     try {
       // Refresh token HttpOnly cookie'de — backend okuyup revoke eder
@@ -246,6 +267,8 @@ export const useAuth = () => {
     getCurrentUser,
     verifyEmail,
     resendVerification,
+    forgotPassword,
+    resetPassword,
     hasPermission,
     hasRole,
     hasAnyPermission,

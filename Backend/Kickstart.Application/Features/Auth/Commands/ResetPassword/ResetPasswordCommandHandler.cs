@@ -14,17 +14,20 @@ namespace Kickstart.Application.Features.Auth.Commands.ResetPassword
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IPasswordService _passwordService;
+        private readonly IBruteForceProtectionService _bruteForceService;
         private readonly ILogger<ResetPasswordCommandHandler> _logger;
         private readonly IJsonStringLocalizer _localizer;
 
         public ResetPasswordCommandHandler(
             IUnitOfWork unitOfWork,
             IPasswordService passwordService,
+            IBruteForceProtectionService bruteForceService,
             ILogger<ResetPasswordCommandHandler> logger,
             IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _passwordService = passwordService;
+            _bruteForceService = bruteForceService;
             _logger = logger;
             _localizer = localizer;
         }
@@ -62,6 +65,9 @@ namespace Kickstart.Application.Features.Auth.Commands.ResetPassword
                 resetToken.User.Id, reason: "Password reset");
 
             await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+            // The account owner proved control of the email; lift any lockout from every IP.
+            await _bruteForceService.ClearFailuresForEmailAsync(normalizedEmail!, cancellationToken);
 
             _logger.LogInformation(
                 "Password reset completed. UserId: {UserId}, Email: {Email}",

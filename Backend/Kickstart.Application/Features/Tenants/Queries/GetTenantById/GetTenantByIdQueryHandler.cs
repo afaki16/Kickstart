@@ -5,6 +5,7 @@ using Kickstart.Application.Common.Results;
 using Kickstart.Application.Features.Tenants.Dtos;
 using Kickstart.Domain.Models;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using System.Threading;
 using System.Threading.Tasks;
 using Kickstart.Domain.Common.Enums;
@@ -23,7 +24,7 @@ namespace Kickstart.Application.Features.Tenants.Queries.GetTenantById
 
         public async Task<Result<TenantDto>> Handle(GetTenantByIdQuery request, CancellationToken cancellationToken)
         {
-            var tenant = await _unitOfWork.Tenants.GetTenantWithUsersReadOnlyAsync(request.Id);
+            var tenant = await _unitOfWork.Tenants.GetQueryable().FirstOrDefaultAsync(t => t.Id == request.Id, cancellationToken);
 
             if (tenant == null)
             {
@@ -33,7 +34,7 @@ namespace Kickstart.Application.Features.Tenants.Queries.GetTenantById
             }
 
             var tenantDto = _mapper.Map<TenantDto>(tenant);
-            tenantDto.UserCount = tenant.Users?.Count ?? 0;
+            tenantDto.UserCount = await _unitOfWork.Users.CountByTenantIdAsync(tenant.Id);
             return Result<TenantDto>.Success(tenantDto);
         }
     }

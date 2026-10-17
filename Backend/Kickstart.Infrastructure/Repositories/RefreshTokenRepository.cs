@@ -164,19 +164,12 @@ namespace Kickstart.Infrastructure.Repositories
             UpdateRange(tokens);
         }
 
-        public async Task CleanupExpiredTokensAsync()
+        public async Task<int> DeleteOlderThanAsync(DateTime cutoff, CancellationToken cancellationToken = default)
         {
-            await _context.Set<RefreshToken>()
-                .Where(rt => rt.ExpiryDate <= DateTime.UtcNow)
-                .ExecuteDeleteAsync();
-        }
-
-        public async Task CleanupRevokedTokensAsync(int daysOld = 30)
-        {
-            var cutoffDate = DateTime.UtcNow.AddDays(-daysOld);
-            await _context.Set<RefreshToken>()
-                .Where(rt => rt.IsRevoked && rt.RevokedDate <= cutoffDate)
-                .ExecuteDeleteAsync();
+            return await _context.Set<RefreshToken>()
+                .IgnoreQueryFilters()
+                .Where(rt => rt.ExpiryDate < cutoff)
+                .ExecuteDeleteAsync(cancellationToken);
         }
 
         public async Task<IEnumerable<RefreshToken>> GetExpiringSoonTokensAsync(int minutesThreshold = 30)

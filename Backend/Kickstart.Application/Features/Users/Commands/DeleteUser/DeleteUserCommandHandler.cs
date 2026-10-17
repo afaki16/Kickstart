@@ -66,7 +66,7 @@ namespace Kickstart.Application.Features.Users.Commands.DeleteUser
             }
 
             // Admin/User can only delete users from their own tenant; SuperAdmin can delete any user
-            if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
+            if (!TenantAccess.CanAccessTenant(_currentUserService, user.TenantId))
                 return Result.Failure(Error.Failure(
                     ErrorCode.Forbidden,
                     _localizer["users.noAccessToDelete"]));

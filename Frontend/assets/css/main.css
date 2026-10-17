@@ -1,14 +1,5 @@
 /* Main CSS file */
 
-/* Vuetify select dropdown fix */
-.v-overlay-container {
-  z-index: 9999 !important;
-}
-
-.v-menu > .v-overlay__content {
-  z-index: 9999 !important;
-}
-
 .v-select .v-field {
   cursor: pointer !important;
 }

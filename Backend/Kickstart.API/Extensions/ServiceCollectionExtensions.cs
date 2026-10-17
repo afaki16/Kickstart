@@ -211,6 +211,10 @@ namespace Kickstart.API.Extensions
         {
             services.AddAuthorization(options =>
             {
+                // Every endpoint without an authorization attribute requires a signed-in user;
+                // anonymous endpoints must be marked explicitly with [AllowAnonymous].
+                options.FallbackPolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
+
                 // Permission policies are handled dynamically by PermissionPolicyProvider
                 // (registered in Infrastructure.DependencyInjection) which evaluates them
                 // against the database via PermissionAuthorizationHandler.

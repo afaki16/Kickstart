@@ -198,8 +198,6 @@
         <slot />
       </main>
     </div>
-
-    <AppToast />
   </div>
 </template>
 
@@ -211,7 +209,6 @@ import { useAuth } from '~/composables/useAuth'
 import { useAppData } from '~/composables/useAppData'
 import { useAuthStore } from '~/stores/auth'
 import { useTheme } from '~/composables/useTheme'
-import AppToast from '~/components/UI/AppToast.vue'
 
 // Auth state
 const authStore = useAuthStore()

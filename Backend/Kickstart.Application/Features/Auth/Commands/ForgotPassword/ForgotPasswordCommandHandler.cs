@@ -78,7 +78,7 @@ namespace Kickstart.Application.Features.Auth.Commands.ForgotPassword
             await _unitOfWork.SaveChangesAsync(cancellationToken);
 
             var frontendUrl = _configuration["App:FrontendUrl"];
-            var resetLink = $"{frontendUrl}/reset-password?token={HttpUtility.UrlEncode(plainToken)}&email={HttpUtility.UrlEncode(targetUser.Email)}";
+            var resetLink = $"{frontendUrl}/auth/reset-password?token={HttpUtility.UrlEncode(plainToken)}&email={HttpUtility.UrlEncode(targetUser.Email)}";
 
             await _emailService.SendPasswordResetAsync(targetUser.Email, targetUser.FirstName, resetLink);
 

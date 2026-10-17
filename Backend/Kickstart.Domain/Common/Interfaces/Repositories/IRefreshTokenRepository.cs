@@ -27,8 +27,7 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
         Task RevokeTokenAsync(string token, string ipAddress = null, string userAgent = null, string reason = "Token revoked");
         Task RevokeTokensByDeviceAsync(int userId, string deviceId, string ipAddress = null, string userAgent = null, string reason = "Device logout");
         Task RevokeTokensByIpAsync(string ipAddress, string reason = "Suspicious activity");
-        Task CleanupExpiredTokensAsync();
-        Task CleanupRevokedTokensAsync(int daysOld = 30);
+        Task<int> DeleteOlderThanAsync(DateTime cutoff, CancellationToken cancellationToken = default);
         Task<IEnumerable<RefreshToken>> GetExpiringSoonTokensAsync(int minutesThreshold = 30);
     }
 } 

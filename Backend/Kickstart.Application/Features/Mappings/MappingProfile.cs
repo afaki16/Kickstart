@@ -127,10 +127,10 @@ namespace Kickstart.Application.Features.Mappings;
 
         // Tenant mappings
         CreateMap<Tenant, TenantDto>()
-            .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.Users != null ? src.Users.Count : 0));
+            .ForMember(dest => dest.UserCount, opt => opt.Ignore());
 
         CreateMap<Tenant, TenantListDto>()
-            .ForMember(dest => dest.UserCount, opt => opt.MapFrom(src => src.Users != null ? src.Users.Count : 0));
+            .ForMember(dest => dest.UserCount, opt => opt.Ignore());
 
         // DTO -> Command mappings (Controller'da kullan�l�r)
         CreateMap<CreateTenantDto, CreateTenantCommand>();

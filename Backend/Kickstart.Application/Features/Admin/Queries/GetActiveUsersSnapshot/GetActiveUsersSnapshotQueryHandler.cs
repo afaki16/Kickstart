@@ -1,3 +1,4 @@
+using Kickstart.Application.Common.Authorization;
 using Kickstart.Application.Common.Results;
 using Kickstart.Application.Features.Admin.Dtos;
 using Kickstart.Application.Interfaces;
@@ -28,6 +29,10 @@ namespace Kickstart.Application.Features.Admin.Queries.GetActiveUsersSnapshot
 
         public async Task<Result<List<ActiveUserSnapshotDto>>> Handle(GetActiveUsersSnapshotQuery request, CancellationToken cancellationToken)
         {
+            if (!TenantAccess.HasTenantScope(_currentUserService))
+                return Result<List<ActiveUserSnapshotDto>>.Failure(
+                    Error.Failure(ErrorCode.Forbidden, "You can only view active users in your own tenant"));
+
             int? tenantId = request.TenantId;
             if (!_currentUserService.CanAccessAllTenants)
             {

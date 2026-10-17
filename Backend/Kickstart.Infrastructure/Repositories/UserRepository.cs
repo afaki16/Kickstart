@@ -110,6 +110,7 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
 
         var users = await baseQuery
             .Include(u => u.UserRoles).ThenInclude(ur => ur.Role)
+            .OrderBy(u => u.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -129,9 +130,9 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
 
         if (!string.IsNullOrEmpty(searchTerm))
             query = query.Where(u =>
-                u.FirstName.ToLower().Contains(searchTerm.ToLower()) ||
-                u.LastName.ToLower().Contains(searchTerm.ToLower()) ||
-                u.Email.ToLower().Contains(searchTerm.ToLower()));
+                u.FirstName.ToLower().Contains(searchTerm.ToLowerInvariant()) ||
+                u.LastName.ToLower().Contains(searchTerm.ToLowerInvariant()) ||
+                u.Email.ToLower().Contains(searchTerm.ToLowerInvariant()));
 
         return query;
     }
@@ -179,5 +180,11 @@ public class UserRepository : RepositoryBase<User, int>, IUserRepository
     {
         return await _context.Set<User>()
             .AnyAsync(u => u.TenantId == tenantId && u.UserRoles.Any(ur => ur.Role.Name == RoleNames.SuperAdmin));
+    }
+
+    public async Task<int> CountByTenantIdAsync(int tenantId)
+    {
+        return await _context.Set<User>()
+            .CountAsync(u => u.TenantId == tenantId);
     }
 }

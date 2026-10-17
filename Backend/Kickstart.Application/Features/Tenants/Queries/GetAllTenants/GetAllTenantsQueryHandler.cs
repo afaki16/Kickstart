@@ -30,7 +30,7 @@ namespace Kickstart.Application.Features.Tenants.Queries.GetAllTenants
             // Arama filtresi
             if (!string.IsNullOrEmpty(request.SearchTerm))
             {
-                var searchTerm = request.SearchTerm.ToLower();
+                var searchTerm = request.SearchTerm.ToLowerInvariant();
                 query = query.Where(t => 
                     t.Name.ToLower().Contains(searchTerm) ||
                     t.Description != null && t.Description.ToLower().Contains(searchTerm) ||
@@ -39,23 +39,23 @@ namespace Kickstart.Application.Features.Tenants.Queries.GetAllTenants
             }
 
             // Sayfalama ve Include
-            var tenants = await query
-                .Include(t => t.Users)
+            var tenantDtos = await query
+                .OrderBy(t => t.Id)
                 .Skip((request.Page - 1) * request.PageSize)
                 .Take(request.PageSize)
+                .Select(t => new TenantListDto
+                {
+                    Id = t.Id,
+                    Name = t.Name,
+                    Description = t.Description,
+                    Domain = t.Domain,
+                    IsActive = t.IsActive,
+                    ContactEmail = t.ContactEmail,
+                    ContactPhone = t.ContactPhone,
+                    CreatedDate = t.CreatedDate,
+                    UserCount = t.Users.Count()
+                })
                 .ToListAsync(cancellationToken);
-
-            var tenantDtos = tenants.Select(t => new TenantListDto
-            {
-                Id = t.Id,
-                Name = t.Name,
-                Description = t.Description,
-                Domain = t.Domain,
-                IsActive = t.IsActive,
-                ContactEmail = t.ContactEmail,
-                CreatedDate = t.CreatedDate,
-                UserCount = t.Users?.Count ?? 0
-            });
 
             return Result<IEnumerable<TenantListDto>>.Success(tenantDtos);
         }

@@ -6,5 +6,6 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
     {
         Task<PasswordResetToken?> GetValidTokenAsync(string token, string email);
         Task InvalidatePreviousTokensAsync(int userId);
+        Task<int> DeleteOlderThanAsync(DateTime cutoff, CancellationToken cancellationToken = default);
     }
 }

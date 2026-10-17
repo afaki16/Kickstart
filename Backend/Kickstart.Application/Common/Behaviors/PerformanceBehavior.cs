@@ -31,8 +31,8 @@ namespace Kickstart.Application.Common.Behaviors
             if (elapsedMilliseconds > 500) // Log if request takes longer than 500ms
             {
                 var requestName = typeof(TRequest).Name;
-                _logger.LogWarning("Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds) {@Request}",
-                    requestName, elapsedMilliseconds, request);
+                _logger.LogWarning("Long Running Request: {Name} ({ElapsedMilliseconds} milliseconds)",
+                    requestName, elapsedMilliseconds);
             }
 
             return response;

@@ -11,7 +11,7 @@ export const useValidators = () => {
 
     password: (value: string) => {
       if (!value) return t('validation.passwordRequired')
-      if (value.length < 6) return t('validation.passwordMinLength', { min: 6 })
+      if (value.length < 8) return t('validation.passwordMinLength', { min: 8 })
       if (!/(?=.*[a-z])/.test(value)) return t('validation.passwordLowercase')
       if (!/(?=.*[A-Z])/.test(value)) return t('validation.passwordUppercase')
       if (!/(?=.*\d)/.test(value)) return t('validation.passwordDigit')

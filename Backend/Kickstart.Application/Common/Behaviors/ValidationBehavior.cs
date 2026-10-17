@@ -53,6 +53,16 @@ namespace Kickstart.Application.Common.Behaviors
                         return (TResponse)method!.Invoke(null, [errorModels])!;
                     }
 
+                    if (resultType.IsGenericType && resultType.GetGenericTypeDefinition() == typeof(PagedResult<>))
+                    {
+                        var itemType = resultType.GetGenericArguments()[0];
+                        var method = typeof(PagedResult<>)
+                            .MakeGenericType(itemType)
+                            .GetMethod(nameof(PagedResult<object>.Failure), new[] { typeof(IEnumerable<Error>) });
+
+                        return (TResponse)method!.Invoke(null, [errorModels])!;
+                    }
+
                     return (TResponse)typeof(Result)
                         .GetMethod(nameof(Result.Failure), new[] { typeof(IEnumerable<Error>) })!
                         .Invoke(null, [errorModels])!;

@@ -74,6 +74,8 @@ builder.Services.AddProblemDetails();
 // to keep manual testing painless; Staging/Production stay strict.
 builder.Services.AddRateLimiting(builder.Environment);
 
+builder.Services.AddHealthChecks().AddDbContextCheck<ApplicationDbContext>();
+
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -130,6 +132,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHealthChecks("/health").AllowAnonymous();
 
 // Apply pending migrations automatically
 using (var scope = app.Services.CreateScope())

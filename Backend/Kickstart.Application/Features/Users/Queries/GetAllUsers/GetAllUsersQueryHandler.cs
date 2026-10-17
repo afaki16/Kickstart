@@ -9,6 +9,10 @@ using Kickstart.Application.Interfaces;
 using Kickstart.Domain.Common.Interfaces;
 using Kickstart.Domain.Common.Interfaces.Repositories;
 using Kickstart.Application.Common.Results;
+using Kickstart.Application.Common.Authorization;
+using Kickstart.Application.Common.Localization;
+using Kickstart.Domain.Common.Enums;
+using Kickstart.Domain.Models;
 using MediatR;
 using System.Collections.Generic;
 using System.Threading;
@@ -21,16 +25,21 @@ namespace Kickstart.Application.Features.Users.Queries.GetAllUsers
         private readonly IUnitOfWork _unitOfWork;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IJsonStringLocalizer _localizer;
 
-        public GetAllUsersQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService)
+        public GetAllUsersQueryHandler(IUnitOfWork unitOfWork, IMapper mapper, ICurrentUserService currentUserService, IJsonStringLocalizer localizer)
         {
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _currentUserService = currentUserService;
+            _localizer = localizer;
         }
 
         public async Task<PagedResult<UserListDto>> Handle(GetAllUsersQuery request, CancellationToken cancellationToken)
         {
+            if (!TenantAccess.HasTenantScope(_currentUserService))
+                return PagedResult<UserListDto>.Failure(Error.Failure(ErrorCode.Forbidden, _localizer["users.noTenantScope"]));
+
             // SuperAdmin sees all tenants' users, Admin/User see only their tenant's users
             int? tenantId = _currentUserService.CanAccessAllTenants ? null : _currentUserService.TenantId;
             var excludeSuperAdmins = !_currentUserService.CanAccessAllTenants;

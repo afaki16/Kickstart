@@ -15,6 +15,16 @@ export interface RegisterRequest {
   phoneNumber?: string
 }
 
+export interface ForgotPasswordRequest {
+  email: string
+}
+
+export interface ResetPasswordRequest {
+  email: string
+  token: string
+  newPassword: string
+}
+
 /**
  * @deprecated Refresh token artık body'de gönderilmiyor — HttpOnly cookie ile gidiyor.
  * Bu tip backend kontratının güncellenmesi için referans olarak duruyor.

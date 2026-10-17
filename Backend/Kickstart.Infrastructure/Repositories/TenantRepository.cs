@@ -33,21 +33,6 @@ namespace Kickstart.Infrastructure.Repositories
             .FirstOrDefaultAsync(t => t.Domain != null && t.Domain.ToLower() == domainLower);
     }
 
-        public async Task<Tenant> GetTenantWithUsersAsync(int tenantId)
-        {
-            return await _context.Set<Tenant>()
-                .Include(t => t.Users)
-                .FirstOrDefaultAsync(t => t.Id == tenantId);
-        }
-
-        public async Task<Tenant> GetTenantWithUsersReadOnlyAsync(int tenantId)
-        {
-            return await _context.Set<Tenant>()
-                .AsNoTracking()
-                .Include(t => t.Users)
-                .FirstOrDefaultAsync(t => t.Id == tenantId);
-        }
-
         public async Task<bool> NameExistsAsync(string name)
     {
         return await _context.Set<Tenant>()

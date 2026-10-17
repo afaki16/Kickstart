@@ -44,6 +44,9 @@ namespace Kickstart.Application.Features.Users.Commands.CreateUser
 
         public async Task<Result<UserListDto>> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
+            if (!TenantAccess.HasTenantScope(_currentUserService))
+                return Result<UserListDto>.Failure(Error.Failure(ErrorCode.Forbidden, _localizer["users.noTenantScope"]));
+
             // New user is created in current user's tenant. Only SuperAdmin can specify TenantId to create in another tenant.
             int? tenantId;
             if (request.TenantId.HasValue)

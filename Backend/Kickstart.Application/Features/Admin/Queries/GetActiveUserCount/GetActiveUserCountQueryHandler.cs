@@ -1,3 +1,4 @@
+using Kickstart.Application.Common.Authorization;
 using Kickstart.Application.Interfaces;
 using Kickstart.Application.Common.Results;
 using Kickstart.Domain.Common.Enums;
@@ -24,6 +25,9 @@ namespace Kickstart.Application.Features.Admin.Queries.GetActiveUserCount
         public async Task<Result<int>> Handle(GetActiveUserCountQuery request, CancellationToken cancellationToken)
         {
             // SuperAdmin can pass null or any tenantId. Admin can only query their own tenant.
+            if (!TenantAccess.HasTenantScope(_currentUserService))
+                return Result<int>.Failure(Error.Failure(ErrorCode.Forbidden, "You can only view active users in your own tenant"));
+
             int? tenantId = request.TenantId;
             if (!_currentUserService.CanAccessAllTenants)
             {

@@ -29,7 +29,7 @@ namespace Kickstart.Application.Features.Admin.Commands.RevokeUserSessions
                 return Result.Failure(Error.Failure(ErrorCode.NotFound, "User not found"));
 
             // Admin can only revoke users in their own tenant. SuperAdmin can revoke any user.
-            if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
+            if (!TenantAccess.CanAccessTenant(_currentUserService, user.TenantId))
                 return Result.Failure(Error.Failure(ErrorCode.Forbidden, "You can only revoke sessions for users in your own tenant"));
 
             if (TenantAdminVisibility.IsHiddenFromTenantAdmin(_currentUserService, user))

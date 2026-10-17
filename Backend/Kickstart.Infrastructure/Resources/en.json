@@ -14,6 +14,7 @@
     "invalidAccessToken": "Invalid access token",
     "invalidUserIdInToken": "Invalid user ID in token",
     "tokenRefreshUnexpectedError": "An unexpected error occurred during token refresh",
+    "sessionsLoadFailed": "An error occurred while loading sessions. Please try again.",
     "userNotAuthenticated": "User not authenticated",
     "currentPasswordIncorrect": "Current password is incorrect",
     "invalidOrExpiredResetLink": "Invalid or expired reset link",
@@ -24,6 +25,7 @@
     "emailExists": "Email already exists",
     "phoneExists": "Phone number already exists",
     "onlySuperAdminCanSpecifyTenant": "Only SuperAdmin can create users in a specific tenant",
+    "noTenantScope": "You must belong to a tenant to perform this action",
     "cannotAssignSuperAdmin": "You cannot assign the SuperAdmin role",
     "cannotAssignRole": "You cannot assign a role with permissions beyond your own.",
     "noAccessToUpdate": "You do not have access to update this user",
@@ -84,7 +86,9 @@
       "description": "Description",
       "domain": "Domain",
       "contactEmail": "Contact email",
-      "contactPhone": "Contact phone"
+      "contactPhone": "Contact phone",
+      "page": "Page",
+      "pageSize": "Page size"
     },
     "required": "{0} field is required",
     "maxLength": "{0} cannot exceed {1} characters",
@@ -93,6 +97,8 @@
     "domainFormat": "Invalid domain format",
     "invalidEnum": "Invalid value for {0}",
     "greaterThan": "{0} must be greater than {1}",
+    "minValue": "{0} must be at least {1}",
+    "range": "{0} must be between {1} and {2}",
     "nameFormat": "{0} can only contain letters, spaces, apostrophes, hyphens and dots",
     "passwordComplexity": "Password must contain at least one lowercase letter, one uppercase letter, and one digit",
     "passwordsDoNotMatch": "Passwords do not match"

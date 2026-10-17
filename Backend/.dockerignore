@@ -10,3 +10,4 @@
 .github/
 setup.sh
 setup.ps1
+**/*.log

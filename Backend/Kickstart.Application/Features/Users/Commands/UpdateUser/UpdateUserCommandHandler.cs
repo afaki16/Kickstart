@@ -50,7 +50,7 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
                     _localizer["users.notFound"]));
 
             // Admin/User can only update users from their own tenant; SuperAdmin can update any user
-            if (!_currentUserService.CanAccessAllTenants && user.TenantId != _currentUserService.TenantId)
+            if (!TenantAccess.CanAccessTenant(_currentUserService, user.TenantId))
                 return Result<UserListDto>.Failure(Error.Failure(
                     ErrorCode.Forbidden,
                     _localizer["users.noAccessToUpdate"]));
@@ -94,6 +94,8 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
                     _localizer["users.phoneExists"]));
 
             var isDeactivated = user.Status == UserStatus.Active && request.Status != UserStatus.Active;
+            var rolesChanged = !user.UserRoles.Select(ur => ur.RoleId).ToHashSet()
+                .SetEquals(request.RoleIds ?? new List<int>());
 
             // Update user properties
             user.FirstName = request.FirstName;
@@ -115,7 +117,19 @@ namespace Kickstart.Application.Features.Users.Commands.UpdateUser
             }
 
             if (isDeactivated)
+            {
                 user.LastSessionsRevokedAt = DateTime.UtcNow;
+            }
+            else if (rolesChanged)
+            {
+                // Role claims (Admin/SuperAdmin) live in the access token; reject tokens issued before this change.
+                // The refresh flow ignores LastSessionsRevokedAt, so the client silently refreshes with the new roles.
+                // Truncated to whole seconds because the token's iat is: otherwise a token refreshed within the same
+                // second would also be rejected. Cost: a token issued in that same second before the change stays
+                // valid until it expires.
+                var now = DateTime.UtcNow;
+                user.LastSessionsRevokedAt = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerSecond, DateTimeKind.Utc);
+            }
 
             _unitOfWork.Users.Update(user);
             await _unitOfWork.SaveChangesAsync();

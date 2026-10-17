@@ -13,6 +13,8 @@ export type {
 export type {
   LoginRequest,
   RegisterRequest,
+  ForgotPasswordRequest,
+  ResetPasswordRequest,
   RefreshTokenRequest,
   Session
 } from './auth'

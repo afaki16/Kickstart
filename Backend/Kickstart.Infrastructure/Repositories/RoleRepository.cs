@@ -63,6 +63,7 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
 
         var roles = await baseQuery
             .Include(r => r.RolePermissions).ThenInclude(rp => rp.Permission)
+            .OrderBy(r => r.Id)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync();
@@ -82,7 +83,7 @@ public class RoleRepository : RepositoryBase<Role, int>, IRoleRepository
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
-            var lower = searchTerm.ToLower();
+            var lower = searchTerm.ToLowerInvariant();
             query = query.Where(r =>
                 (r.Name != null && r.Name.ToLower().Contains(lower)) ||
                 (r.Description != null && r.Description.ToLower().Contains(lower)));

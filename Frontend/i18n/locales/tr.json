@@ -50,7 +50,23 @@
     "strengthWeak": "Zayıf",
     "strengthFair": "Orta",
     "strengthGood": "İyi",
-    "strengthStrong": "Güçlü"
+    "strengthStrong": "Güçlü",
+    "pageTitleForgotPassword": "Şifremi Unuttum - Kickstart",
+    "pageTitleResetPassword": "Yeni Şifre Belirle - Kickstart",
+    "forgotPasswordSubtitle": "Şifre sıfırlama bağlantısı için e-posta adresinizi girin",
+    "sendResetLink": "Bağlantı Gönder",
+    "resetLinkSent": "Bu e-posta adresi kayıtlıysa şifre sıfırlama bağlantısı gönderdik. Lütfen gelen kutunuzu kontrol edin.",
+    "tooManyRequests": "Çok fazla deneme yapıldı. Lütfen biraz bekleyip tekrar deneyin.",
+    "backToLogin": "Giriş Sayfasına Dön",
+    "resetPasswordTitle": "Yeni Şifre Belirle",
+    "resetPasswordSubtitle": "Hesabınız için yeni bir şifre belirleyin",
+    "newPasswordLabel": "Yeni Şifre",
+    "confirmNewPasswordLabel": "Yeni Şifreyi Onayla",
+    "resetPasswordButton": "Şifreyi Güncelle",
+    "resetPasswordSuccess": "Şifreniz güncellendi. Lütfen yeni şifrenizle giriş yapın.",
+    "resetPasswordFailed": "Şifreniz güncellenemedi. Lütfen tekrar deneyin.",
+    "invalidResetLink": "Bu bağlantı geçersiz veya eksik.",
+    "requestNewLink": "Yeni Bağlantı İste"
   },
   "sidebar": {
     "menu": {

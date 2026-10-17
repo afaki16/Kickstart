@@ -25,6 +25,14 @@ namespace Kickstart.Application.Interfaces
             CancellationToken cancellationToken = default);
 
         /// <summary>
+        /// Clears all failed attempts for the email within the failure window, regardless of IP.
+        /// Used after a successful password reset.
+        /// </summary>
+        Task ClearFailuresForEmailAsync(
+            string email,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
         /// Returns true if reaching this failure count crosses a lockout tier threshold.
         /// Used to decide whether to notify the user about the lockout escalation.
         /// </summary>

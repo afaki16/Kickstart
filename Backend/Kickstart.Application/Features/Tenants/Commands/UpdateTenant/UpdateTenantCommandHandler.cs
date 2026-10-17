@@ -30,7 +30,7 @@ namespace Kickstart.Application.Features.Tenants.Commands.UpdateTenant;
 
     public async Task<Result<TenantListDto>> Handle(UpdateTenantCommand request, CancellationToken cancellationToken)
     {
-        var tenant = await _unitOfWork.Tenants.GetTenantWithUsersAsync(request.Id);
+        var tenant = await _unitOfWork.Tenants.GetByIdAsync(request.Id);
 
         if (tenant == null)
         {
@@ -76,7 +76,7 @@ namespace Kickstart.Application.Features.Tenants.Commands.UpdateTenant;
         await _unitOfWork.SaveChangesAsync();
 
         var tenantDto = _mapper.Map<TenantListDto>(tenant);
-        tenantDto.UserCount = tenant.Users?.Count ?? 0;
+        tenantDto.UserCount = await _unitOfWork.Users.CountByTenantIdAsync(tenant.Id);
         return Result<TenantListDto>.Success(tenantDto);
     }
 }

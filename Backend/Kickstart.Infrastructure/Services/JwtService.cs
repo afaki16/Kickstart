@@ -69,7 +69,7 @@ namespace Kickstart.Infrastructure.Services
                 _passwordService.VerifyPassword(password, SecurityConstants.DummyBCryptHash);
 
                 await _bruteForceService.RecordFailedAttemptAsync(
-                    normalizedEmail, safeIp, userAgent, "AccountLocked");
+                    normalizedEmail, safeIp, userAgent, LoginFailureReasons.AccountLocked);
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.Unauthorized,
@@ -94,7 +94,7 @@ namespace Kickstart.Infrastructure.Services
                 _passwordService.VerifyPassword(password, SecurityConstants.DummyBCryptHash);
 
                 await _bruteForceService.RecordFailedAttemptAsync(
-                    normalizedEmail, safeIp, userAgent, "MultipleTenants");
+                    normalizedEmail, safeIp, userAgent, LoginFailureReasons.MultipleTenants);
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.ValidationFailed,
@@ -107,7 +107,7 @@ namespace Kickstart.Infrastructure.Services
                 // distinguish missing accounts from real ones via response time.
                 _passwordService.VerifyPassword(password, SecurityConstants.DummyBCryptHash);
 
-                await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "UserNotFound", null);
+                await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, LoginFailureReasons.UserNotFound, null);
 
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.Unauthorized,
@@ -117,7 +117,7 @@ namespace Kickstart.Infrastructure.Services
             var passwordVerification = _passwordService.VerifyPassword(password, user.PasswordHash);
             if (!passwordVerification.IsSuccess || !passwordVerification.Value)
             {
-                await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, "InvalidPassword", user);
+                await RecordFailureAndNotifyAsync(normalizedEmail, safeIp, userAgent, LoginFailureReasons.InvalidPassword, user);
                 return Result<LoginResponseDto>.Failure(Error.Failure(
                     ErrorCode.Unauthorized,
                     _localizer["auth.invalidCredentials"]));
@@ -126,7 +126,7 @@ namespace Kickstart.Infrastructure.Services
             if (user.Status != Domain.Common.Enums.UserStatus.Active)
             {
                 await _bruteForceService.RecordFailedAttemptAsync(
-                    normalizedEmail, safeIp, userAgent, "AccountInactive");
+                    normalizedEmail, safeIp, userAgent, LoginFailureReasons.AccountInactive);
 
                 _logger.LogWarning(
                     "Login attempt on inactive account. Email: {Email}, Status: {Status}, IP: {IpAddress}",
@@ -143,7 +143,7 @@ namespace Kickstart.Infrastructure.Services
             if (user.TenantId != null && (user.Tenant == null || !user.Tenant.IsActive))
             {
                 await _bruteForceService.RecordFailedAttemptAsync(
-                    normalizedEmail, safeIp, userAgent, "TenantInactive");
+                    normalizedEmail, safeIp, userAgent, LoginFailureReasons.TenantInactive);
 
                 _logger.LogWarning(
                     "Login attempt on inactive tenant. Email: {Email}, TenantId: {TenantId}, IP: {IpAddress}",
@@ -157,7 +157,7 @@ namespace Kickstart.Infrastructure.Services
             if (!user.EmailConfirmed)
             {
                 await _bruteForceService.RecordFailedAttemptAsync(
-                    normalizedEmail, safeIp, userAgent, "EmailNotConfirmed");
+                    normalizedEmail, safeIp, userAgent, LoginFailureReasons.EmailNotConfirmed);
 
                 _logger.LogWarning(
                     "Login attempt on unconfirmed email. Email: {Email}, IpAddress: {IpAddress}",

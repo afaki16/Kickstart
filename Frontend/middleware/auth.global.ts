@@ -20,10 +20,10 @@ export default defineNuxtRouteMiddleware(async (to) => {
     await authStore.initializeAuth()
   }
 
-  // verify-email her zaman erişilebilir (email link tıklamasıyla gelinir)
-  if (to.path === '/auth/verify-email') return
+  // verify-email ve reset-password her zaman erişilebilir (email link tıklamasıyla gelinir)
+  if (to.path === '/auth/verify-email' || to.path === '/auth/reset-password') return
 
-  const publicRoutes = ['/auth/register', '/auth/check-email', '/']
+  const publicRoutes = ['/auth/register', '/auth/check-email', '/auth/forgot-password', '/']
 
   if (publicRoutes.includes(to.path)) {
     // Authenticated kullanıcı login sayfasına gelirse dashboard'a at

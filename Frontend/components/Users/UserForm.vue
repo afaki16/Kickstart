@@ -85,7 +85,6 @@
               :items="tenants"
               item-title="name"
               item-value="id"
-              :menu-props="{ zIndex: 10000 }"
               label="Tenant"
               variant="outlined"
               :disabled="loading"

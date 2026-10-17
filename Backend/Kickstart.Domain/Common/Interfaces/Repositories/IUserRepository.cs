@@ -37,5 +37,7 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
         Task<(DateTime? LastSessionsRevokedAt, UserStatus Status, int? TenantId, bool TenantOk)?> GetSessionStateAsync(int userId);
 
         Task<bool> TenantHasSuperAdminAsync(int tenantId);
+
+        Task<int> CountByTenantIdAsync(int tenantId);
     }
 } 

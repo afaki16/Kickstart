@@ -24,7 +24,9 @@ namespace Kickstart.Infrastructure.Services
             (30, 10080)    // 30 failures -> 7 days (manual admin intervention recommended)
         };
 
-        private static readonly TimeSpan FailureWindow = TimeSpan.FromHours(24);
+        // How long a failed attempt keeps counting toward lockout. Deliberately independent
+        // of the tier durations above, so editing the tiers does not silently shrink it.
+        private static readonly TimeSpan FailureWindow = TimeSpan.FromDays(7);
 
         public BruteForceProtectionService(
             IUnitOfWork unitOfWork,
@@ -138,6 +140,18 @@ namespace Kickstart.Infrastructure.Services
             };
 
             await _unitOfWork.LoginAttempts.AddAsync(attempt);
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
+        }
+
+        public async Task ClearFailuresForEmailAsync(
+            string email,
+            CancellationToken cancellationToken = default)
+        {
+            var since = DateTime.UtcNow - FailureWindow;
+
+            await _unitOfWork.LoginAttempts
+                .ClearFailuresForEmailAsync(email, since, cancellationToken);
+
             await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 

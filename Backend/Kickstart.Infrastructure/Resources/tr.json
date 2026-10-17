@@ -14,6 +14,7 @@
     "invalidAccessToken": "Geçersiz erişim tokeni",
     "invalidUserIdInToken": "Token içindeki kullanıcı kimliği geçersiz",
     "tokenRefreshUnexpectedError": "Token yenileme sırasında beklenmeyen bir hata oluştu",
+    "sessionsLoadFailed": "Oturumlar yüklenirken bir hata oluştu. Lütfen tekrar deneyin.",
     "userNotAuthenticated": "Kullanıcı kimliği doğrulanmamış",
     "currentPasswordIncorrect": "Mevcut şifre hatalı",
     "invalidOrExpiredResetLink": "Geçersiz veya süresi dolmuş sıfırlama bağlantısı",
@@ -24,6 +25,7 @@
     "emailExists": "Bu email adresi zaten kullanılıyor",
     "phoneExists": "Bu telefon numarası zaten kullanılıyor",
     "onlySuperAdminCanSpecifyTenant": "Sadece SuperAdmin başka bir tenant için kullanıcı oluşturabilir",
+    "noTenantScope": "Bu işlemi yapabilmeniz için bir tenant'a bağlı olmanız gerekir",
     "cannotAssignSuperAdmin": "SuperAdmin rolü atayamazsınız",
     "cannotAssignRole": "Kendi yetkinizi aşan bir rol atayamazsınız.",
     "noAccessToUpdate": "Bu kullanıcıyı güncelleme yetkiniz yok",
@@ -84,7 +86,9 @@
       "description": "Açıklama",
       "domain": "Domain",
       "contactEmail": "İletişim e-postası",
-      "contactPhone": "İletişim telefonu"
+      "contactPhone": "İletişim telefonu",
+      "page": "Sayfa",
+      "pageSize": "Sayfa boyutu"
     },
     "required": "{0} alanı zorunludur",
     "maxLength": "{0} en fazla {1} karakter olabilir",
@@ -93,6 +97,8 @@
     "domainFormat": "Geçersiz domain formatı",
     "invalidEnum": "{0} için geçersiz değer",
     "greaterThan": "{0} {1}'den büyük olmalıdır",
+    "minValue": "{0} en az {1} olmalıdır",
+    "range": "{0} {1} ile {2} arasında olmalıdır",
     "nameFormat": "{0} yalnızca harf, boşluk, kesme işareti, tire ve nokta içerebilir",
     "passwordComplexity": "Şifre en az bir küçük harf, bir büyük harf ve bir rakam içermelidir",
     "passwordsDoNotMatch": "Şifreler eşleşmiyor"

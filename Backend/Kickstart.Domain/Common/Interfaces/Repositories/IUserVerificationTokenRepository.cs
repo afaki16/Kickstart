@@ -15,5 +15,7 @@ namespace Kickstart.Domain.Common.Interfaces.Repositories
             int userId,
             VerificationChannel channel,
             VerificationPurpose purpose);
+
+        Task<int> DeleteOlderThanAsync(DateTime cutoff, CancellationToken cancellationToken = default);
     }
 }
